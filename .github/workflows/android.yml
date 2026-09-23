@@ -41,9 +41,10 @@ jobs:
       - name: Unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
 
-      - name: Lint (static analysis — non-blocking: known AGP 9.0 K2 lint crash
-            "Unexpected failure during lint analysis of KtLambdaExpression" hits
-            random detectors/files; reports are published for review instead)
+      # Non-blocking: known AGP 9.0 K2 lint crash ("Unexpected failure during
+      # lint analysis ... KtLambdaExpression") hits random detectors/files.
+      # Reports are published as artifacts for review instead.
+      - name: Lint (static analysis, non-blocking)
         continue-on-error: true
         run: ./gradlew --no-daemon lintDebug
 
