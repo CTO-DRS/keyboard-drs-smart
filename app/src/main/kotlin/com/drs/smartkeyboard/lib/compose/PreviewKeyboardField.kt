@@ -33,9 +33,8 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -79,6 +78,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -87,6 +87,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -94,11 +95,16 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChangeIgnoreConsumed
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextDirection
@@ -440,13 +446,22 @@ private fun DraggablePillBody(
 /**
  * The luxurious pill visual: soft gradient, thin border, elevated shadow,
  * keyboard icon in a tinted badge, bold label and a subtle press-scale.
+ *
+ * DRS fix: a single unified tap-or-drag gesture detector replaces the former
+ * [Modifier.clickable] + [androidx.compose.foundation.gestures.detectDragGestures]
+ * pair. With two competing detectors, any finger movement past the touch slop
+ * during a "tap" was claimed by the drag detector, which consumed the event
+ * stream out from under the clickable — so on real devices the pill often
+ * refused to open (it only nudged sideways). Gesture ownership now lives in
+ * exactly one place: release before the slop = tap, movement beyond the slop
+ * = drag. Deterministic on every device and every Compose version.
  */
 @Composable
 private fun DrsPreviewPillContent(
     hint: String,
     onClick: () -> Unit,
     onDragStart: () -> Unit = {},
-    onDrag: (androidx.compose.ui.geometry.Offset) -> Unit = {},
+    onDrag: (Offset) -> Unit = {},
     onDragEnd: () -> Unit = {},
 ) {
     val colorScheme = MaterialTheme.colorScheme
@@ -458,13 +473,19 @@ private fun DrsPreviewPillContent(
     )
     val borderColor = colorScheme.outlineVariant.copy(alpha = 0.55f)
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
+    var pressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(
         targetValue = if (pressed) 0.95f else 1f,
         animationSpec = tween(AnimationDuration),
         label = "DrsPreviewPillScale",
     )
+
+    // DRS: always dispatch into the freshest callbacks without ever restarting
+    // the gesture detector mid-gesture (Unit-keyed pointerInput).
+    val currentOnClick by rememberUpdatedState(onClick)
+    val currentOnDragStart by rememberUpdatedState(onDragStart)
+    val currentOnDrag by rememberUpdatedState(onDrag)
+    val currentOnDragEnd by rememberUpdatedState(onDragEnd)
 
     Row(
         modifier = Modifier
@@ -476,21 +497,52 @@ private fun DrsPreviewPillContent(
             .clip(PreviewPillShape)
             .background(pillGradient)
             .border(BorderStroke(1.dp, borderColor), PreviewPillShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClickLabel = hint,
-                onClick = onClick,
-            )
+            // DRS: keep TalkBack parity with the former clickable() — an
+            // accessibility click action (never fired by touch, so it cannot
+            // collide with the unified gesture detector above).
+            .semantics(mergeDescendants = true) {
+                onClick(label = hint) { currentOnClick(); true }
+            }
             .pointerInput(Unit) {
-                detectDragGestures(
-                    onDragStart = { onDragStart() },
-                    onDrag = { change, dragAmount ->
-                        change.consume()
-                        onDrag(dragAmount)
-                    },
-                    onDragEnd = { onDragEnd() },
-                )
+                awaitEachGesture {
+                    val down = awaitFirstDown(requireUnconsumed = false)
+                    down.consume()
+                    pressed = true
+                    var dragStarted = false
+                    var totalDelta = Offset.Zero
+                    try {
+                        while (true) {
+                            val event = awaitPointerEvent()
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (change.changedToUpIgnoreConsumed()) {
+                                // Released before the slop: a clean tap. After the
+                                // slop: the drag already handled the move; do not
+                                // fire the click as well.
+                                if (!dragStarted) currentOnClick()
+                                change.consume()
+                                break
+                            }
+                            val delta = change.positionChangeIgnoreConsumed()
+                            if (!dragStarted) {
+                                // Another gesture took ownership (e.g. a parent
+                                // scroll): stand down instead of fighting it.
+                                if (change.isConsumed) break
+                                totalDelta += delta
+                                if (totalDelta.getDistance() > viewConfiguration.touchSlop) {
+                                    dragStarted = true
+                                    currentOnDragStart()
+                                }
+                            }
+                            if (dragStarted) {
+                                change.consume()
+                                currentOnDrag(delta)
+                            }
+                        }
+                    } finally {
+                        pressed = false
+                        if (dragStarted) currentOnDragEnd()
+                    }
+                }
             }
             .padding(start = 14.dp, end = 22.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -529,10 +581,25 @@ private fun PreviewFloatingField(
     context: Context,
 ) {
     val colorScheme = MaterialTheme.colorScheme
+    val keyboard = LocalSoftwareKeyboardController.current
+    var fieldHasFocus by remember { mutableStateOf(false) }
 
+    // DRS fix: expanding from the pill must be bullet-proof. A single
+    // requestFocus() can transiently fail while the AnimatedContent transition
+    // is still attaching the freshly composed field (and some OEM Android 14/15
+    // builds then keep the IME hidden even after focus lands). Retry the focus
+    // request for a few frames until the field really holds focus, then
+    // explicitly raise the IME — both steps are harmless no-ops if already done.
     LaunchedEffect(controller.isEditing) {
+        if (!controller.isEditing) return@LaunchedEffect
+        var attempts = 0
+        while (!fieldHasFocus && attempts < 12) {
+            runCatching { controller.focusRequester.requestFocus() }
+            withFrameNanos { }
+            attempts++
+        }
         if (controller.isEditing) {
-            controller.focusRequester.requestFocus()
+            keyboard?.show()
         }
     }
 
@@ -554,7 +621,10 @@ private fun PreviewFloatingField(
                         false
                     }
                     .focusRequester(controller.focusRequester)
-                    .onFocusChanged { controller.isEditing = it.isFocused },
+                    .onFocusChanged {
+                        fieldHasFocus = it.isFocused
+                        controller.isEditing = it.isFocused
+                    },
                 value = controller.text,
                 onValueChange = { controller.text = it },
                 textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.ContentOrLtr),
