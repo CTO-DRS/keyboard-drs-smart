@@ -121,7 +121,7 @@ fun Modifier.tooltip(
     padding: PaddingValues = TooltipPadding,
     shape: Shape? = null,
     windowResolver: @Composable () -> Window = { LocalContext.current.findWindow()!! },
-): Modifier = Modifier
+): Modifier = this
 
 /**
  * Material 3 design tooltip following Android's framework tooltip design as close as possible by default.
