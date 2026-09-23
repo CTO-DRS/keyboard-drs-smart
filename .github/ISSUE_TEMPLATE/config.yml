@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussions
+    url: https://github.com/CTO-DRS/keyboard-drs-smart/discussions
+    about: General chat about DRS Smart Keyboard and quick Q/A

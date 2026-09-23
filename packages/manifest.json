@@ -1,0 +1,158 @@
+{
+  "$schema": "https://schemas.drs-keyboard.org/packages/manifest/v1",
+  "updated": "2026-09-23",
+  "packages": [
+    {
+      "package_id": "org.drs.packages.sunset",
+      "name": "سمة الغروب • Sunset",
+      "description": "درجات دافئة من البرتقالي والوردي المستوحاة من غروب الشمس — سمة نهارية كاملة.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 2499,
+      "sha256": "2139ad633b0aa92ad91a3c99af8f6e01d9d2d149e202676719a8bcae7ab007de",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-sunset-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#ff7043",
+        "#f4511e",
+        "#fff3e0",
+        "#ffffff"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.ocean",
+      "name": "سمة المحيط • Ocean",
+      "description": "أزرق وتركوازي عميق بروح البحر — سمة نهارية وليلية.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 4567,
+      "sha256": "8d49c50b5a4105ab8b104dd6e0ae1347933bd3359a142fbd9b3aecc2f0f54f22",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-ocean-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#0288d1",
+        "#01579b",
+        "#e1f5fe",
+        "#37474f"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.forest",
+      "name": "سمة الغابة • Forest",
+      "description": "أخضر عميق وهدوء الطبيعة — سمة نهارية وليلية.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 4573,
+      "sha256": "3121820e8d59c96530166f44354edd9ce7ec46c4ce90a881c7068bc58503c61e",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-forest-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#2e7d32",
+        "#1b5e20",
+        "#e8f5e9",
+        "#1a2e1a"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.amethyst",
+      "name": "سمة الجمشت • Amethyst",
+      "description": "بنفسجي ملكي فاخر مستوحى من حجر الجمشت — سمة ليلية.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 2490,
+      "sha256": "fb51e1a237c7a0dbc9929f029667ea57c982ed6629aa2460316db04d6b278094",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-amethyst-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#7e57c2",
+        "#512da8",
+        "#1a1626",
+        "#311b92"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.rose",
+      "name": "سمة الورد • Rose",
+      "description": "وردي أنيق ناعم بلمسة عصرية — سمة نهارية.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 2476,
+      "sha256": "39f7749fc6d7ee0ca5896a4e51a687ed1ebcb3ffee57ca4bc8a56689571d86f9",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-rose-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#e91e63",
+        "#ad1457",
+        "#fce4ec",
+        "#ffffff"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.carbon",
+      "name": "سمة الكربون • Carbon",
+      "description": "رمادي فحمي محايد بلمسة كهرمانية — سمة ليلية للتركيز.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 2479,
+      "sha256": "5152a0278db22389c506257d4fccae51e0477db8cac2cc4b45175f1c5829164e",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-carbon-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#ffc107",
+        "#ffa000",
+        "#121212",
+        "#424242"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.arabian",
+      "name": "سمة ليلة عربية • Arabian Night",
+      "description": "تركواز وصحراء بذهب الأصيل — هوية عربية أصيلة للوحة المفاتيح.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 4594,
+      "sha256": "52f7f79c78c5ca813290bd0c4b372cd08cbca3a12963971ff5c3bbfd9e40e606",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-arabian-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#00897b",
+        "#00695c",
+        "#0f1f1d",
+        "#d4af37"
+      ]
+    },
+    {
+      "package_id": "org.drs.packages.aurora",
+      "name": "سمة الشفق • Aurora",
+      "description": "ألوان الشفق القطبي: سماوي وأخضر متوهج — سمة ليلية.",
+      "version": "1.0.0",
+      "type": "ime/theme",
+      "file_size": 2485,
+      "sha256": "af489d1f757aea7d601ab8f303b8bd6332355053e3947e9efd98746f2d016e49",
+      "download_url": "https://github.com/CTO-DRS/keyboard-drs-smart/releases/download/v1.0.0/pkg-aurora-v1.0.0.flex",
+      "release_date": "2026-09-23",
+      "author": "CTO-DRS",
+      "min_app_version": "1.0.0",
+      "colors": [
+        "#26c6da",
+        "#69f0ae",
+        "#0c1622",
+        "#304ffe"
+      ]
+    }
+  ]
+}

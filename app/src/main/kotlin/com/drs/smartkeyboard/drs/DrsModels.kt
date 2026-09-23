@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2021-2025 The DRS Smart Keyboard Project
+ * Copyright (C) 2025 DRS Smart Keyboard contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.drs.smartkeyboard.drs
+
+import kotlinx.serialization.Serializable
+
+/**
+ * The user path selected during onboarding (or changed later from the
+ * DRS Control Center). Defines which experience the keyboard prepares.
+ */
+enum class DrsUserPath {
+    /** DRS Smart Basic Mode: everyday typing, chats, social, speed, emoji. */
+    NORMAL,
+
+    /** DRS Technical Mode: coding symbols, navigation keys, snippets. */
+    TECHNICAL,
+
+    /** DRS Hybrid Mode: both worlds with fast switching. */
+    HYBRID,
+}
+
+/**
+ * Context mode derived from the focused field (EditorInfo) each time input
+ * starts. The keyboard adapts its toolbar/layout accordingly when possible.
+ */
+enum class DrsContextMode {
+    NORMAL, CHAT, WRITING, CODING, NUMBERS, SEARCH, PASSWORD, TECHNICAL,
+}
+
+/** A self-contained keyboard profile with independent settings. */
+@Serializable
+data class DrsProfile(
+    val id: String,
+    val name: String,
+    /** One of DrsUserPath names or CUSTOM. */
+    val path: String,
+    /** Full theme component id for the day theme, e.g. "org.drs.themes:drs_day". */
+    val dayThemeId: String,
+    /** Full theme component id for the night theme. */
+    val nightThemeId: String,
+    val numberRow: Boolean,
+    val techStripEnabled: Boolean,
+    val suggestionsEnabled: Boolean,
+    val clipboardHistoryEnabled: Boolean,
+    val audioFeedbackEnabled: Boolean,
+    val hapticFeedbackEnabled: Boolean,
+)
+
+/** A text shortcut: typing [shortcut] then space expands to [expansion]. */
+@Serializable
+data class DrsShortcut(
+    val id: Long,
+    val shortcut: String,
+    val expansion: String,
+    val isTechnical: Boolean = false,
+)
+
+/**
+ * Aggregated, anonymous usage counters used by the local adaptation engine.
+ * Only counts are stored - never typed text. Nothing leaves the device.
+ */
+@Serializable
+data class DrsUsageStats(
+    val keyPresses: Long = 0,
+    val numberPresses: Long = 0,
+    val symbolPresses: Long = 0,
+    val emojiUses: Long = 0,
+    val clipboardUses: Long = 0,
+    val shortcutUses: Long = 0,
+    val techToolUses: Long = 0,
+    val gestureUses: Long = 0,
+)
+
+/**
+ * A single entry in the rewards ledger (دفتر المكافآت). Only meaningful
+ * events are logged: daily bonuses, feature rewards and store purchases.
+ * Typing rewards accumulate silently without flooding the ledger.
+ */
+@Serializable
+data class DrsLedgerEntry(
+    /** Local day stamp, e.g. "2026-09-23". */
+    val day: String = "",
+    /** Machine reason key, e.g. "daily_bonus" or "buy:title_chat_legend". */
+    val reason: String = "",
+    /** Signed points delta (positive earn, negative spend). */
+    val delta: Long = 0,
+)
+
+/**
+ * The DRS rewards wallet: one dedicated balance per system, lifetime
+ * counters, the daily streak and the owned/equipped store items.
+ *
+ * Every system owns its own currency: points earned while a system is
+ * active are credited to THAT system's balance only, so each system has
+ * its own economy that grows with its own usage.
+ */
+@Serializable
+data class DrsWallet(
+    val normal: Long = 0,
+    val technical: Long = 0,
+    val hybrid: Long = 0,
+    /** Lifetime earned counters per system (never decreased by spending). */
+    val earnedNormal: Long = 0,
+    val earnedTechnical: Long = 0,
+    val earnedHybrid: Long = 0,
+    /** Consecutive daily-active days (caps the daily bonus size). */
+    val streakDays: Int = 0,
+    /** Last day any balance changed, e.g. "2026-09-23". */
+    val lastActiveDay: String = "",
+    /** Day the daily bonus was last granted (prevents double-grant). */
+    val dailyBonusDay: String = "",
+    /** Purchased reward item ids. */
+    val ownedItems: List<String> = emptyList(),
+    val equippedTitle: String = "",
+    val equippedBadge: String = "",
+    val equippedCard: String = "",
+    /** Recent ledger entries, newest first, capped. */
+    val ledger: List<DrsLedgerEntry> = emptyList(),
+)
+
+/** Root of the persisted DRS state (single small JSON file, local only). */
+@Serializable
+data class DrsState(
+    val version: Int = 1,
+    val onboardingDone: Boolean = false,
+    val userPath: String = DrsUserPath.NORMAL.name,
+    val activeProfileId: String = "",
+    val profiles: List<DrsProfile> = emptyList(),
+    val shortcuts: List<DrsShortcut> = emptyList(),
+    val usage: DrsUsageStats = DrsUsageStats(),
+    val dismissedSuggestionIds: List<String> = emptyList(),
+    val adaptationEnabled: Boolean = true,
+    val contextModesEnabled: Boolean = true,
+    val shortcutsEnabled: Boolean = true,
+    val nextShortcutId: Long = 1,
+    val wallet: DrsWallet = DrsWallet(),
+)
+
+/** Suggestion ids produced by the local adaptation engine. */
+object DrsSuggestionIds {
+    const val NUMBER_ROW = "number_row"
+    const val TECH_STRIP = "tech_strip"
+    const val CLIPBOARD_HISTORY = "clipboard_history"
+    const val TECHNICAL_PATH = "technical_path"
+    const val SHORTCUTS = "shortcuts"
+}

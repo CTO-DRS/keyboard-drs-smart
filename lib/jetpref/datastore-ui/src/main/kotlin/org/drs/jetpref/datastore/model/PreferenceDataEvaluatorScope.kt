@@ -1,0 +1,67 @@
+/*
+ * Copyright (C) 2021-2026 The DRS Smart Keyboard Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.drs.jetpref.datastore.model
+
+import androidx.compose.runtime.Composable
+
+typealias PreferenceDataEvaluator = @Composable PreferenceDataEvaluatorScope.() -> Boolean
+
+object PreferenceDataEvaluatorScope {
+    @Composable
+    infix fun <V : Any> PreferenceData<V>.isEqualTo(other: PreferenceData<V>): Boolean {
+        val pref1 = this.collectAsState()
+        val pref2 = other.collectAsState()
+        return pref1.value == pref2.value
+    }
+
+    @Composable
+    infix fun <V : Any> PreferenceData<V>.isEqualTo(other: V): Boolean {
+        val pref = this.collectAsState()
+        return pref.value == other
+    }
+
+    @Composable
+    infix fun <V : Any> V.isEqualTo(other: PreferenceData<V>): Boolean {
+        val pref = other.collectAsState()
+        return this == pref.value
+    }
+
+    @Composable
+    infix fun <V : Any> PreferenceData<V>.isNotEqualTo(other: PreferenceData<V>): Boolean {
+        return !(this isEqualTo other)
+    }
+
+    @Composable
+    infix fun <V : Any> PreferenceData<V>.isNotEqualTo(other: V): Boolean {
+        return !(this isEqualTo other)
+    }
+
+    @Composable
+    infix fun <V : Any> V.isNotEqualTo(other: PreferenceData<V>): Boolean {
+        return !(this isEqualTo other)
+    }
+
+    @Composable
+    fun PreferenceData<Boolean>.isTrue(): Boolean {
+        return this isEqualTo true
+    }
+
+    @Composable
+    fun PreferenceData<Boolean>.isFalse(): Boolean {
+        return this isEqualTo false
+    }
+}
