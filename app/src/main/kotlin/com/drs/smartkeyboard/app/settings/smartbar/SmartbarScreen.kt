@@ -25,8 +25,11 @@ import com.drs.smartkeyboard.ime.smartbar.ExtendedActionsPlacement
 import com.drs.smartkeyboard.ime.smartbar.SmartbarLayout
 import com.drs.smartkeyboard.lib.compose.DrsScreen
 import org.drs.jetpref.datastore.ui.ListPreference
+import org.drs.jetpref.datastore.ui.Preference
 import org.drs.jetpref.datastore.ui.PreferenceGroup
 import org.drs.jetpref.datastore.ui.SwitchPreference
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Tune
 import org.drs.lib.compose.stringRes
 
 @Composable
@@ -35,6 +38,14 @@ fun SmartbarScreen() = DrsScreen {
     previewFieldVisible = true
 
     content {
+        // DRS v1.0.5: actionable pointer to the in-IME tool customization —
+        // informational row (not clickable) because the drag-and-drop editor
+        // lives inside the keyboard itself.
+        Preference(
+            icon = Icons.Default.Tune,
+            title = stringRes(R.string.pref__smartbar__customize_hint__label),
+            summary = stringRes(R.string.pref__smartbar__customize_hint__summary),
+        )
         PreferenceGroup(title = stringRes(R.string.pref__smartbar__group_basics__label)) {
             SwitchPreference(
                 prefs.smartbar.enabled,

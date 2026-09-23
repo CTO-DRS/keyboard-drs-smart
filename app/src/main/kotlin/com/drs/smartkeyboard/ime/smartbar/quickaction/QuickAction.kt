@@ -74,6 +74,46 @@ fun QuickAction.keyData(): KeyData {
     return if (this is QuickAction.InsertKey) data else TextKeyData.UNSPECIFIED
 }
 
+/**
+ * DRS v1.0.5: the KeyCodes that count as "smart tools" for the anonymous
+ * most-used-tools statistics (and hence the most-used section in the tools
+ * overflow). Deliberately excludes plain editing keys (characters, shift,
+ * ctrl modifiers, delete...) so only actual tool button presses count.
+ */
+val SmartToolCodes = setOf(
+    KeyCode.ARROW_LEFT,
+    KeyCode.ARROW_RIGHT,
+    KeyCode.ARROW_UP,
+    KeyCode.ARROW_DOWN,
+    KeyCode.MOVE_START_OF_PAGE,
+    KeyCode.MOVE_END_OF_PAGE,
+    KeyCode.MOVE_START_OF_LINE,
+    KeyCode.MOVE_END_OF_LINE,
+    KeyCode.MOVE_WORD_LEFT,
+    KeyCode.MOVE_WORD_RIGHT,
+    KeyCode.CLIPBOARD_COPY,
+    KeyCode.CLIPBOARD_CUT,
+    KeyCode.CLIPBOARD_PASTE,
+    KeyCode.CLIPBOARD_SELECT,
+    KeyCode.CLIPBOARD_SELECT_ALL,
+    KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP,
+    KeyCode.CLIPBOARD_SHARE,
+    KeyCode.UNDO,
+    KeyCode.REDO,
+    KeyCode.LANGUAGE_SWITCH,
+    KeyCode.IME_UI_MODE_MEDIA,
+    KeyCode.IME_UI_MODE_CLIPBOARD,
+    KeyCode.VOICE_INPUT,
+    KeyCode.TOGGLE_FLOATING_WINDOW,
+    KeyCode.TOGGLE_COMPACT_LAYOUT,
+    KeyCode.TOGGLE_RESIZE_MODE,
+    KeyCode.TOGGLE_INCOGNITO_MODE,
+    KeyCode.TOGGLE_AUTOCORRECT,
+    KeyCode.SETTINGS,
+    KeyCode.TOGGLE_ACTIONS_OVERFLOW,
+    KeyCode.IME_HIDE_UI,
+)
+
 @Composable
 fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
     return when (this) {
@@ -87,6 +127,9 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.CLIPBOARD_CUT -> R.string.quick_action__clipboard_cut
             KeyCode.CLIPBOARD_PASTE -> R.string.quick_action__clipboard_paste
             KeyCode.CLIPBOARD_SELECT_ALL -> R.string.quick_action__clipboard_select_all
+            KeyCode.CLIPBOARD_SHARE -> R.string.quick_action__clipboard_share
+            KeyCode.MOVE_WORD_LEFT -> R.string.quick_action__move_word_left
+            KeyCode.MOVE_WORD_RIGHT -> R.string.quick_action__move_word_right
             KeyCode.FORWARD_DELETE -> R.string.quick_action__forward_delete
             KeyCode.IME_UI_MODE_CLIPBOARD -> R.string.quick_action__ime_ui_mode_clipboard
             KeyCode.IME_UI_MODE_MEDIA -> R.string.quick_action__ime_ui_mode_media
@@ -128,6 +171,9 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.CLIPBOARD_CUT -> R.string.quick_action__clipboard_cut__tooltip
             KeyCode.CLIPBOARD_PASTE -> R.string.quick_action__clipboard_paste__tooltip
             KeyCode.CLIPBOARD_SELECT_ALL -> R.string.quick_action__clipboard_select_all__tooltip
+            KeyCode.CLIPBOARD_SHARE -> R.string.quick_action__clipboard_share__tooltip
+            KeyCode.MOVE_WORD_LEFT -> R.string.quick_action__move_word_left__tooltip
+            KeyCode.MOVE_WORD_RIGHT -> R.string.quick_action__move_word_right__tooltip
             KeyCode.IME_UI_MODE_CLIPBOARD -> R.string.quick_action__ime_ui_mode_clipboard__tooltip
             KeyCode.IME_UI_MODE_MEDIA -> R.string.quick_action__ime_ui_mode_media__tooltip
             KeyCode.LANGUAGE_SWITCH -> R.string.quick_action__language_switch__tooltip

@@ -82,11 +82,16 @@ data class QuickActionArrangement(
                 QuickAction.InsertKey(TextKeyData.ARROW_DOWN),
                 QuickAction.InsertKey(TextKeyData.ARROW_LEFT),
                 QuickAction.InsertKey(TextKeyData.ARROW_RIGHT),
+                // DRS v1.0.5: word-by-word cursor navigation.
+                QuickAction.InsertKey(TextKeyData.MOVE_WORD_LEFT),
+                QuickAction.InsertKey(TextKeyData.MOVE_WORD_RIGHT),
                 QuickAction.InsertKey(TextKeyData.CLIPBOARD_CLEAR_PRIMARY_CLIP),
                 QuickAction.InsertKey(TextKeyData.CLIPBOARD_COPY),
                 QuickAction.InsertKey(TextKeyData.CLIPBOARD_CUT),
                 QuickAction.InsertKey(TextKeyData.CLIPBOARD_PASTE),
                 QuickAction.InsertKey(TextKeyData.CLIPBOARD_SELECT_ALL),
+                // DRS v1.0.5: share the selected text (or the whole field).
+                QuickAction.InsertKey(TextKeyData.CLIPBOARD_SHARE),
                 QuickAction.InsertKey(TextKeyData.LANGUAGE_SWITCH),
                 QuickAction.InsertKey(TextKeyData.FORWARD_DELETE),
                 QuickAction.InsertKey(TextKeyData.IME_HIDE_UI),

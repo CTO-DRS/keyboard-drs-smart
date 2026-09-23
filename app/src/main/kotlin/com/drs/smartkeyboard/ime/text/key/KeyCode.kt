@@ -59,6 +59,10 @@ object KeyCode {
     const val MOVE_START_OF_LINE =           -27
     const val MOVE_END_OF_LINE =             -28
 
+    // DRS v1.0.5: word-by-word cursor navigation for the normal user.
+    const val MOVE_WORD_LEFT =               -29
+    const val MOVE_WORD_RIGHT =              -30
+
     const val CLIPBOARD_COPY =               -31
     const val CLIPBOARD_CUT =                -32
     const val CLIPBOARD_PASTE =              -33
@@ -67,6 +71,10 @@ object KeyCode {
     const val CLIPBOARD_CLEAR_HISTORY =      -36
     const val CLIPBOARD_CLEAR_FULL_HISTORY = -37
     const val CLIPBOARD_CLEAR_PRIMARY_CLIP = -38
+
+    // DRS v1.0.5: share the selected text (or the whole field) via the
+    // system share sheet — wired to the real editor content.
+    const val CLIPBOARD_SHARE =              -39
 
     const val TOGGLE_FLOATING_WINDOW =      -109
     const val TOGGLE_COMPACT_LAYOUT =       -110

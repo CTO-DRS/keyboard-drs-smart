@@ -21,10 +21,13 @@ import android.graphics.Typeface
 import android.util.TypedValue
 import android.widget.TextView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,12 +44,18 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.GenericShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
@@ -66,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -279,9 +289,64 @@ fun EmojiPaletteView(
     Column(
         modifier = modifier
     ) {
-        val pagerState = rememberPagerState(
-            pageCount = { calculatePageNumbers() }
-        )
+        // DRS v1.0.5: emoji search — while active, keyboard characters are
+        // routed by KeyboardManager into mediaSearchQuery (IME-internal
+        // fields can't receive the IME's own key events directly). Matches
+        // emoji names/keywords from the :name suggestion metadata.
+        val mediaSearchActive = keyboardManager.activeState.collectAsState().value.isMediaSearchActive
+        val mediaSearchQuery by keyboardManager.mediaSearchQuery.collectAsState()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .clickable { keyboardManager.activeState.isMediaSearchActive = true }
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                imageVector = Icons.Default.Search,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = if (mediaSearchQuery.isEmpty()) {
+                    stringRes(R.string.emoji__search__hint)
+                } else {
+                    mediaSearchQuery
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = if (mediaSearchQuery.isEmpty()) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
+                maxLines = 1,
+                modifier = Modifier.weight(1f),
+            )
+            if (mediaSearchActive || mediaSearchQuery.isNotEmpty()) {
+                IconButton(
+                    onClick = { keyboardManager.exitMediaSearch() },
+                    modifier = Modifier.size(26.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+        }
+
+        val trimmedSearchQuery = mediaSearchQuery.trim()
+        if (trimmedSearchQuery.isEmpty()) {
+            val pagerState = rememberPagerState(
+                pageCount = { calculatePageNumbers() }
+            )
 
         // Reset the pager to the first page when emojiHistory is enabled
         LaunchedEffect(emojiHistoryEnabled) {
@@ -386,6 +451,52 @@ fun EmojiPaletteView(
                                 EmojiKeyWrapper(emojiSet)
                             }
                         }
+                    }
+                }
+            }
+        }
+        } else {
+            // DRS v1.0.5: live search results across every category, using
+            // the same emoji metadata that powers :name suggestions.
+            val searchGridState = rememberLazyGridState()
+            val query = trimmedSearchQuery.lowercase()
+            val searchResults = remember(query, emojiMappings) {
+                if (query.isEmpty()) {
+                    emptyList()
+                } else {
+                    emojiMappings.values
+                        .asSequence()
+                        .flatten()
+                        .filter { emojiSet ->
+                            val base = emojiSet.emojis.first()
+                            base.name.lowercase().contains(query) ||
+                                base.keywords.any { it.lowercase().contains(query) }
+                        }
+                        .take(60)
+                        .toList()
+                }
+            }
+            if (searchResults.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(all = 8.dp),
+                ) {
+                    Text(
+                        text = stringRes(R.string.emoji__search__no_results),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            } else {
+                LazyVerticalGrid(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .drsScrollbar(searchGridState),
+                    columns = GridCells.Adaptive(minSize = EmojiBaseWidth),
+                    state = searchGridState,
+                ) {
+                    items(searchResults) { emojiSet ->
+                        EmojiKeyWrapper(emojiSet)
                     }
                 }
             }

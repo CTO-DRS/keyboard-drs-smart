@@ -1310,6 +1310,57 @@
     <string name="drs__search__history__clear" comment="Action that clears the entire search history">Clear all</string>
     <string name="pref__search__history_enabled__label" comment="Label of the search-history preference">Search history</string>
     <string name="pref__search__history_enabled__summary" comment="Summary of the search-history preference">Remember recent searches and offer them as quick suggestions inside smart search</string>
+    <!-- DRS v1.0.5: smart tools — share, word navigation, most-used tools -->
+    <string name="quick_action__clipboard_share">Share text</string>
+    <string name="quick_action__clipboard_share__tooltip">Share the selected text (or the whole field) via another app</string>
+    <string name="quick_action__move_word_left">Move word left</string>
+    <string name="quick_action__move_word_left__tooltip">Move the cursor a whole word left — long-press to repeat</string>
+    <string name="quick_action__move_word_right">Move word right</string>
+    <string name="quick_action__move_word_right__tooltip">Move the cursor a whole word right — long-press to repeat</string>
+    <string name="share__no_text">No text to share</string>
+    <string name="share__chooser_title">Share text via</string>
+    <string name="smart_tools__most_used">Most used</string>
+    <string name="pref__smartbar__customize_hint__label" comment="Informational row pointing to the in-IME tools editor">Customize quick tools</string>
+    <string name="pref__smartbar__customize_hint__summary" comment="Explains where tool customization lives">Open the keyboard in any app, tap the tools button (⋮) in the strip then "Customize tools" — drag to reorder, hide or pin tools</string>
+    <!-- DRS v1.0.5: emoji search -->
+    <string name="emoji__search__hint" comment="Placeholder of the emoji search field — search works on English names/keywords">Search emoji (English: heart, fire…)</string>
+    <string name="emoji__search__no_results">No matching emoji — try another English word like smile or star</string>
+    <!-- DRS v1.0.5: help center -->
+    <string name="help__title" comment="Title of the help center screen">Help</string>
+    <string name="help__entry_summary" comment="Summary of the help entry in the maintenance group">Plain-language guidance for key features with direct access to every screen</string>
+    <string name="help__maintenance_group" comment="Title of the maintenance group in Other settings">Maintenance &amp; support</string>
+    <string name="help__status_group" comment="Title of the keyboard status group in help">Keyboard status</string>
+    <string name="help__status_title" comment="Title of the keyboard status row">Activation status</string>
+    <string name="help__status_ready" comment="Keyboard is enabled and selected">DRS Keyboard is enabled and selected — you are ready to type. Tap to review the setup steps if needed</string>
+    <string name="help__status_enabled_not_selected" comment="Keyboard enabled but not selected">The app is enabled in the system but is not the current input method — tap to select it</string>
+    <string name="help__status_disabled" comment="Keyboard not enabled yet">The app has not been enabled in system settings yet — tap to start the activation steps</string>
+    <string name="help__rerun_welcome__title">Re-run the welcome tour</string>
+    <string name="help__rerun_welcome__summary">Walk through the user-system, theme, sound and shortcut steps again</string>
+    <string name="help__faq_group" comment="Title of the FAQ group in help">Common questions — tap to open the screen</string>
+    <string name="help__faq_languages__title">How do I add a language or switch between them?</string>
+    <string name="help__faq_languages__summary">From "Languages &amp; Layouts" add a new language and layout, then switch using the globe key on the keyboard or by swiping space</string>
+    <string name="help__faq_clipboard__title">How do I use clipboard history?</string>
+    <string name="help__faq_clipboard__summary">Open the clipboard tool from the smart strip — everything you copy is saved locally, long-press any item to pin or delete it</string>
+    <string name="help__faq_emoji__title">How do I find emoji quickly?</string>
+    <string name="help__faq_emoji__summary">The emoji palette has instant search, a "recently used" history and long-press pinning for favorites</string>
+    <string name="help__faq_shortcuts__title">What are text shortcuts and how do I create them?</string>
+    <string name="help__faq_shortcuts__summary">DRS shortcuts turn a short word into a full phrase automatically — create your own from the shortcuts screen</string>
+    <string name="help__faq_gestures__title">What typing gestures are available?</string>
+    <string name="help__faq_gestures__summary">Space swipe switches language, delete swipe removes words, glide typing is available from "Gestures" — every gesture is customizable</string>
+    <string name="help__faq_themes__title">How do I change the keyboard look?</string>
+    <string name="help__faq_themes__summary">More than 40 ready themes with a full editor — colors, backgrounds and shapes with a live preview before saving</string>
+    <string name="help__faq_feedback__title">How do I adjust sound and vibration?</string>
+    <string name="help__faq_feedback__summary">From "Sound &amp; Vibration" pick the sound style, vibration strength and duration — or turn both off</string>
+    <string name="help__faq_backup__title">How do I save my settings?</string>
+    <string name="help__faq_backup__summary">Backup saves your settings, themes and profiles into a single file you can restore on any device</string>
+    <string name="help__faq_update__title">How do I update the app?</string>
+    <string name="help__faq_update__summary">The update center checks for the latest release and downloads and installs it in-app with SHA-256 verification</string>
+    <!-- DRS v1.0.5: factory reset -->
+    <string name="factory_reset__title" comment="Title of the factory reset preference">Factory reset settings</string>
+    <string name="factory_reset__summary" comment="Summary of the factory reset preference">Reset all keyboard, customization and adaptive-layer settings back to their defaults</string>
+    <string name="factory_reset__confirm_title">Reset to default settings?</string>
+    <string name="factory_reset__confirm_message">All settings (themes, languages, smart strip, behavior) will return to their defaults and DRS layer data (points, profiles) will be deleted. Themes and packages installed from files are kept. This action cannot be undone.</string>
+    <string name="factory_reset__confirm_yes">Reset</string>
     <string name="drs__home__avatar_desc">Profile picture — open your profile</string>
     <string name="drs__home__theme_toggle_desc">Toggle night and day mode</string>
     <string name="drs__home__theme_menu_title">Display mode</string>

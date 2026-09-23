@@ -102,7 +102,11 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         )
         val historyEnabled = boolean(
             key = "clipboard__history_enabled",
-            default = false,
+            // DRS v1.0.5: default ON — every user system package enables it
+            // anyway, and a fresh install (or a user who skipped choosing a
+            // system) now gets a working clipboard panel out of the box.
+            // Users can still turn it off from the clipboard panel or settings.
+            default = true,
         )
         val historyNumGridColumnsPortrait = int(
             key = "clipboard__history_num_grid_columns_portrait",

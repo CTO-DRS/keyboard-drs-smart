@@ -37,6 +37,8 @@ import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardCapslock
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material.icons.filled.Language
@@ -45,6 +47,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.drs.smartkeyboard.DrsImeService
@@ -205,6 +208,16 @@ fun ComputingEvaluator.computeImageVector(data: KeyData): ImageVector? {
         }
         KeyCode.CLIPBOARD_SELECT_ALL -> {
             Icons.Default.SelectAll
+        }
+        // DRS v1.0.5: share + word navigation tools for the normal user.
+        KeyCode.CLIPBOARD_SHARE -> {
+            Icons.Default.Share
+        }
+        KeyCode.MOVE_WORD_LEFT -> {
+            Icons.Default.KeyboardDoubleArrowLeft
+        }
+        KeyCode.MOVE_WORD_RIGHT -> {
+            Icons.Default.KeyboardDoubleArrowRight
         }
         KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP -> {
             Icons.Default.DeleteSweep

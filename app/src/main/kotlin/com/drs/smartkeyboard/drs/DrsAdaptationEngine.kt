@@ -48,6 +48,11 @@ object DrsAdaptationEngine {
     private val shortcutUses = AtomicLong()
     private val techToolUses = AtomicLong()
     private val gestureUses = AtomicLong()
+    // DRS v1.0.5: per-tool counts for the "most used tools" surface. Only
+    // tool KeyCodes are counted (never characters), in-memory, flushed
+    // aggregated with the rest of the usage stats.
+    private val toolCounts = java.util.concurrent.ConcurrentHashMap<Int, Long>()
+    private val toolUseTotal = AtomicLong()
     private val flushing = AtomicBoolean(false)
 
     /** Cheap per-keystroke recording. Must never block or throw. */
@@ -95,6 +100,18 @@ object DrsAdaptationEngine {
         }
     }
 
+    /**
+     * DRS v1.0.5: records one use of a smart tool (quick action) by its
+     * KeyCode. Anonymous count only — the tool code tells which button was
+     * pressed, never what was typed. Powers the "most used tools" section.
+     */
+    fun recordToolUse(code: Int) {
+        toolCounts.merge(code, 1L, Long::plus)
+        if (DrsStore.state.value.adaptationEnabled) {
+            maybeFlush(toolUseTotal)
+        }
+    }
+
     private fun maybeFlush(counter: AtomicLong) {
         if (counter.get() % FLUSH_INTERVAL != 0L) return
         if (!flushing.compareAndSet(false, true)) return
@@ -105,6 +122,13 @@ object DrsAdaptationEngine {
     }
 
     private fun drain(): DrsUsageStats {
+        val drainedTools: Map<Int, Long> = if (toolCounts.isEmpty()) {
+            emptyMap()
+        } else {
+            val snapshot = HashMap(toolCounts)
+            toolCounts.clear()
+            snapshot
+        }
         return DrsUsageStats(
             keyPresses = keyPresses.getAndSet(0),
             numberPresses = numberPresses.getAndSet(0),
@@ -114,6 +138,7 @@ object DrsAdaptationEngine {
             shortcutUses = shortcutUses.getAndSet(0),
             techToolUses = techToolUses.getAndSet(0),
             gestureUses = gestureUses.getAndSet(0),
+            toolUses = drainedTools,
         )
     }
 
@@ -123,6 +148,19 @@ object DrsAdaptationEngine {
     }
 
     private fun DrsUsageStats.merge(delta: DrsUsageStats): DrsUsageStats {
+        val mergedTools = if (delta.toolUses.isEmpty()) {
+            toolUses
+        } else {
+            val merged = HashMap(toolUses)
+            for ((code, count) in delta.toolUses) {
+                merged[code] = (merged[code] ?: 0L) + count
+            }
+            // Cap so the stored map stays tiny: keep the 32 most used tools.
+            merged.entries
+                .sortedByDescending { it.value }
+                .take(32)
+                .associate { it.toPair() }
+        }
         return DrsUsageStats(
             keyPresses = keyPresses + delta.keyPresses,
             numberPresses = numberPresses + delta.numberPresses,
@@ -132,6 +170,7 @@ object DrsAdaptationEngine {
             shortcutUses = shortcutUses + delta.shortcutUses,
             techToolUses = techToolUses + delta.techToolUses,
             gestureUses = gestureUses + delta.gestureUses,
+            toolUses = mergedTools,
         )
     }
 

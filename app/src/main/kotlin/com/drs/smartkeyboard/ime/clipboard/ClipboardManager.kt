@@ -20,6 +20,7 @@ import android.content.ClipData
 import android.content.Context
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.appContext
+import com.drs.smartkeyboard.drs.DrsAdaptationEngine
 import com.drs.smartkeyboard.editorInstance
 import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardHistoryDao
 import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardHistoryDatabase
@@ -392,6 +393,9 @@ class ClipboardManager(
                 appContext.showShortToastSync("Failed to paste item.")
             }
         }
+        // DRS v1.0.5: clipboard use from the clipboard panel is now credited
+        // (the hook existed in the adaptation engine but was never called).
+        DrsAdaptationEngine.recordClipboardUse()
     }
 
     /**

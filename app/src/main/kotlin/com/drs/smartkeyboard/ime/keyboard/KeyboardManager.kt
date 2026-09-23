@@ -50,6 +50,7 @@ import com.drs.smartkeyboard.ime.nlp.ClipboardSuggestionCandidate
 import com.drs.smartkeyboard.ime.nlp.PunctuationRule
 import com.drs.smartkeyboard.ime.nlp.SuggestionCandidate
 import com.drs.smartkeyboard.ime.popup.PopupMappingComponent
+import com.drs.smartkeyboard.ime.smartbar.quickaction.SmartToolCodes
 import com.drs.smartkeyboard.ime.text.composing.Composer
 import com.drs.smartkeyboard.ime.text.gestures.SwipeAction
 import com.drs.smartkeyboard.ime.text.key.KeyCode
@@ -119,12 +120,28 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.ARROW_LEFT,
             KeyCode.ARROW_RIGHT,
             KeyCode.ARROW_UP,
+            KeyCode.MOVE_WORD_LEFT,
+            KeyCode.MOVE_WORD_RIGHT,
             KeyCode.DELETE,
             KeyCode.FORWARD_DELETE,
             KeyCode.UNDO,
             KeyCode.REDO,
         )
     ).also { it.keyEventReceiver = this }
+
+    /**
+     * DRS v1.0.5: live query of the emoji search. While
+     * [KeyboardState.isMediaSearchActive] is true, character/delete/space
+     * key events are routed into this flow instead of the host editor —
+     * the standard way IME-internal search fields receive input.
+     */
+    val mediaSearchQuery = MutableStateFlow("")
+
+    /** Leaves emoji search mode and clears the query. */
+    fun exitMediaSearch() {
+        activeState.isMediaSearchActive = false
+        mediaSearchQuery.value = ""
+    }
 
     init {
         scope.launch(Dispatchers.Main.immediate) {
@@ -381,6 +398,23 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                     activeState.isManualSelectionModeEnd = true
                 }
                 sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, meta(alt = true, shift = isShiftPressed), count)
+            }
+            // DRS v1.0.5: word-by-word cursor jumps (Ctrl+DPAD) — works with
+            // the same editors that support Ctrl+Arrow word movement, and
+            // respects manual selection mode for word-wise selection.
+            KeyCode.MOVE_WORD_LEFT -> {
+                if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
+                    activeState.isManualSelectionModeStart = true
+                    activeState.isManualSelectionModeEnd = false
+                }
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT, meta(ctrl = true, shift = isShiftPressed), count)
+            }
+            KeyCode.MOVE_WORD_RIGHT -> {
+                if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
+                    activeState.isManualSelectionModeStart = false
+                    activeState.isManualSelectionModeEnd = true
+                }
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, meta(ctrl = true, shift = isShiftPressed), count)
             }
         }
     }
@@ -729,6 +763,40 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         val windowController = DrsImeService.windowControllerOrNull() ?: return@batchEdit
         DrsAdaptationEngine.recordKey(data.code)
         DrsEconomy.recordKeyEarn(data.code)
+        // DRS v1.0.5: anonymous count of smart-tool usage (which tool button
+        // was pressed, never what was typed) for the most-used tools surface.
+        if (data.code in SmartToolCodes) {
+            DrsAdaptationEngine.recordToolUse(data.code)
+        }
+        // DRS v1.0.5: while the emoji search field is active, route typing
+        // into the search query instead of the host editor. Emoji taps and
+        // navigation keys still fall through to the normal handling.
+        if (activeState.isMediaSearchActive) {
+            when (data.code) {
+                KeyCode.DELETE -> {
+                    mediaSearchQuery.update { it.dropLast(1) }
+                    return@batchEdit
+                }
+                KeyCode.FORWARD_DELETE -> {
+                    mediaSearchQuery.update { it.drop(1) }
+                    return@batchEdit
+                }
+                KeyCode.SPACE -> {
+                    mediaSearchQuery.update { it + " " }
+                    return@batchEdit
+                }
+                else -> if (data.type == KeyType.CHARACTER || data.type == KeyType.NUMERIC) {
+                    val text = data.asString(isForDisplay = false)
+                    val first = text.firstOrNull()
+                    if (first != null && first.isLetterOrDigit()) {
+                        mediaSearchQuery.update { it + text }
+                        return@batchEdit
+                    }
+                    // Non-searchable characters (emoji, punctuation...) keep
+                    // their normal behavior — e.g. tapping a result emoji.
+                }
+            }
+        }
         when (data.code) {
             KeyCode.ARROW_DOWN,
             KeyCode.ARROW_LEFT,
@@ -737,7 +805,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.MOVE_START_OF_PAGE,
             KeyCode.MOVE_END_OF_PAGE,
             KeyCode.MOVE_START_OF_LINE,
-            KeyCode.MOVE_END_OF_LINE -> {
+            KeyCode.MOVE_END_OF_LINE,
+            KeyCode.MOVE_WORD_LEFT,
+            KeyCode.MOVE_WORD_RIGHT -> {
                 editorInstance.massSelection.end()
                 handleArrow(data.code)
             }
@@ -747,7 +817,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.CHAR_WIDTH_HALF -> handleCharWidthHalf()
             KeyCode.CLIPBOARD_CUT -> editorInstance.performClipboardCut()
             KeyCode.CLIPBOARD_COPY -> editorInstance.performClipboardCopy()
-            KeyCode.CLIPBOARD_PASTE -> editorInstance.performClipboardPaste()
+            KeyCode.CLIPBOARD_PASTE -> {
+                editorInstance.performClipboardPaste()
+                // DRS v1.0.5: clipboard use is now actually credited (was
+                // dead code before) so points and adaptation suggestions work.
+                DrsAdaptationEngine.recordClipboardUse()
+            }
+            KeyCode.CLIPBOARD_SHARE -> editorInstance.performClipboardShare()
             KeyCode.CLIPBOARD_SELECT -> handleClipboardSelect()
             KeyCode.CLIPBOARD_SELECT_ALL -> editorInstance.performClipboardSelectAll()
             KeyCode.CLIPBOARD_CLEAR_HISTORY -> clipboardManager.clearHistory()
@@ -773,9 +849,18 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.IME_HIDE_UI -> DrsImeService.hideUi()
             KeyCode.IME_PREV_SUBTYPE -> subtypeManager.switchToPrevSubtype()
             KeyCode.IME_NEXT_SUBTYPE -> subtypeManager.switchToNextSubtype()
-            KeyCode.IME_UI_MODE_TEXT -> activeState.imeUiMode = ImeUiMode.TEXT
-            KeyCode.IME_UI_MODE_MEDIA -> activeState.imeUiMode = ImeUiMode.MEDIA
-            KeyCode.IME_UI_MODE_CLIPBOARD -> activeState.imeUiMode = ImeUiMode.CLIPBOARD
+            KeyCode.IME_UI_MODE_TEXT -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.TEXT
+            }
+            KeyCode.IME_UI_MODE_MEDIA -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.MEDIA
+            }
+            KeyCode.IME_UI_MODE_CLIPBOARD -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.CLIPBOARD
+            }
             KeyCode.VOICE_INPUT -> DrsImeService.switchToVoiceInputMethod()
             KeyCode.KANA_SWITCHER -> handleKanaSwitch()
             KeyCode.KANA_HIRA -> handleKanaHira()
@@ -864,7 +949,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.MOVE_START_OF_PAGE,
             KeyCode.MOVE_END_OF_PAGE,
             KeyCode.MOVE_START_OF_LINE,
-            KeyCode.MOVE_END_OF_LINE -> {
+            KeyCode.MOVE_END_OF_LINE,
+            KeyCode.MOVE_WORD_LEFT,
+            KeyCode.MOVE_WORD_RIGHT -> {
                 editorInstance.massSelection.end()
             }
             KeyCode.SHIFT -> handleShiftCancel()
@@ -881,7 +968,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.MOVE_START_OF_PAGE,
             KeyCode.MOVE_END_OF_PAGE,
             KeyCode.MOVE_START_OF_LINE,
-            KeyCode.MOVE_END_OF_LINE -> handleArrow(data.code)
+            KeyCode.MOVE_END_OF_LINE,
+            KeyCode.MOVE_WORD_LEFT,
+            KeyCode.MOVE_WORD_RIGHT -> handleArrow(data.code)
             else -> onInputKeyUp(data)
         }
     }

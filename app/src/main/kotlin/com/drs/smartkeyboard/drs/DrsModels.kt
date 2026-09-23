@@ -84,6 +84,10 @@ data class DrsUsageStats(
     val shortcutUses: Long = 0,
     val techToolUses: Long = 0,
     val gestureUses: Long = 0,
+    // DRS v1.0.5: anonymous per-tool usage counts (KeyCode -> count) used to
+    // surface the smart tools the user actually relies on. Counts only —
+    // never text, never timestamps. Capped on merge to stay tiny.
+    val toolUses: Map<Int, Long> = emptyMap(),
 )
 
 /**

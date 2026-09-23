@@ -113,6 +113,8 @@ data class TextKeyData(
                 MOVE_END_OF_PAGE,
                 MOVE_START_OF_LINE,
                 MOVE_END_OF_LINE,
+                MOVE_WORD_LEFT,
+                MOVE_WORD_RIGHT,
                 CLIPBOARD_COPY,
                 CLIPBOARD_CUT,
                 CLIPBOARD_PASTE,
@@ -121,6 +123,7 @@ data class TextKeyData(
                 CLIPBOARD_CLEAR_HISTORY,
                 CLIPBOARD_CLEAR_FULL_HISTORY,
                 CLIPBOARD_CLEAR_PRIMARY_CLIP,
+                CLIPBOARD_SHARE,
                 TOGGLE_COMPACT_LAYOUT,
                 COMPACT_LAYOUT_TO_LEFT,
                 COMPACT_LAYOUT_TO_RIGHT,
@@ -288,6 +291,20 @@ data class TextKeyData(
             label = "move_end_of_line",
         )
 
+        /** DRS v1.0.5: predefined key data for [KeyCode.MOVE_WORD_LEFT] */
+        val MOVE_WORD_LEFT = TextKeyData(
+            type = KeyType.NAVIGATION,
+            code = KeyCode.MOVE_WORD_LEFT,
+            label = "move_word_left",
+        )
+
+        /** DRS v1.0.5: predefined key data for [KeyCode.MOVE_WORD_RIGHT] */
+        val MOVE_WORD_RIGHT = TextKeyData(
+            type = KeyType.NAVIGATION,
+            code = KeyCode.MOVE_WORD_RIGHT,
+            label = "move_word_right",
+        )
+
         /** Predefined key data for [KeyCode.CLIPBOARD_COPY] */
         val CLIPBOARD_COPY = TextKeyData(
             type = KeyType.SYSTEM_GUI,
@@ -335,6 +352,13 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP,
             label = "clipboard_clear_primary_clip",
+        )
+
+        /** DRS v1.0.5: predefined key data for [KeyCode.CLIPBOARD_SHARE] */
+        val CLIPBOARD_SHARE = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.CLIPBOARD_SHARE,
+            label = "clipboard_share",
         )
 
         /** Predefined key data for [KeyCode.TOGGLE_FLOATING_WINDOW] */

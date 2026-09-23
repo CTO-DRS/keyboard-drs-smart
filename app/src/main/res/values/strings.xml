@@ -1235,6 +1235,57 @@
     <string name="drs__search__history__clear" comment="Action that clears the entire search history">مسح الكل</string>
     <string name="pref__search__history_enabled__label" comment="Label of the search-history preference">سجل البحث</string>
     <string name="pref__search__history_enabled__summary" comment="Summary of the search-history preference">تذكّر عمليات البحث الأخيرة واعرضها كاقتراحات سريعة داخل البحث الذكي</string>
+    <!-- DRS v1.0.5: smart tools — share, word navigation, most-used tools -->
+    <string name="quick_action__clipboard_share">مشاركة النص</string>
+    <string name="quick_action__clipboard_share__tooltip">مشاركة النص المحدد (أو نص الحقل كاملًا) عبر تطبيق آخر</string>
+    <string name="quick_action__move_word_left">انتقال كلمة لليسار</string>
+    <string name="quick_action__move_word_left__tooltip">تحريك المؤشر كلمة كاملة لليسار — اضغط مطولًا للتكرار</string>
+    <string name="quick_action__move_word_right">انتقال كلمة لليمين</string>
+    <string name="quick_action__move_word_right__tooltip">تحريك المؤشر كلمة كاملة لليمين — اضغط مطولًا للتكرار</string>
+    <string name="share__no_text">لا يوجد نص للمشاركة</string>
+    <string name="share__chooser_title">مشاركة النص عبر</string>
+    <string name="smart_tools__most_used">الأكثر استخدامًا</string>
+    <string name="pref__smartbar__customize_hint__label" comment="Informational row pointing to the in-IME tools editor">تخصيص الأدوات السريعة</string>
+    <string name="pref__smartbar__customize_hint__summary" comment="Explains where tool customization lives">افتح لوحة المفاتيح في أي تطبيق، اضغط على زر الأدوات (⋮) في الشريط ثم «تخصيص الأدوات» — يمكنك السحب لإعادة الترتيب والإخفاء والتثبيت في المقدمة</string>
+    <!-- DRS v1.0.5: emoji search -->
+    <string name="emoji__search__hint" comment="Placeholder of the emoji search field — search works on English names/keywords">بحث الإيموجي (بالإنجليزية: heart، fire…)</string>
+    <string name="emoji__search__no_results">لا إيموجي مطابق — جرّب كلمة أخرى بالإنجليزية مثل smile أو star</string>
+    <!-- DRS v1.0.5: help center -->
+    <string name="help__title" comment="Title of the help center screen">مساعدة</string>
+    <string name="help__entry_summary" comment="Summary of the help entry in the maintenance group">إرشادات مبسّطة عن أهم المميزات مع وصول مباشر لكل شاشة</string>
+    <string name="help__maintenance_group" comment="Title of the maintenance group in Other settings">الصيانة والدعم</string>
+    <string name="help__status_group" comment="Title of the keyboard status group in help">حالة لوحة المفاتيح</string>
+    <string name="help__status_title" comment="Title of the keyboard status row">حالة التفعيل</string>
+    <string name="help__status_ready" comment="Keyboard is enabled and selected">لوحة المفاتيح DRS مفعّلة ومختارة — كل شيء جاهز للكتابة. اضغط للانتقال إلى خطوات الإعداد عند الحاجة</string>
+    <string name="help__status_enabled_not_selected" comment="Keyboard enabled but not selected">التطبيق مفعّل في النظام لكنه ليس لوحة الإدخال الحالية — اضغط لاختياره</string>
+    <string name="help__status_disabled" comment="Keyboard not enabled yet">لم يتم تفعيل التطبيق بعد في إعدادات النظام — اضغط لبدء خطوات التفعيل</string>
+    <string name="help__rerun_welcome__title">إعادة تشغيل الترحيب</string>
+    <string name="help__rerun_welcome__summary">استعرض خطوات اختيار نظام المستخدم والسمات والأصوات والاختصارات من جديد</string>
+    <string name="help__faq_group" comment="Title of the FAQ group in help">أسئلة شائعة — اضغط للانتقال إلى الشاشة</string>
+    <string name="help__faq_languages__title">كيف أضيف لغة أو أبدّل بين اللغات؟</string>
+    <string name="help__faq_languages__summary">من «اللغات واللوحات» أضف لغة ولوحة جديدة، وبدّل بينها من زر الكرة الأرضية في لوحة المفاتيح أو بسحب المسافة</string>
+    <string name="help__faq_clipboard__title">كيف أستخدم سجل الحافظة؟</string>
+    <string name="help__faq_clipboard__summary">افتح أداة الحافظة من الشريط الذكي — كل ما تنسخه يُحفظ محليًا، واضغط مطولًا على أي عنصر لتثبيته أو حذفه</string>
+    <string name="help__faq_emoji__title">كيف أجد الإيموجي بسرعة؟</string>
+    <string name="help__faq_emoji__summary">لوحة الإيموجي فيها خانة بحث فورية وسجل «المستخدمة مؤخرًا» وإمكانية تثبيت المفضلة بالضغط المطول</string>
+    <string name="help__faq_shortcuts__title">ما هي الاختصارات وكيف أنشئها؟</string>
+    <string name="help__faq_shortcuts__summary">اختصارات DRS تحوّل كلمة قصيرة إلى عبارة كاملة تلقائيًا (مثل: تاريخ ← التاريخ الهجري) — أنشئ ما تريد من شاشة الاختصارات</string>
+    <string name="help__faq_gestures__title">ما الإيماءات المتاحة في الكتابة؟</string>
+    <string name="help__faq_gestures__summary">سحب المسافة يبدّل اللغة، والسحب للحذف يمسح كلمات، والكتابة بالتمرير متاحة من «الإيماءات» — كل إيماءة قابلة للتخصيص</string>
+    <string name="help__faq_themes__title">كيف أغيّر مظهر لوحة المفاتيح؟</string>
+    <string name="help__faq_themes__summary">أكثر من 40 سمة جاهزة بمحرر كامل — ألوان وخلفيات وأشكال مع معاينة حية قبل الحفظ</string>
+    <string name="help__faq_feedback__title">كيف أضبط الصوت والاهتزاز؟</string>
+    <string name="help__faq_feedback__summary">من «الصوت والاهتزاز» اختر نمط الصوت وقوة الاهتزاز ومدته — أو أوقفهما تمامًا</string>
+    <string name="help__faq_backup__title">كيف أحفظ إعداداتي؟</string>
+    <string name="help__faq_backup__summary">النسخ الاحتياطي يحفظ الإعدادات والسمات والملفات الشخصية في ملف واحد يمكنك استعادته على أي جهاز</string>
+    <string name="help__faq_update__title">كيف أحدّث التطبيق؟</string>
+    <string name="help__faq_update__summary">مركز التحديث يفحص أحدث إصدار وينزّله ويثبته من داخل التطبيق مع تحقق SHA-256</string>
+    <!-- DRS v1.0.5: factory reset -->
+    <string name="factory_reset__title" comment="Title of the factory reset preference">إعادة ضبط إعدادات المصنع</string>
+    <string name="factory_reset__summary" comment="Summary of the factory reset preference">إعادة كل إعدادات لوحة المفاتيح والتخصيص والطبقة التكيفية إلى حالتها الافتراضية</string>
+    <string name="factory_reset__confirm_title">إعادة الضبط إلى الإعدادات الافتراضية؟</string>
+    <string name="factory_reset__confirm_message">ستُعاد كل الإعدادات (السمات، اللغات، الشريط الذكي، السلوك) إلى حالتها الافتراضية، وتُحذف بيانات طبقة DRS (النقاط والملفات الشخصية). السمات والحزم المثبتة من الملفات لن تُحذف. لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="factory_reset__confirm_yes">إعادة الضبط</string>
     <string name="drs__home__avatar_desc">صورة الملف الشخصي — افتح ملفك الشخصي</string>
     <string name="drs__home__theme_toggle_desc">زر تبديل الوضع الليلي والنهاري</string>
     <string name="drs__home__theme_menu_title">وضع العرض</string>

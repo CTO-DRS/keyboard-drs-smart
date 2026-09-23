@@ -59,6 +59,7 @@ import com.drs.smartkeyboard.app.settings.advanced.BackupScreen
 import com.drs.smartkeyboard.app.settings.advanced.OtherScreen
 import com.drs.smartkeyboard.app.settings.advanced.PhysicalKeyboardScreen
 import com.drs.smartkeyboard.app.settings.advanced.RestoreScreen
+import com.drs.smartkeyboard.app.settings.help.HelpScreen
 import com.drs.smartkeyboard.app.settings.clipboard.ClipboardScreen
 import com.drs.smartkeyboard.app.settings.dictionary.DictionaryScreen
 import com.drs.smartkeyboard.app.settings.dictionary.UserDictionaryScreen
@@ -207,6 +208,10 @@ object Routes {
         @Serializable
         @Deeplink("settings/about/third-party-licenses")
         object ThirdPartyLicenses
+
+        @Serializable
+        @Deeplink("settings/help")
+        object Help
 
         @Serializable
         @Deeplink("settings/drs/control-center")
@@ -358,7 +363,7 @@ object Routes {
             composableWithDeepLink(Settings.PhysicalKeyboard::class) { PhysicalKeyboardScreen() }
             composableWithDeepLink(Settings.Backup::class) { BackupScreen() }
             composableWithDeepLink(Settings.Restore::class) { RestoreScreen() }
-
+            composableWithDeepLink(Settings.Help::class) { HelpScreen() }
             composableWithDeepLink(Settings.About::class) { AboutScreen() }
             composableWithDeepLink(Settings.ProjectLicense::class) { ProjectLicenseScreen() }
             composableWithDeepLink(Settings.ThirdPartyLicenses::class) { ThirdPartyLicensesScreen() }

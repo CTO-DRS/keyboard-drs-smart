@@ -19,10 +19,12 @@ package com.drs.smartkeyboard.ime.editor
 import android.content.ClipDescription
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.view.KeyEvent
 import androidx.core.view.inputmethod.InputConnectionCompat
 import androidx.core.view.inputmethod.InputContentInfoCompat
 import com.drs.smartkeyboard.DrsImeService
+import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsRuntimeState
 import com.drs.smartkeyboard.appContext
@@ -483,6 +485,40 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         } else {
             ic.performContextMenuAction(android.R.id.selectAll)
         }
+    }
+
+    /**
+     * DRS v1.0.5: shares the selected text through the system share sheet.
+     * When nothing is selected, the entire field content is shared instead.
+     * Nothing is stored or transmitted by the keyboard itself — the user
+     * explicitly picks the receiving app in the system chooser.
+     *
+     * @return True when a share intent was dispatched, false when there was
+     *         no text to share or the input connection was unavailable.
+     */
+    fun performClipboardShare(): Boolean {
+        autoSpace.setInactive()
+        phantomSpace.setInactive()
+        val selected = activeContent.selectedText.ifBlank { currentInputConnection()?.getSelectedText(0) }
+        val text = (selected ?: activeContent.text.ifBlank { null })
+            ?.toString()
+            ?.trim()
+            .orEmpty()
+        if (text.isEmpty()) {
+            appContext.showShortToastSync(R.string.share__no_text)
+            return false
+        }
+        val sendIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        val chooser = Intent.createChooser(sendIntent, appContext.getString(R.string.share__chooser_title)).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+        return runCatching {
+            appContext.startActivity(chooser)
+            true
+        }.getOrElse { false }
     }
 
     /**

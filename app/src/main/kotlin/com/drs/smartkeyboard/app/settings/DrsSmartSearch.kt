@@ -49,6 +49,7 @@ import androidx.compose.material.icons.filled.FastForward
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Numbers
@@ -476,6 +477,12 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
             keywords = listOf("glide", "swipe typing", "كتابة بالتمرير", "انزلاق", "سحب متصل"),
             icon = Icons.Default.Swipe,
             route = Routes.Settings.Gestures,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.help__title),
+            keywords = listOf("help", "guide", "faq", "how to", "مساعدة", "دليل", "كيف", "شرح", "استخدام"),
+            icon = Icons.Default.Help,
+            route = Routes.Settings.Help,
         ),
     )
 }

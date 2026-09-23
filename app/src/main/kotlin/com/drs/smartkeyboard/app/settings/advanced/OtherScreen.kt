@@ -16,34 +16,54 @@
 
 package com.drs.smartkeyboard.app.settings.advanced
 
+import android.app.Activity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Adb
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FormatColorFill
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Preview
+import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.vectorResource
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.AppTheme
+import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.app.LocalNavController
 import com.drs.smartkeyboard.app.Routes
 import com.drs.smartkeyboard.app.enumDisplayEntriesOf
+import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.ime.core.DisplayLanguageNamesIn
 import com.drs.smartkeyboard.lib.DrsLocale
 import com.drs.smartkeyboard.lib.compose.DrsScreen
+import kotlinx.coroutines.launch
+import org.drs.jetpref.datastore.runtime.DataStoreReader
+import org.drs.jetpref.datastore.runtime.ImportStrategy
 import org.drs.jetpref.datastore.model.collectAsState
 import org.drs.jetpref.datastore.ui.ColorPickerPreference
 import org.drs.jetpref.datastore.ui.ListPreference
@@ -64,6 +84,8 @@ fun OtherScreen() = DrsScreen {
 
     val navController = LocalNavController.current
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var showFactoryResetDialog by remember { mutableStateOf(false) }
 
     content {
         // DRS: one-tap access to the adaptive layer from the system group.
@@ -226,5 +248,60 @@ fun OtherScreen() = DrsScreen {
                 summary = stringRes(R.string.backup_and_restore__restore__summary),
             )
         }
+
+        // DRS v1.0.5: maintenance — plain-language help for the normal user
+        // and a guarded factory reset for all keyboard settings.
+        PreferenceGroup(title = stringRes(R.string.help__maintenance_group)) {
+            Preference(
+                onClick = { navController.navigate(Routes.Settings.Help) },
+                icon = Icons.Default.Help,
+                title = stringRes(R.string.help__title),
+                summary = stringRes(R.string.help__entry_summary),
+            )
+            Preference(
+                onClick = { showFactoryResetDialog = true },
+                icon = Icons.Default.RestartAlt,
+                title = stringRes(R.string.factory_reset__title),
+                summary = stringRes(R.string.factory_reset__summary),
+            )
+        }
+    }
+
+    if (showFactoryResetDialog) {
+        AlertDialog(
+            onDismissRequest = { showFactoryResetDialog = false },
+            title = { Text(text = stringRes(R.string.factory_reset__confirm_title)) },
+            text = { Text(text = stringRes(R.string.factory_reset__confirm_message)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showFactoryResetDialog = false
+                        scope.launch {
+                            // Real factory reset: erase every keyboard
+                            // preference back to defaults, reset the DRS
+                            // adaptive layer, then recreate the app.
+                            runCatching {
+                                DrsPreferenceStore.import(
+                                    ImportStrategy.Erase,
+                                    DataStoreReader { "" },
+                                )
+                            }
+                            runCatching { DrsStore.resetAll() }
+                            (context as? Activity)?.recreate()
+                        }
+                    },
+                ) {
+                    Text(
+                        text = stringRes(R.string.factory_reset__confirm_yes),
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFactoryResetDialog = false }) {
+                    Text(text = stringRes(R.string.action__cancel))
+                }
+            },
+        )
     }
 }
