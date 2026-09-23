@@ -268,6 +268,27 @@ fun DrsControlCenterScreen() = DrsScreen {
 
             // ---------------- links to existing sections ----------------
             DrsSectionCard(title = stringRes(R.string.drs__control_center__sections)) {
+                // DRS v1.0.7: the unified «كلاهما» screens lead the list.
+                Text(
+                    text = stringRes(R.string.drs__unified__section_hint),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                DrsLinkRow(stringRes(R.string.drs__unified__dashboard_title)) {
+                    navController.navigate(Routes.Settings.DrsUnifiedDashboard)
+                }
+                DrsLinkRow(stringRes(R.string.drs__unified__tools_title)) {
+                    navController.navigate(Routes.Settings.DrsUnifiedTools)
+                }
+                DrsLinkRow(stringRes(R.string.drs__unified__basics_title)) {
+                    navController.navigate(Routes.Settings.DrsUnifiedBasics)
+                }
+                DrsLinkRow(stringRes(R.string.drs__unified__writing_title)) {
+                    navController.navigate(Routes.Settings.DrsUnifiedWriting)
+                }
+                DrsLinkRow(stringRes(R.string.drs__unified__system_title)) {
+                    navController.navigate(Routes.Settings.DrsUnifiedSystem)
+                }
                 DrsLinkRow(stringRes(R.string.drs__profiles__title)) { navController.navigate(Routes.Settings.DrsProfiles) }
                 DrsLinkRow(stringRes(R.string.drs__gestures__title)) { navController.navigate(Routes.Settings.DrsGestures) }
                 DrsLinkRow(stringRes(R.string.settings__theme__title)) { navController.navigate(Routes.Settings.Theme) }

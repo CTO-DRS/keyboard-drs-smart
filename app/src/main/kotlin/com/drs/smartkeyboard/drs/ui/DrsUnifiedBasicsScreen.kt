@@ -1,0 +1,234 @@
+/*
+ * Copyright (C) 2021-2025 The DRS Smart Keyboard Project
+ * Copyright (C) 2025 DRS Smart Keyboard contributors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@file:OptIn(ExperimentalJetPrefDatastoreUi::class, ExperimentalMaterial3Api::class)
+
+package com.drs.smartkeyboard.drs.ui
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.app.DrsPreferenceStore
+import com.drs.smartkeyboard.app.enumDisplayEntriesOf
+import com.drs.smartkeyboard.drs.DrsStore
+import com.drs.smartkeyboard.drs.DrsUnified
+import com.drs.smartkeyboard.ime.input.CapitalizationBehavior
+import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
+import com.drs.smartkeyboard.ime.text.key.KeyHintMode
+import com.drs.smartkeyboard.lib.compose.DrsScreen
+import org.drs.lib.compose.stringRes
+import org.drs.jetpref.datastore.ui.DialogSliderPreference
+import org.drs.jetpref.datastore.ui.ExperimentalJetPrefDatastoreUi
+import org.drs.jetpref.datastore.ui.ListPreference
+import org.drs.jetpref.datastore.ui.PreferenceGroup
+import org.drs.jetpref.datastore.ui.SwitchPreference
+
+/**
+ * DRS v1.0.7 — الأساسيات الموحدة (Unified Basics).
+ *
+ * One screen where both levels meet:
+ *  - المجموعة الأساسية: the essential switches, always visible.
+ *  - المجموعة المتقدمة: expert controls (spacing, delays, repeat rate,
+ *    hints, glide) that appear only when Advanced Controls is on - so the
+ *    normal user never has to deal with them, while the technical user
+ *    keeps full control. Every row is a real preference the live keyboard
+ *    obeys immediately.
+ */
+@Composable
+fun DrsUnifiedBasicsScreen() = DrsScreen {
+    title = stringRes(R.string.drs__unified__basics_title)
+    navigationIconVisible = true
+    previewFieldVisible = true
+
+    val prefs by DrsPreferenceStore
+    val drsState by DrsStore.state.collectAsState()
+
+    content {
+        // ---------------- advanced controls gate ----------------
+        AdvancedControlsGateCard()
+
+        // ---------------- basic group (always visible) ----------------
+        PreferenceGroup(title = stringRes(R.string.drs__unified__basics_basic_group)) {
+            SwitchPreference(
+                prefs.keyboard.numberRow,
+                icon = null,
+                title = stringRes(R.string.pref__keyboard__number_row__label),
+                summary = stringRes(R.string.drs__unified__basics_number_row_summary),
+            )
+            SwitchPreference(
+                prefs.keyboard.popupEnabled,
+                title = stringRes(R.string.pref__keyboard__popup_enabled__label),
+                summary = stringRes(R.string.drs__unified__basics_popups_summary),
+            )
+            ListPreference(
+                prefs.keyboard.capitalizationBehavior,
+                title = stringRes(R.string.pref__keyboard__capitalization_behavior__label),
+                entries = enumDisplayEntriesOf(CapitalizationBehavior::class),
+            )
+            ListPreference(
+                prefs.keyboard.spaceBarMode,
+                title = stringRes(R.string.pref__keyboard__space_bar_mode__label),
+                entries = enumDisplayEntriesOf(SpaceBarMode::class),
+            )
+            SwitchPreference(
+                prefs.suggestion.enabled,
+                title = stringRes(R.string.pref__suggestion__enabled__label),
+                summary = stringRes(R.string.drs__unified__basics_suggestions_summary),
+            )
+            SwitchPreference(
+                prefs.clipboard.historyEnabled,
+                title = stringRes(R.string.pref__clipboard__enable_clipboard_history__label),
+                summary = stringRes(R.string.drs__unified__basics_clipboard_summary),
+            )
+            SwitchPreference(
+                prefs.inputFeedback.audioEnabled,
+                title = stringRes(R.string.pref__input_feedback__audio_enabled__label),
+                summary = stringRes(R.string.drs__unified__basics_sound_summary),
+            )
+            SwitchPreference(
+                prefs.inputFeedback.hapticEnabled,
+                title = stringRes(R.string.pref__input_feedback__haptic_enabled__label),
+                summary = stringRes(R.string.drs__unified__basics_haptic_summary),
+            )
+        }
+
+        // ---------------- advanced group (gated) ----------------
+        if (drsState.advancedControlsEnabled) {
+            PreferenceGroup(title = stringRes(R.string.drs__unified__basics_advanced_group)) {
+                DialogSliderPreference(
+                    primaryPref = prefs.keyboard.fontSizeMultiplierPortrait,
+                    secondaryPref = prefs.keyboard.fontSizeMultiplierLandscape,
+                    title = stringRes(R.string.pref__keyboard__font_size_multiplier__label),
+                    primaryLabel = stringRes(R.string.screen_orientation__portrait),
+                    secondaryLabel = stringRes(R.string.screen_orientation__landscape),
+                    valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                    min = 50,
+                    max = 150,
+                    stepIncrement = 5,
+                )
+                DialogSliderPreference(
+                    primaryPref = prefs.keyboard.keySpacingVertical,
+                    secondaryPref = prefs.keyboard.keySpacingHorizontal,
+                    title = stringRes(R.string.pref__keyboard__key_spacing__label),
+                    primaryLabel = stringRes(R.string.screen_orientation__vertical),
+                    secondaryLabel = stringRes(R.string.screen_orientation__horizontal),
+                    valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                    min = 50,
+                    max = 150,
+                    stepIncrement = 5,
+                )
+                DialogSliderPreference(
+                    prefs.keyboard.longPressDelay,
+                    title = stringRes(R.string.pref__keyboard__long_press_delay__label),
+                    valueLabel = { stringRes(R.string.unit__milliseconds__symbol, "v" to it) },
+                    min = 100,
+                    max = 700,
+                    stepIncrement = 10,
+                )
+                DialogSliderPreference(
+                    prefs.keyboard.keyRepeatRatePercent,
+                    title = stringRes(R.string.pref__keyboard__key_repeat_rate__label),
+                    valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                    min = 50,
+                    max = 300,
+                    stepIncrement = 10,
+                )
+                ListPreference(
+                    listPref = prefs.keyboard.hintedNumberRowMode,
+                    switchPref = prefs.keyboard.hintedNumberRowEnabled,
+                    title = stringRes(R.string.pref__keyboard__hinted_number_row_mode__label),
+                    summarySwitchDisabled = stringRes(R.string.state__disabled),
+                    entries = enumDisplayEntriesOf(KeyHintMode::class),
+                    enabledIf = { prefs.keyboard.numberRow.isFalse() },
+                )
+                ListPreference(
+                    listPref = prefs.keyboard.hintedSymbolsMode,
+                    switchPref = prefs.keyboard.hintedSymbolsEnabled,
+                    title = stringRes(R.string.pref__keyboard__hinted_symbols_mode__label),
+                    summarySwitchDisabled = stringRes(R.string.state__disabled),
+                    entries = enumDisplayEntriesOf(KeyHintMode::class),
+                )
+                SwitchPreference(
+                    prefs.glide.enabled,
+                    title = stringRes(R.string.pref__glide__enabled__label),
+                    summary = stringRes(R.string.drs__unified__basics_glide_summary),
+                )
+                SwitchPreference(
+                    prefs.glide.showTrail,
+                    title = stringRes(R.string.pref__glide__show_trail__label),
+                    summary = stringRes(R.string.drs__unified__basics_glide_trail_summary),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The Advanced Controls gate: a real, persisted switch stored in DrsState.
+ * When off, every advanced group of the unified system stays hidden.
+ */
+@Composable
+fun AdvancedControlsGateCard() {
+    val drsState by DrsStore.state.collectAsState()
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f),
+        ),
+    ) {
+        Row(
+            modifier = Modifier.padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringRes(R.string.drs__unified__system_advanced_controls),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = stringRes(R.string.drs__unified__system_advanced_controls_summary),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = drsState.advancedControlsEnabled,
+                onCheckedChange = { DrsUnified.setAdvancedControls(it) },
+            )
+        }
+    }
+}

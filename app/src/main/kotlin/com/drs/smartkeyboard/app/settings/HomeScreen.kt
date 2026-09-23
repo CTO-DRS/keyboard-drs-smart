@@ -1209,6 +1209,23 @@ fun HomeScreen() = DrsScreen {
         }
         DrsStaggerIn(index = 2) {
             DrsGroupCard(icon = Icons.Default.AutoAwesome, title = stringRes(R.string.settings__home__group__drs)) {
+                // DRS v1.0.7: the unified «كلاهما» system leads the group.
+                DrsHomeTile(
+                    icon = Icons.Default.Dashboard,
+                    accent = MaterialTheme.colorScheme.primary,
+                    title = stringRes(R.string.drs__unified__dashboard_title),
+                    summary = stringRes(R.string.drs__unified__home_summary),
+                    onClick = { navController.navigate(Routes.Settings.DrsUnifiedDashboard) },
+                )
+                DrsTileDivider()
+                DrsHomeTile(
+                    icon = Icons.Default.Extension,
+                    accent = MaterialTheme.colorScheme.tertiary,
+                    title = stringRes(R.string.drs__unified__tools_title),
+                    summary = stringRes(R.string.drs__unified__tools_home_summary),
+                    onClick = { navController.navigate(Routes.Settings.DrsUnifiedTools) },
+                )
+                DrsTileDivider()
                 DrsHomeTile(
                     icon = Icons.Default.Dashboard,
                     accent = MaterialTheme.colorScheme.primary,

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.drs.smartkeyboard.drs.ui
 
 import androidx.compose.foundation.layout.Arrangement
@@ -30,6 +32,8 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +55,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.drs.DrsShortcutScope
 import com.drs.smartkeyboard.drs.DrsShortcuts
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.lib.compose.DrsScreen
@@ -61,6 +66,8 @@ private data class DrsShortcutEditorState(
     val shortcut: String = "",
     val expansion: String = "",
     val isTechnical: Boolean = false,
+    // DRS v1.0.7: where the shortcut is available (unified system scope).
+    val scope: DrsShortcutScope = DrsShortcutScope.BOTH,
 )
 
 /**
@@ -254,6 +261,12 @@ fun DrsShortcutsScreen() = DrsScreen {
                                             color = MaterialTheme.colorScheme.tertiary,
                                         )
                                     }
+                                    // DRS v1.0.7: availability scope badge.
+                                    Text(
+                                        text = scopeLabel(sc.scope.toScopeSafe()),
+                                        fontSize = 10.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
                                 }
                                 TextButton(onClick = {
                                     editorState = DrsShortcutEditorState(
@@ -261,6 +274,7 @@ fun DrsShortcutsScreen() = DrsScreen {
                                         sc.shortcut,
                                         sc.expansion,
                                         sc.isTechnical,
+                                        sc.scope.toScopeSafe(),
                                     )
                                 }) {
                                     Text(text = stringRes(R.string.drs__shortcuts__edit_action))
@@ -290,13 +304,19 @@ fun DrsShortcutsScreen() = DrsScreen {
                 editorState = null
                 showDuplicateError = false
             },
-            onSave = { shortcut, expansion ->
+            onSave = { shortcut, expansion, scope ->
                 val saved = if (editing.id != null) {
                     // DRS v1.0.6: edit by id - the old abbreviation is really
                     // replaced now (it used to stay behind as a duplicate).
-                    DrsShortcuts.update(editing.id, shortcut, expansion, editing.isTechnical)
+                    DrsShortcuts.update(
+                        editing.id,
+                        shortcut,
+                        expansion,
+                        editing.isTechnical,
+                        scope,
+                    )
                 } else {
-                    DrsShortcuts.add(shortcut, expansion, editing.isTechnical)
+                    DrsShortcuts.add(shortcut, expansion, editing.isTechnical, scope)
                     true
                 }
                 if (saved) {
@@ -363,10 +383,12 @@ private fun DrsShortcutEditorDialog(
     initial: DrsShortcutEditorState,
     showError: Boolean,
     onDismiss: () -> Unit,
-    onSave: (shortcut: String, expansion: String) -> Unit,
+    onSave: (shortcut: String, expansion: String, scope: DrsShortcutScope) -> Unit,
 ) {
     var shortcut by remember { mutableStateOf(initial.shortcut) }
     var expansion by remember { mutableStateOf(initial.expansion) }
+    // DRS v1.0.7: per-shortcut availability scope (عادي/تقني/كلاهما).
+    var scope by remember { mutableStateOf(initial.scope) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -428,6 +450,27 @@ private fun DrsShortcutEditorDialog(
                     }
                 }
                 Spacer(Modifier.height(4.dp))
+                Text(
+                    text = stringRes(R.string.drs__shortcuts__scope_section),
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+                Spacer(Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    DrsShortcutScope.entries.forEach { option ->
+                        FilterChip(
+                            selected = scope == option,
+                            onClick = { scope = option },
+                            label = {
+                                Text(scopeLabel(option), fontSize = 11.sp)
+                            },
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
                 if (showError) {
                     Text(
                         text = stringRes(R.string.drs__shortcuts__duplicate_error),
@@ -446,7 +489,9 @@ private fun DrsShortcutEditorDialog(
         confirmButton = {
             TextButton(
                 enabled = shortcut.isNotBlank() && expansion.isNotBlank(),
-                onClick = { onSave(shortcut, expansion) },
+                onClick = {
+                    onSave(shortcut, expansion, scope)
+                },
             ) {
                 Text(stringRes(R.string.drs__shortcuts__save_action))
             }
@@ -457,4 +502,17 @@ private fun DrsShortcutEditorDialog(
             }
         },
     )
+}
+
+/** Localized label of a shortcut availability scope. */
+@Composable
+private fun scopeLabel(scope: DrsShortcutScope): String = when (scope) {
+    DrsShortcutScope.NORMAL -> stringRes(R.string.drs__unified__view_normal)
+    DrsShortcutScope.TECHNICAL -> stringRes(R.string.drs__unified__view_technical)
+    DrsShortcutScope.BOTH -> stringRes(R.string.drs__unified__view_both)
+}
+
+/** Safe parse of a persisted scope name (legacy data falls back to BOTH). */
+private fun String.toScopeSafe(): DrsShortcutScope {
+    return DrsShortcutScope.entries.firstOrNull { it.name == this } ?: DrsShortcutScope.BOTH
 }

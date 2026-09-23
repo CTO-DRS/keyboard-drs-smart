@@ -54,11 +54,13 @@ import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.SettingsInputComponent
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.SpaceBar
@@ -69,6 +71,7 @@ import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.CloudDownload
@@ -277,6 +280,52 @@ private fun DrsSearchEntry.score(normalizedQuery: String): Int {
 @Composable
 private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
     return listOf(
+        // DRS v1.0.7: the unified «كلاهما» screens.
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__dashboard_title),
+            keywords = listOf(
+                "unified", "dashboard", "both", "status", "overview",
+                "كلاهما", "لوحة", "موحد", "الحالة", "نظرة عامة", "مزدوج",
+            ),
+            icon = Icons.Default.Dashboard,
+            route = Routes.Settings.DrsUnifiedDashboard,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__tools_title),
+            keywords = listOf(
+                "tools", "strip", "toolbar", "pin", "reorder", "unified tools",
+                "أدوات", "شريط", "تثبيت", "ترتيب", "موحدة", "أدوات ذكية",
+            ),
+            icon = Icons.Default.Extension,
+            route = Routes.Settings.DrsUnifiedTools,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__basics_title),
+            keywords = listOf(
+                "basics", "spacing", "long press", "repeat", "glide", "number row",
+                "أساسيات", "مسافات", "ضغط مطول", "تكرار", "صف أرقام", "تمرير",
+            ),
+            icon = Icons.Default.Tune,
+            route = Routes.Settings.DrsUnifiedBasics,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__writing_title),
+            keywords = listOf(
+                "writing", "editing", "cursor", "select", "templates", "undo",
+                "كتابة", "تحرير", "مؤشر", "تحديد", "قوالب", "تراجع",
+            ),
+            icon = Icons.Default.Edit,
+            route = Routes.Settings.DrsUnifiedWriting,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__system_title),
+            keywords = listOf(
+                "system", "advanced controls", "haptic", "sound level", "engine",
+                "نظام", "تحكم متقدم", "اهتزاز", "صوت", "محرك",
+            ),
+            icon = Icons.Default.Settings,
+            route = Routes.Settings.DrsUnifiedSystem,
+        ),
         DrsSearchEntry(
             title = stringRes(R.string.drs__control_center__title),
             keywords = listOf("control center", "مركز", "تحكم", "شامل", "كل شيء"),

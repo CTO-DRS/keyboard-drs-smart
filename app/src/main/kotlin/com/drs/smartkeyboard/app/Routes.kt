@@ -80,6 +80,11 @@ import com.drs.smartkeyboard.app.settings.theme.ThemeScreen
 import com.drs.smartkeyboard.app.settings.typing.TypingScreen
 import com.drs.smartkeyboard.app.setup.SetupScreen
 import com.drs.smartkeyboard.drs.ui.DrsControlCenterScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedDashboardScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedToolsScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedBasicsScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedWritingScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedSystemScreen
 import com.drs.smartkeyboard.app.ext.DrsRewardsScreen
 import com.drs.smartkeyboard.drs.ui.DrsDiagnosticsScreen
 import com.drs.smartkeyboard.drs.ui.DrsGesturesScreen
@@ -246,6 +251,27 @@ object Routes {
         @Serializable
         @Deeplink("settings/drs/performance")
         object DrsPerformance
+
+        // DRS v1.0.7: unified "كلاهما" system screens.
+        @Serializable
+        @Deeplink("settings/drs/unified-dashboard")
+        object DrsUnifiedDashboard
+
+        @Serializable
+        @Deeplink("settings/drs/unified-tools")
+        object DrsUnifiedTools
+
+        @Serializable
+        @Deeplink("settings/drs/unified-basics")
+        object DrsUnifiedBasics
+
+        @Serializable
+        @Deeplink("settings/drs/unified-writing")
+        object DrsUnifiedWriting
+
+        @Serializable
+        @Deeplink("settings/drs/unified-system")
+        object DrsUnifiedSystem
     }
 
     object Devtools {
@@ -386,6 +412,13 @@ object Routes {
             composableWithDeepLink(Settings.DrsRewards::class) { DrsRewardsScreen() }
             composableWithDeepLink(Settings.DrsTechToolbar::class) { DrsTechToolbarScreen() }
             composableWithDeepLink(Settings.DrsPerformance::class) { DrsPerformanceScreen() }
+
+            // DRS v1.0.7: unified "كلاهما" system screens.
+            composableWithDeepLink(Settings.DrsUnifiedDashboard::class) { DrsUnifiedDashboardScreen() }
+            composableWithDeepLink(Settings.DrsUnifiedTools::class) { DrsUnifiedToolsScreen() }
+            composableWithDeepLink(Settings.DrsUnifiedBasics::class) { DrsUnifiedBasicsScreen() }
+            composableWithDeepLink(Settings.DrsUnifiedWriting::class) { DrsUnifiedWritingScreen() }
+            composableWithDeepLink(Settings.DrsUnifiedSystem::class) { DrsUnifiedSystemScreen() }
 
             composableWithDeepLink(Devtools.Home::class) { DevtoolsScreen() }
             composableWithDeepLink(Devtools.AndroidLocales::class) { AndroidLocalesScreen() }

@@ -112,7 +112,7 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 | المصدر | الرابط |
 |---|---|
 | 🚀 أحدث إصدار (مستقر دائمًا) | **[github.com/CTO-DRS/keyboard-drs-smart/releases/latest](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)** |
-| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.6.apk` من صفحة الإصدار |
+| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.7.apk` من صفحة الإصدار |
 | 🔄 من داخل التطبيق | مركز تحديثات DRS — تحقق وتنزيل وتثبيت بلا خروج من التطبيق |
 
 > ⚠️ **ثبّت ملف `.apk` فقط**: ملف `.aab` في صفحة الإصدار حزمة نشر لـ Google Play

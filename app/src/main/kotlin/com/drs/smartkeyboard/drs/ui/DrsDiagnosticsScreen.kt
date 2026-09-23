@@ -62,10 +62,13 @@ import com.drs.smartkeyboard.drs.DrsCrashHandler
 import com.drs.smartkeyboard.drs.DrsBackup
 import com.drs.smartkeyboard.drs.DrsEventLog
 import com.drs.smartkeyboard.drs.DrsEconomy
+import com.drs.smartkeyboard.drs.DrsHybridViewMode
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRewardCatalog
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.DrsSystems
+import com.drs.smartkeyboard.drs.DrsToolView
+import com.drs.smartkeyboard.drs.DrsUnifiedTools
 import com.drs.smartkeyboard.ime.input.DrsSoundStyle
 import com.drs.smartkeyboard.lib.compose.DrsScreen
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
@@ -172,6 +175,17 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             walletHealthy = drsState.wallet.ledger.size <= 24 &&
                 DrsEconomy.balanceOf(drsState.wallet, DrsSystems.specOfName(drsState.userPath).path) >= 0,
             eventErrorCount = DrsEventLog.snapshot().count { it.level == DrsEventLog.Level.ERROR },
+            unifiedStateConsistent = {
+                val validView = DrsHybridViewMode.entries.any { it.name == drsState.hybridViewMode }
+                val knownToolIds = DrsUnifiedTools.ALL.map { it.id }.toSet()
+                val orderKnown = drsState.unifiedToolOrder.all { it in knownToolIds }
+                val viewsValid = drsState.unifiedToolViews.all { (id, view) ->
+                    id in knownToolIds && DrsToolView.entries.any { it.name == view }
+                }
+                val hiddenKnown = drsState.hiddenUnifiedTools.all { it in knownToolIds }
+                val pinnedKnown = drsState.pinnedUnifiedTools.all { it in knownToolIds }
+                validView && orderKnown && viewsValid && hiddenKnown && pinnedKnown
+            }(),
         )
     }
 
@@ -668,6 +682,7 @@ private fun computeDrsFullTest(
     activeProfileOk: Boolean,
     walletHealthy: Boolean,
     eventErrorCount: Int,
+    unifiedStateConsistent: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -697,6 +712,15 @@ private fun computeDrsFullTest(
         result(activeProfileOk, warn = false, R.string.drs__diagnostics__check_active_profile, R.string.drs__diagnostics__hint_profile),
         result(walletHealthy, warn = true, R.string.drs__diagnostics__check_wallet, R.string.drs__diagnostics__hint_restart),
         result(eventErrorCount == 0, warn = true, R.string.drs__diagnostics__check_events_clean, R.string.drs__diagnostics__hint_events),
+        // DRS v1.0.7: unified «كلاهما» layer consistency - unknown tool ids
+        // or invalid level names in the customization are dropped by the
+        // resolver, so this only ever degrades to a warning.
+        result(
+            unifiedStateConsistent,
+            warn = true,
+            R.string.drs__diagnostics__check_unified,
+            R.string.drs__diagnostics__hint_unified,
+        ),
     )
 }
 

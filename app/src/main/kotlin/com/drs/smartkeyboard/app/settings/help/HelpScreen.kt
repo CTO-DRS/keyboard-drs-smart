@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Gesture
@@ -89,6 +90,13 @@ fun HelpScreen() = DrsScreen {
         }
 
         PreferenceGroup(title = stringRes(R.string.help__faq_group)) {
+            // DRS v1.0.7: the unified «كلاهما» system explanation leads the FAQ.
+            Preference(
+                icon = Icons.Default.Dashboard,
+                title = stringRes(R.string.help__faq_unified__title),
+                summary = stringRes(R.string.help__faq_unified__summary),
+                onClick = { navController.navigate(Routes.Settings.DrsUnifiedDashboard) },
+            )
             Preference(
                 icon = Icons.Default.Language,
                 title = stringRes(R.string.help__faq_languages__title),

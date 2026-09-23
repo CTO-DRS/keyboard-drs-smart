@@ -119,10 +119,50 @@ object DrsShortcuts {
         val state = DrsStore.state.value
         if (!state.shortcutsEnabled || state.shortcuts.isEmpty()) return null
         val needle = word.lowercase()
-        return state.shortcuts.firstOrNull { it.shortcut == needle && it.enabled }?.expansion
+        return state.shortcuts.firstOrNull {
+            it.shortcut == needle && it.enabled && isShortcutAvailable(state, it.scope)
+        }?.expansion
+    }
+
+    /**
+     * DRS v1.0.7: real availability filter for the unified system. A
+     * shortcut is expandable only when its scope matches the active
+     * system - and for the hybrid system, the current display level.
+     * Unknown scope names fall back to BOTH so legacy data stays usable.
+     */
+    fun isShortcutAvailable(state: DrsState, scopeName: String): Boolean {
+        val scope = DrsShortcutScope.entries.firstOrNull { it.name == scopeName }
+            ?: DrsShortcutScope.BOTH
+        return when (state.userPath) {
+            DrsUserPath.NORMAL.name ->
+                scope == DrsShortcutScope.NORMAL || scope == DrsShortcutScope.BOTH
+            DrsUserPath.TECHNICAL.name ->
+                scope == DrsShortcutScope.TECHNICAL || scope == DrsShortcutScope.BOTH
+            else -> when (
+                DrsUnifiedTools.viewForSystem(
+                    state.userPath,
+                    state.hybridViewMode,
+                )
+            ) {
+                DrsHybridViewMode.SIMPLE ->
+                    scope == DrsShortcutScope.NORMAL || scope == DrsShortcutScope.BOTH
+                DrsHybridViewMode.ADVANCED ->
+                    scope == DrsShortcutScope.TECHNICAL || scope == DrsShortcutScope.BOTH
+                DrsHybridViewMode.DUAL -> true
+            }
+        }
     }
 
     fun add(shortcut: String, expansion: String, isTechnical: Boolean) {
+        add(shortcut, expansion, isTechnical, DrsShortcutScope.BOTH)
+    }
+
+    fun add(
+        shortcut: String,
+        expansion: String,
+        isTechnical: Boolean,
+        scope: DrsShortcutScope,
+    ) {
         val trimmedShortcut = shortcut.trim().lowercase()
         val trimmedExpansion = expansion.trim()
         if (trimmedShortcut.isEmpty() || trimmedExpansion.isEmpty()) return
@@ -130,7 +170,13 @@ object DrsShortcuts {
             val filtered = state.shortcuts.filter { it.shortcut != trimmedShortcut }
             val id = state.nextShortcutId
             state.copy(
-                shortcuts = filtered + DrsShortcut(id, trimmedShortcut, trimmedExpansion, isTechnical),
+                shortcuts = filtered + DrsShortcut(
+                    id,
+                    trimmedShortcut,
+                    trimmedExpansion,
+                    isTechnical,
+                    scope = scope.name,
+                ),
                 nextShortcutId = id + 1,
             )
         }
@@ -144,6 +190,17 @@ object DrsShortcuts {
      * behind. The caller surfaces the error to the user.
      */
     fun update(id: Long, shortcut: String, expansion: String, isTechnical: Boolean): Boolean {
+        return update(id, shortcut, expansion, isTechnical, null)
+    }
+
+    /** DRS v1.0.7: edit that also persists the availability scope (null keeps it). */
+    fun update(
+        id: Long,
+        shortcut: String,
+        expansion: String,
+        isTechnical: Boolean,
+        scope: DrsShortcutScope?,
+    ): Boolean {
         val trimmedShortcut = shortcut.trim().lowercase()
         val trimmedExpansion = expansion.trim()
         if (trimmedShortcut.isEmpty() || trimmedExpansion.isEmpty()) return false
@@ -158,6 +215,7 @@ object DrsShortcuts {
                             shortcut = trimmedShortcut,
                             expansion = trimmedExpansion,
                             isTechnical = isTechnical,
+                            scope = scope?.name ?: sc.scope,
                         )
                     } else {
                         sc

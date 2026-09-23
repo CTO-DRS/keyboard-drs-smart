@@ -70,7 +70,30 @@ data class DrsShortcut(
     val isTechnical: Boolean = false,
     /** DRS v1.0.6: disabled shortcuts stay stored but never expand. */
     val enabled: Boolean = true,
+    /**
+     * DRS v1.0.7: where the shortcut is available inside the unified
+     * system - one of DrsShortcutScope names (NORMAL / TECHNICAL / BOTH).
+     * The expansion engine really filters by the active system and (for
+     * the hybrid system) the current display level, so a BOTH-only
+     * shortcut really stays silent in the other levels.
+     */
+    val scope: String = DrsShortcutScope.BOTH.name,
 )
+
+/**
+ * DRS v1.0.7: availability scope of a shortcut across the unified
+ * system's levels.
+ */
+enum class DrsShortcutScope {
+    /** Available when the normal level is active. */
+    NORMAL,
+
+    /** Available when the technical level is active. */
+    TECHNICAL,
+
+    /** Available in both levels (and the dual level). */
+    BOTH,
+}
 
 /**
  * Aggregated, anonymous usage counters used by the local adaptation engine.
@@ -162,6 +185,25 @@ data class DrsState(
      * state so the strip survives restarts exactly as customized.
      */
     val techToolbarKeys: List<String> = emptyList(),
+    /**
+     * DRS v1.0.7 (نظام كلاهما الموحد): the active display level of the
+     * unified system (SIMPLE / ADVANCED / DUAL). Switching the level only
+     * changes visibility - profiles, shortcuts, clipboard data and themes
+     * are never touched, so level switches are lossless.
+     */
+    val hybridViewMode: String = DrsHybridViewMode.DUAL.name,
+    /** DRS v1.0.7: gates the advanced groups of the unified System screen. */
+    val advancedControlsEnabled: Boolean = false,
+    /** DRS v1.0.7: opts the normal system's keyboard into the unified strip. */
+    val unifiedStripForNormal: Boolean = false,
+    /** DRS v1.0.7: explicit unified strip tool order (catalogue ids). */
+    val unifiedToolOrder: List<String> = emptyList(),
+    /** DRS v1.0.7: tools the user removed from the unified strip. */
+    val hiddenUnifiedTools: List<String> = emptyList(),
+    /** DRS v1.0.7: tools pinned to the head of the unified strip. */
+    val pinnedUnifiedTools: List<String> = emptyList(),
+    /** DRS v1.0.7: per-tool visibility override (tool id -> DrsToolView name). */
+    val unifiedToolViews: Map<String, String> = emptyMap(),
 )
 
 /** Suggestion ids produced by the local adaptation engine. */

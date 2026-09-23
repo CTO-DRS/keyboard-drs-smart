@@ -29,7 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
-import com.drs.smartkeyboard.drs.ui.DrsTechToolbar
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedStrip
 import com.drs.smartkeyboard.ime.smartbar.IncognitoDisplayMode
 import com.drs.smartkeyboard.ime.smartbar.InlineSuggestionsStyleCache
 import com.drs.smartkeyboard.ime.smartbar.Smartbar
@@ -59,9 +59,10 @@ fun TextInputLayout(
             .fillMaxWidth()
             .wrapContentHeight(),
     ) {
-        // DRS: adaptive technical toolbar (coding symbols, Tab/Esc, arrows).
-        // Renders nothing unless enabled by the active profile.
-        DrsTechToolbar()
+        // DRS v1.0.7: unified strip for all three systems - renders the
+        // right tools per active display level (بسيط/تقني/مزدوج) and
+        // supersedes the former technical-only toolbar.
+        DrsUnifiedStrip()
         Smartbar()
         if (state.isActionsOverflowVisible) {
             QuickActionsOverflowPanel()
