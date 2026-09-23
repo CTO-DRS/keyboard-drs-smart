@@ -38,6 +38,7 @@ import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Extension
@@ -49,8 +50,11 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.SmartButton
 import androidx.compose.material.icons.filled.Spellcheck
+import androidx.compose.material.icons.filled.SettingsBackupRestore
+import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.Icon
@@ -70,6 +74,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -114,10 +121,60 @@ fun drsSearchNormalize(raw: String): String {
         .trim()
 }
 
+private fun isSubsequence(query: String, text: String): Boolean {
+    if (query.isEmpty() || text.isEmpty()) return false
+    var i = 0
+    for (c in text) {
+        if (c == query[i]) {
+            i++
+            if (i == query.length) return true
+        }
+    }
+    return false
+}
+
+/**
+ * DRS v1.0.3: score ONE normalized query token against ONE normalized
+ * candidate (title or keyword). Higher wins; 0 = no match. The subsequence
+ * fallback keeps typos and dropped letters productive (e.g. "ثمت" still
+ * finds السمات) so the no-results dead end almost never happens.
+ */
+private fun scoreToken(token: String, candidate: String): Int {
+    if (token.isEmpty() || candidate.isEmpty()) return 0
+    return when {
+        candidate == token -> 100
+        candidate.startsWith(token) -> 80
+        candidate.contains(token) -> 60
+        isSubsequence(token, candidate) -> 25
+        else -> 0
+    }
+}
+
 private fun DrsSearchEntry.matches(normalizedQuery: String): Boolean {
-    if (normalizedQuery.isEmpty()) return false
-    if (drsSearchNormalize(title).contains(normalizedQuery)) return true
-    return keywords.any { drsSearchNormalize(it).contains(normalizedQuery) }
+    return score(normalizedQuery) > 0
+}
+
+/**
+ * DRS v1.0.3: ranked, multi-word matching. The query is split into tokens;
+ * EVERY token must hit somewhere in the title or keywords (AND semantics),
+ * title hits weigh double, and the per-token scores sum into a ranking score
+ * so the best matches always float to the top instead of index order.
+ */
+private fun DrsSearchEntry.score(normalizedQuery: String): Int {
+    val tokens = normalizedQuery.split(' ').filter { it.isNotEmpty() }
+    if (tokens.isEmpty()) return 0
+    val normTitle = drsSearchNormalize(title)
+    var total = 0
+    for (token in tokens) {
+        var best = scoreToken(token, normTitle) * 2
+        for (keyword in keywords) {
+            val s = scoreToken(token, drsSearchNormalize(keyword))
+            if (s > best) best = s
+        }
+        if (best == 0) return 0
+        total += best
+    }
+    return total
 }
 
 /** The full search index of the settings app (titles resolved for the current locale). */
@@ -226,14 +283,45 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
             icon = Icons.Outlined.Info,
             route = Routes.Settings.About,
         ),
+        // DRS v1.0.3: previously unreachable screens — the update center,
+        // package center, rewards store and backup/restore are now all
+        // one search away.
+        DrsSearchEntry(
+            title = stringRes(R.string.updates__center__title),
+            keywords = listOf("update", "upgrade", "تحديث", "تحديثات", "ترقية", "إصدار جديد", "فحص التحديثات"),
+            icon = Icons.Default.SystemUpdateAlt,
+            route = Routes.Ext.CheckUpdates,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.packages__center__title),
+            keywords = listOf("packages", "package center", "حزم", "حزمة", "مركز الحزم", "سمات رسمية", "كتالوج"),
+            icon = Icons.Outlined.CloudDownload,
+            route = Routes.Ext.Packages,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__rewards__title),
+            keywords = listOf("rewards", "points", "مكافآت", "مكافأة", "نقاط", "عملات", "ألقاب", "أوسمة", "متجر"),
+            icon = Icons.Default.CardGiftcard,
+            route = Routes.Settings.DrsRewards,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.backup_and_restore__title),
+            keywords = listOf("backup", "restore", "نسخ احتياطي", "احتياطي", "استعادة", "تصدير الإعدادات", "حفظ الإعدادات"),
+            icon = Icons.Default.SettingsBackupRestore,
+            route = Routes.Settings.Backup,
+        ),
     )
 }
 
 /** Quick suggestions shown before the user types anything. */
-private val drsSuggestionIndices = listOf(0, 2, 6, 5, 1, 4)
+private val drsSuggestionIndices = listOf(0, 2, 6, 5, 1, 17)
 
 @Composable
-private fun DrsSearchResultRow(entry: DrsSearchEntry, onNavigate: (Any) -> Unit) {
+private fun DrsSearchResultRow(
+    entry: DrsSearchEntry,
+    query: String,
+    onNavigate: (Any) -> Unit,
+) {
     val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
@@ -258,8 +346,11 @@ private fun DrsSearchResultRow(entry: DrsSearchEntry, onNavigate: (Any) -> Unit)
             )
         }
         Spacer(modifier = Modifier.width(12.dp))
+        // DRS v1.0.3: word-level match highlighting — the words that caused
+        // the hit are bolded in the primary color, so the user immediately
+        // sees WHY each result matched.
         Text(
-            text = entry.title,
+            text = buildHighlightedTitle(entry.title, query),
             style = MaterialTheme.typography.bodyLarge,
             color = colorScheme.onSurface,
             maxLines = 1,
@@ -271,6 +362,31 @@ private fun DrsSearchResultRow(entry: DrsSearchEntry, onNavigate: (Any) -> Unit)
             tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
             modifier = Modifier.size(18.dp),
         )
+    }
+}
+
+/**
+ * DRS v1.0.3: bolds every word of the title that contributed to the match
+ * (word-level, so no fragile index mapping across normalization — diacritics
+ * stripped, hamza folded, etc. never break the styling).
+ */
+private fun buildHighlightedTitle(title: String, rawQuery: String): AnnotatedString {
+    val tokens = drsSearchNormalize(rawQuery).split(' ').filter { it.isNotEmpty() }
+    if (tokens.isEmpty()) return AnnotatedString(title)
+    val highlight = SpanStyle(fontWeight = FontWeight.Bold)
+    return buildAnnotatedString {
+        append(title)
+        var offset = 0
+        for (word in title.split(' ')) {
+            if (word.isNotEmpty()) {
+                val normWord = drsSearchNormalize(word)
+                val hit = tokens.any { token ->
+                    normWord.contains(token) || isSubsequence(token, normWord)
+                }
+                if (hit) addStyle(highlight, offset, offset + word.length)
+            }
+            offset += word.length + 1
+        }
     }
 }
 
@@ -290,10 +406,17 @@ fun DrsSmartSearchDialog(
     val entries = rememberDrsSearchEntries()
 
     val normalizedQuery = drsSearchNormalize(query)
+    // DRS v1.0.3: ranked results — best match first (title hits weigh double,
+    // per-token scores sum). Stable sort keeps the index order for ties.
     val results = if (normalizedQuery.isEmpty()) {
         emptyList()
     } else {
-        entries.filter { it.matches(normalizedQuery) }
+        entries.asSequence()
+            .map { it to it.score(normalizedQuery) }
+            .filter { it.second > 0 }
+            .sortedByDescending { it.second }
+            .map { it.first }
+            .toList()
     }
     val suggestions = drsSuggestionIndices.mapNotNull { entries.getOrNull(it) }
 
@@ -361,7 +484,7 @@ fun DrsSmartSearchDialog(
                     )
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {
                         items(suggestions) { entry ->
-                            DrsSearchResultRow(entry = entry, onNavigate = onNavigate)
+                            DrsSearchResultRow(entry = entry, query = query, onNavigate = onNavigate)
                         }
                     }
                 } else if (results.isEmpty()) {
@@ -388,7 +511,7 @@ fun DrsSmartSearchDialog(
                 } else {
                     LazyColumn(modifier = Modifier.fillMaxWidth()) {
                         items(results) { entry ->
-                            DrsSearchResultRow(entry = entry, onNavigate = onNavigate)
+                            DrsSearchResultRow(entry = entry, query = query, onNavigate = onNavigate)
                         }
                     }
                 }

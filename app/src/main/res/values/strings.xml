@@ -1221,6 +1221,12 @@
     <string name="drs__home__greeting_evening">مساء الخير</string>
     <string name="drs__home__greeting_night">ليلة هادئة</string>
     <string name="drs__home__hero_subtitle">كل ما تحتاجه لتخصيص لوحتك وتجربتها — في مكان واحد أنيق</string>
+    <string name="drs__home__hero_subtitle_2">خصّص لوحتك كما تحب تمامًا — ألوان وأشكال وسمات بلمستك</string>
+    <string name="drs__home__hero_subtitle_3">لوحتك وبياناتك على جهازك — خصوصية كاملة بلا حسابات</string>
+    <string name="drs__home__hero_subtitle_4">اكتب بالعربية بجودة حقيقية: اقتراحات وتصحيح وتخطيطات مدروسة</string>
+    <string name="drs__home__hero_subtitle_5">جرّب إعداداتك فورًا من زر «جرّب إعداداتك» أسفل الشاشة</string>
+    <string name="drs__home__hero_subtitle_6">سمات وحزم رسمية جاهزة للتنزيل من مركز حزم DRS</string>
+    <string name="drs__home__hero_subtitle_7">اكسب النقاط بالكتابة وافتح ألقابًا وأنماطًا حصرية</string>
     <string name="drs__home__hero_tagline">{greeting}، {subtitle}</string>
     <string name="drs__home__search_hint">ابحث في كل الإعدادات الذكية…</string>
     <string name="drs__home__search_suggestions">اقتراحات سريعة</string>

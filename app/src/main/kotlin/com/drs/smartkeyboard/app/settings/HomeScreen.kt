@@ -172,6 +172,35 @@ private fun rememberDrsSmartGreeting(): DrsSmartGreeting {
 }
 
 /**
+ * DRS v1.0.3: rotating hero subtitle — seven curated, product-truthful
+ * taglines picked deterministically by day-of-year, so the welcome header
+ * feels alive day after day without ever flickering randomly mid-session.
+ */
+private val drsHeroSubtitleRes = listOf(
+    R.string.drs__home__hero_subtitle,
+    R.string.drs__home__hero_subtitle_2,
+    R.string.drs__home__hero_subtitle_3,
+    R.string.drs__home__hero_subtitle_4,
+    R.string.drs__home__hero_subtitle_5,
+    R.string.drs__home__hero_subtitle_6,
+    R.string.drs__home__hero_subtitle_7,
+)
+
+@Composable
+private fun rememberDrsHeroSubtitleRes(): Int {
+    val dayTick = produceState(0L) {
+        while (true) {
+            delay(60_000L)
+            value = System.currentTimeMillis()
+        }
+    }
+    return remember(dayTick.value) {
+        val dayOfYear = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_YEAR)
+        drsHeroSubtitleRes[dayOfYear % drsHeroSubtitleRes.size]
+    }
+}
+
+/**
  * DRS profile avatar: the DRS app icon inside a gradient ring with a status
  * dot — tapping it opens the user's profiles screen.
  */
@@ -790,6 +819,9 @@ private fun DrsHomeHeroHeader(scrollBehavior: TopAppBarScrollBehavior) {
     val colorScheme = MaterialTheme.colorScheme
     val navController = LocalNavController.current
     val greeting = rememberDrsSmartGreeting()
+    // DRS v1.0.3: daily-rotating tagline — refreshed once per minute-tick so
+    // an app left open across midnight rolls to the next tagline by itself.
+    val heroSubtitleRes = rememberDrsHeroSubtitleRes()
     val collapse = scrollBehavior.state.collapsedFraction
     var showSearch by remember { mutableStateOf(false) }
 
@@ -973,7 +1005,7 @@ private fun DrsHomeHeroHeader(scrollBehavior: TopAppBarScrollBehavior) {
                             text = stringRes(
                                 R.string.drs__home__hero_tagline,
                                 "greeting" to stringRes(greeting.labelRes),
-                                "subtitle" to stringRes(R.string.drs__home__hero_subtitle),
+                                "subtitle" to stringRes(heroSubtitleRes),
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = colorScheme.onSurfaceVariant,

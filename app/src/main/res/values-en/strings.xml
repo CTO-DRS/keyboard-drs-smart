@@ -1296,6 +1296,12 @@
     <string name="drs__home__greeting_evening">Good evening</string>
     <string name="drs__home__greeting_night">Quiet night</string>
     <string name="drs__home__hero_subtitle">Everything you need to personalize and try your keyboard — in one elegant place</string>
+    <string name="drs__home__hero_subtitle_2">Make the keyboard truly yours — colors, shapes and themes with your touch</string>
+    <string name="drs__home__hero_subtitle_3">Your keyboard, your data, on your device — fully private, no accounts</string>
+    <string name="drs__home__hero_subtitle_4">Real Arabic typing quality: suggestions, correction and refined layouts</string>
+    <string name="drs__home__hero_subtitle_5">Try your settings instantly with the “Try your settings” pill below</string>
+    <string name="drs__home__hero_subtitle_6">Official themes and packages ready to download from DRS Package Center</string>
+    <string name="drs__home__hero_subtitle_7">Earn points by typing and unlock exclusive titles and styles</string>
     <string name="drs__home__hero_tagline">{greeting}, {subtitle}</string>
     <string name="drs__home__search_hint">Search all smart settings…</string>
     <string name="drs__home__search_suggestions">Quick suggestions</string>
