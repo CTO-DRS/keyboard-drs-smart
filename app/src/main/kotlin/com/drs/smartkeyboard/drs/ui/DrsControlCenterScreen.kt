@@ -120,6 +120,15 @@ fun DrsControlCenterScreen() = DrsScreen {
     val suggestions = remember(drsState) { DrsAdaptationEngine.computeSuggestions(drsState) }
 
     content {
+        // DRS v1.0.8: breadcrumb context — rendered only for the technical
+        // system (the identity decides), so drill-down never loses its place.
+        DrsBreadcrumbBar(
+            crumbs = listOf(
+                stringRes(R.string.drs__nav__home) to { navController.popBackStack(com.drs.smartkeyboard.app.Routes.Settings.Home, false) },
+                stringRes(R.string.drs__dash__control_center) to {},
+            ),
+            modifier = Modifier.padding(horizontal = 12.dp),
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()

@@ -190,6 +190,14 @@ fun DrsDiagnosticsScreen() = DrsScreen {
     }
 
     content {
+        // DRS v1.0.8: breadcrumb context — technical system only.
+        DrsBreadcrumbBar(
+            crumbs = listOf(
+                stringRes(R.string.drs__nav__home) to { navController.popBackStack(com.drs.smartkeyboard.app.Routes.Settings.Home, false) },
+                stringRes(R.string.drs__diagnostics__title) to {},
+            ),
+            modifier = Modifier.padding(horizontal = 12.dp),
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()

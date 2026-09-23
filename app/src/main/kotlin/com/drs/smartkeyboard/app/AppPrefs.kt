@@ -672,6 +672,14 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "other__show_app_icon",
             default = true,
         )
+        // DRS v1.0.8 (البند 14/19): real reduce-motion switch. When enabled,
+        // screen transitions collapse to fast fades, stagger cascades and
+        // entrance travels are removed, and decorative pulsing stops — every
+        // animated surface in the app actually reads this preference.
+        val reducedMotion = boolean(
+            key = "other__reduced_motion",
+            default = false,
+        )
     }
 
     val updates = Updates()

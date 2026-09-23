@@ -73,6 +73,8 @@ import com.drs.smartkeyboard.app.apptheme.DrsAppTheme
 import com.drs.smartkeyboard.drs.DrsProfile
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsShortcuts
+import com.drs.smartkeyboard.drs.DrsOnboardingFlow
+import com.drs.smartkeyboard.drs.DrsOnboardingStepKind
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.DrsSystemSpec
 import com.drs.smartkeyboard.drs.DrsSystems
@@ -147,9 +149,11 @@ private object DrsThemePairs {
  * matching experience. Runs once on first launch; the chosen path can be
  * changed at any time afterwards from the DRS Control Center.
  *
- * Steps: welcome -> explanation -> user path -> preferences -> profile
- * summary -> theme pair -> key sounds -> shortcut samples -> typing test ->
- * IME activation -> done (deep link into Control Center).
+ * DRS v1.0.8 (البند 6/7/8): the flow is now genuinely per-system — it is
+ * built by [DrsOnboardingFlow.stepsFor] from the pure design spec, so the
+ * normal system gets a shorter minimal flow while the technical and unified
+ * systems get the shortcut-samples step. The path screen initializes the
+ * chosen experience for real (profile provisioning happens on selection).
  */
 class DrsOnboardingActivity : ComponentActivity() {
 
@@ -178,10 +182,6 @@ class DrsOnboardingActivity : ComponentActivity() {
     }
 }
 
-private enum class OnboardingStep {
-    WELCOME, EXPLANATION, PATH, PREFERENCES, PROFILE, THEMES, SOUNDS, SHORTCUTS, TEST, ENABLE, DONE,
-}
-
 @Composable
 private fun DrsOnboardingRoot() {
     val context = LocalContext.current
@@ -195,7 +195,13 @@ private fun DrsOnboardingRoot() {
     var selectedSound by remember { mutableStateOf(DrsSoundStyle.SYSTEM) }
     var shortcutsAdded by remember { mutableStateOf(false) }
 
-    val steps = OnboardingStep.entries
+    // DRS v1.0.8: the step list is rebuilt from the pure per-system flow
+    // builder the moment a path is chosen — before that it assumes the
+    // minimal (normal-system) flow so the early steps stay light.
+    val steps = remember(selectedPath) {
+        DrsOnboardingFlow.stepsFor(selectedPath ?: DrsUserPath.NORMAL)
+            .map { it }
+    }
     val currentStep = steps[step.coerceIn(0, steps.lastIndex)]
 
     fun completeOnboarding() {
@@ -271,7 +277,7 @@ private fun DrsOnboardingRoot() {
         )
 
         when (currentStep) {
-            OnboardingStep.WELCOME -> {
+            DrsOnboardingStepKind.WELCOME -> {
                 DrsLogoHeader()
                 Text(
                     text = stringRes(R.string.drs__onboarding__welcome_title),
@@ -293,7 +299,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.EXPLANATION -> {
+            DrsOnboardingStepKind.EXPLANATION -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__explanation_title),
                     fontSize = 22.sp,
@@ -314,7 +320,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.PATH -> {
+            DrsOnboardingStepKind.PATH -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__path_title),
                     fontSize = 22.sp,
@@ -343,7 +349,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.PREFERENCES -> {
+            DrsOnboardingStepKind.PREFERENCES -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__prefs_title),
                     fontSize = 22.sp,
@@ -387,7 +393,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.PROFILE -> {
+            DrsOnboardingStepKind.PROFILE -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__profile_title),
                     fontSize = 22.sp,
@@ -422,7 +428,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.THEMES -> {
+            DrsOnboardingStepKind.THEMES -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__themes_title),
                     fontSize = 22.sp,
@@ -448,7 +454,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.SOUNDS -> {
+            DrsOnboardingStepKind.SOUNDS -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__sounds_title),
                     fontSize = 22.sp,
@@ -478,7 +484,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.SHORTCUTS -> {
+            DrsOnboardingStepKind.SHORTCUTS -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__shortcuts_title),
                     fontSize = 22.sp,
@@ -517,7 +523,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.TEST -> {
+            DrsOnboardingStepKind.TEST -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__test_title),
                     fontSize = 22.sp,
@@ -543,7 +549,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.ENABLE -> {
+            DrsOnboardingStepKind.ENABLE -> {
                 Text(
                     text = stringRes(R.string.drs__onboarding__enable_title),
                     fontSize = 22.sp,
@@ -588,7 +594,7 @@ private fun DrsOnboardingRoot() {
                 }
             }
 
-            OnboardingStep.DONE -> {
+            DrsOnboardingStepKind.DONE -> {
                 DrsLogoHeader()
                 Text(
                     text = stringRes(R.string.drs__onboarding__done_title),

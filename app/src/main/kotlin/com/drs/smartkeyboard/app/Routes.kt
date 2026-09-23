@@ -18,6 +18,7 @@ package com.drs.smartkeyboard.app
 
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
@@ -26,6 +27,8 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.unit.IntOffset
@@ -79,6 +82,9 @@ import com.drs.smartkeyboard.app.settings.theme.ThemeManagerScreenAction
 import com.drs.smartkeyboard.app.settings.theme.ThemeScreen
 import com.drs.smartkeyboard.app.settings.typing.TypingScreen
 import com.drs.smartkeyboard.app.setup.SetupScreen
+import com.drs.smartkeyboard.drs.DrsDesignSpec
+import com.drs.smartkeyboard.drs.DrsStore
+import org.drs.jetpref.datastore.model.collectAsState
 import com.drs.smartkeyboard.drs.ui.DrsControlCenterScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedDashboardScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedToolsScreen
@@ -90,8 +96,12 @@ import com.drs.smartkeyboard.drs.ui.DrsDiagnosticsScreen
 import com.drs.smartkeyboard.drs.ui.DrsGesturesScreen
 import com.drs.smartkeyboard.drs.ui.DrsProfilesScreen
 import com.drs.smartkeyboard.drs.ui.DrsPerformanceScreen
+import com.drs.smartkeyboard.drs.ui.DrsPrivacyScreen
+import com.drs.smartkeyboard.drs.ui.DrsSettingsRootScreen
 import com.drs.smartkeyboard.drs.ui.DrsShortcutsScreen
+import com.drs.smartkeyboard.drs.ui.DrsStorageScreen
 import com.drs.smartkeyboard.drs.ui.DrsTechToolbarScreen
+import com.drs.smartkeyboard.drs.ui.DrsToolsHubScreen
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -272,6 +282,25 @@ object Routes {
         @Serializable
         @Deeplink("settings/drs/unified-system")
         object DrsUnifiedSystem
+
+        // DRS v1.0.8: the four-hub navigation layer + real privacy / storage
+        // screens. The tools hub and the settings root render per-system
+        // content; privacy/storage expose real data and real permissions.
+        @Serializable
+        @Deeplink("settings/drs/tools-hub")
+        object DrsToolsHub
+
+        @Serializable
+        @Deeplink("settings/drs/settings-root")
+        object DrsSettingsRoot
+
+        @Serializable
+        @Deeplink("settings/drs/privacy")
+        object DrsPrivacy
+
+        @Serializable
+        @Deeplink("settings/drs/storage")
+        object DrsStorage
     }
 
     object Devtools {
@@ -336,22 +365,52 @@ object Routes {
         navController: NavHostController,
         startDestination: KClass<*>,
     ) {
+        // DRS v1.0.8 (البند 14): transitions are driven by the active
+        // system's identity and the real reduce-motion preference. Reduced
+        // motion collapses everything to a fast, quiet cross-fade; each
+        // system scales the slide distance with its own motion token — the
+        // technical system snaps (0.62×), the normal system glides (1×).
+        val drsState by DrsStore.state.collectAsState()
+        val identity = DrsDesignSpec.identityOfName(drsState.userPath)
+        val prefs by DrsPreferenceStore
+        val reducedMotion by prefs.other.reducedMotion.collectAsState()
+        val motionEnabled = !reducedMotion
+        val slideFactor = DrsDesignSpec.transitionSlideFactor(identity, motionEnabled)
+
         NavHost(
             modifier = modifier,
             navController = navController,
             startDestination = startDestination,
             enterTransition = {
-                slideIn { IntOffset(it.width, 0) } + fadeIn()
+                if (slideFactor <= 0f) {
+                    fadeIn(spring(stiffness = Spring.StiffnessMedium))
+                } else {
+                    slideIn { IntOffset((it.width * slideFactor).toInt(), 0) } + fadeIn()
+                }
             },
             exitTransition = {
-                slideOut { IntOffset(-it.width, 0) } + fadeOut()
+                if (slideFactor <= 0f) {
+                    fadeOut(spring(stiffness = Spring.StiffnessMedium))
+                } else {
+                    slideOut { IntOffset((it.width * slideFactor * -1f).toInt(), 0) } + fadeOut()
+                }
             },
-            popEnterTransition = { EnterTransition.None },
+            popEnterTransition = {
+                if (slideFactor <= 0f) {
+                    fadeIn(spring(stiffness = Spring.StiffnessMedium))
+                } else {
+                    EnterTransition.None
+                }
+            },
             popExitTransition = {
-                scaleOut(
-                    targetScale = 0.85F,
-                    transformOrigin = TransformOrigin(pivotFractionX = 0.8f, pivotFractionY = 0.5f)
-                ) + fadeOut(spring(stiffness = Spring.StiffnessMedium))
+                if (slideFactor <= 0f) {
+                    fadeOut(spring(stiffness = Spring.StiffnessMedium))
+                } else {
+                    scaleOut(
+                        targetScale = 0.85F,
+                        transformOrigin = TransformOrigin(pivotFractionX = 0.8f, pivotFractionY = 0.5f)
+                    ) + fadeOut(spring(stiffness = Spring.StiffnessMedium))
+                }
             },
         ) {
             composable<Setup.Screen> { SetupScreen() }
@@ -419,6 +478,12 @@ object Routes {
             composableWithDeepLink(Settings.DrsUnifiedBasics::class) { DrsUnifiedBasicsScreen() }
             composableWithDeepLink(Settings.DrsUnifiedWriting::class) { DrsUnifiedWritingScreen() }
             composableWithDeepLink(Settings.DrsUnifiedSystem::class) { DrsUnifiedSystemScreen() }
+
+            // DRS v1.0.8: navigation hubs + real privacy/storage screens.
+            composableWithDeepLink(Settings.DrsToolsHub::class) { DrsToolsHubScreen() }
+            composableWithDeepLink(Settings.DrsSettingsRoot::class) { DrsSettingsRootScreen() }
+            composableWithDeepLink(Settings.DrsPrivacy::class) { DrsPrivacyScreen() }
+            composableWithDeepLink(Settings.DrsStorage::class) { DrsStorageScreen() }
 
             composableWithDeepLink(Devtools.Home::class) { DevtoolsScreen() }
             composableWithDeepLink(Devtools.AndroidLocales::class) { AndroidLocalesScreen() }

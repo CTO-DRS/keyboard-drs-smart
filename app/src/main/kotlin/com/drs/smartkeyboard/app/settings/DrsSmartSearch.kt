@@ -280,6 +280,52 @@ private fun DrsSearchEntry.score(normalizedQuery: String): Int {
 @Composable
 private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
     return listOf(
+        // DRS v1.0.8: the navigation hubs + privacy/storage screens.
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__nav__tools),
+            keywords = listOf(
+                "tools", "hub", "smart tools", "text tools", "toolbar",
+                "أدوات", "أدوات ذكية", "أدوات النصوص", "الشريط", "محور الأدوات",
+            ),
+            icon = Icons.Default.Extension,
+            route = Routes.Settings.DrsToolsHub,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__nav__settings),
+            keywords = listOf(
+                "settings", "options", "sections", "configuration",
+                "إعدادات", "خيارات", "أقسام", "ضبط", "تكوين",
+            ),
+            icon = Icons.Default.Settings,
+            route = Routes.Settings.DrsSettingsRoot,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__privacy__title),
+            keywords = listOf(
+                "privacy", "permissions", "vibration permission", "notifications", "internet", "data",
+                "خصوصية", "أذونات", "إذن", "الاهتزاز", "الإشعارات", "الإنترنت", "بيانات", "حماية",
+            ),
+            icon = Icons.Default.Healing,
+            route = Routes.Settings.DrsPrivacy,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__storage__title),
+            keywords = listOf(
+                "storage", "data", "file size", "usage", "counters", "reset",
+                "تخزين", "البيانات", "حجم الملف", "استخدام", "عدادات", "مساحة",
+            ),
+            icon = Icons.Default.Speed,
+            route = Routes.Settings.DrsStorage,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__other__reduced_motion__label),
+            keywords = listOf(
+                "motion", "animation", "reduce motion", "transitions", "accessibility",
+                "حركة", "الحركة", "تقليل الحركة", "انتقالات", "رسوم", "وصولية",
+            ),
+            icon = Icons.Default.AutoAwesome,
+            route = Routes.Settings.Other,
+        ),
         // DRS v1.0.7: the unified «كلاهما» screens.
         DrsSearchEntry(
             title = stringRes(R.string.drs__unified__dashboard_title),

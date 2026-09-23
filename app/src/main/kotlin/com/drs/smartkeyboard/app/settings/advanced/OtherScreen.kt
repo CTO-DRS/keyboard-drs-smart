@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Adb
+import androidx.compose.material.icons.filled.Accessibility
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FormatColorFill
@@ -212,6 +213,14 @@ fun OtherScreen() = DrsScreen {
             icon = Icons.Default.History,
             title = stringRes(R.string.pref__search__history_enabled__label),
             summary = stringRes(R.string.pref__search__history_enabled__summary),
+        )
+        // DRS v1.0.8 (البند 14/19): real reduce-motion switch — screen
+        // transitions, stagger cascades and decorative pulses all read this.
+        SwitchPreference(
+            prefs.other.reducedMotion,
+            icon = Icons.Default.Accessibility,
+            title = stringRes(R.string.pref__other__reduced_motion__label),
+            summary = stringRes(R.string.pref__other__reduced_motion__summary),
         )
         SwitchPreference(
             prefs.other.showAppIcon,

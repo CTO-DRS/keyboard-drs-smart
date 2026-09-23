@@ -8,7 +8,7 @@
 
 A free and open-source keyboard for Android — Arabic-first, fully private, deeply customizable.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.0.8-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android.com)
 [![License](https://img.shields.io/badge/License-Apache--2.0-1B2A6B?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/CTO-DRS/keyboard-drs-smart?style=flat-square&display_name=release)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
@@ -81,9 +81,13 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 
 | النظام | لمن؟ | ماذا يوفر |
 |---|---|---|
-| 🌿 **العادي** | مستخدم يريد البساطة | كتابة سريعة، اقتراحات، حافظة ذكية، وبلا تعقيد |
-| ⚡ **التقني** | عاشق التحكم | أدوات نصوص متقدمة، اختصارات بمؤشر مخصص، شريط تقني قابل للتخصيص، ومراقب أداء |
-| ✦ **المتكامل** | يريد الاثنين معًا | كل قدرات النظامين في تجربة واحدة |
+| 🌿 **العادي** | مستخدم يريد البساطة | لوحة يومية ببطاقات ناعمة، أدوات سريعة، حافظة حديثة، وبلا أي تعقيد تقني |
+| ⚡ **التقني** | عاشق التحكم | مركز تحكم متقدم: شبكة مقاييس حية، أدوات نصوص، شريط تقني، مسار تنقّل، ومراقب أداء |
+| ✦ **المتكامل (كلاهما)** | يريد الاثنين معًا | أدوات يومية ومتقدمة معًا، تحكم سريع بمستويات العرض، وبلا فقدان بيانات عند التبديل |
+
+كل نظام له **هوية بصرية مستقلة** (شكل البطاقات والكثافة والحركة ومستوى
+المعلومات) ولوحة رئيسية خاصة به، وشريط تنقل سفلي على الهواتف وشريط جانبي
+على الشاشات العريضة — مع مفتاح «تقليل الحركة» لمن يفضّل الواجهة الهادئة.
 
 لكل نظام: ملف شخصي مستقل، ألوان هوية، عملة خاصة يُكتسب بالاستخدام الحقيقي، وحزمة ملحقات تُطبق بلمسة.
 
@@ -112,7 +116,7 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 | المصدر | الرابط |
 |---|---|
 | 🚀 أحدث إصدار (مستقر دائمًا) | **[github.com/CTO-DRS/keyboard-drs-smart/releases/latest](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)** |
-| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.7.apk` من صفحة الإصدار |
+| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.8.apk` من صفحة الإصدار |
 | 🔄 من داخل التطبيق | مركز تحديثات DRS — تحقق وتنزيل وتثبيت بلا خروج من التطبيق |
 
 > ⚠️ **ثبّت ملف `.apk` فقط**: ملف `.aab` في صفحة الإصدار حزمة نشر لـ Google Play

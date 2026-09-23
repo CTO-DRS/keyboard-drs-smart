@@ -94,6 +94,15 @@ fun DrsPerformanceScreen() = DrsScreen {
     val clipboardCount = remember(tick) { clipboardManager.historyFlow.value.all.size }
 
     content {
+        val navController = com.drs.smartkeyboard.app.LocalNavController.current
+        // DRS v1.0.8: breadcrumb context — technical system only.
+        DrsBreadcrumbBar(
+            crumbs = listOf(
+                stringRes(R.string.drs__nav__home) to { navController.popBackStack(com.drs.smartkeyboard.app.Routes.Settings.Home, false) },
+                stringRes(R.string.drs__performance__title) to {},
+            ),
+            modifier = Modifier.padding(horizontal = 12.dp),
+        )
         Column(
             modifier = Modifier
                 .fillMaxWidth()

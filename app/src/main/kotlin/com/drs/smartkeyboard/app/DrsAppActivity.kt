@@ -251,7 +251,10 @@ class DrsAppActivity : ComponentActivity() {
                             .imePadding(),
                     ) {
                         Box(modifier = Modifier.weight(1.0f)) {
-                            Routes.AppNavHost(
+                            // DRS v1.0.8: the adaptive navigation shell —
+                            // bottom bar on phones, rail on wide screens —
+                            // hosting the same NavHost underneath.
+                            DrsAppNavShell(
                                 modifier = Modifier.fillMaxSize(),
                                 navController = navController,
                                 startDestination = if (isImeSetUp) Routes.Settings.Home::class else Routes.Setup.Screen::class,

@@ -23,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import com.drs.smartkeyboard.app.AppTheme
@@ -61,10 +60,6 @@ fun getColorScheme(
     }
 }
 
-fun ColorScheme.amoled(): ColorScheme {
-    return this.copy(background = Color.Black, surface = Color.Black)
-}
-
 @Composable
 fun DrsAppTheme(
     theme: AppTheme,
@@ -94,6 +89,9 @@ fun DrsAppTheme(
     MaterialTheme(
         colorScheme = colors,
         typography = Typography,
+        // DRS v1.0.8 (البند 13): the shape system is now actually part of the
+        // theme so dialogs, sheets and cards share one corner-radius language.
+        shapes = Shapes,
         content = content,
     )
 }

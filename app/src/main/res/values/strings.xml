@@ -135,10 +135,6 @@
     <string name="settings__home__title" comment="Title of the Home screen">مرحباً بكم في {app_name}</string>
     <string name="settings__home__ime_not_enabled" comment="Error message shown in Home fragment when DRS Smart Keyboard is not enabled in the system">لم يتم تمكين DRS Smart Keyboard في النظام وبالتالي لن يكون متاحًا كطريقة إدخال في منتقي الإدخال. انقر هنا لحل هذه المشكلة.</string>
     <string name="settings__home__ime_not_selected" comment="Warning message shown in Home fragment when DRS Smart Keyboard is not selected as the default keyboard">لم يتم تعيين DRS Smart Keyboard كطريقة الإدخال الافتراضية. انقر هنا لحل هذه المشكلة.</string>
-    <string name="settings__home__group__drs" comment="Home screen section header for DRS smart tools">الأدوات الذكية</string>
-    <string name="settings__home__group__basics" comment="Home screen section header for essential categories">الأساسيات</string>
-    <string name="settings__home__group__typing_tools" comment="Home screen section header for typing and tool categories">الكتابة والأدوات</string>
-    <string name="settings__home__group__system" comment="Home screen section header for system categories">النظام والتطبيق</string>
     <string name="drs__diagnostics__home_summary" comment="Home summary of DRS diagnostics entry">فحص ذاتي شامل وسجل أعطال وإدارة البيانات</string>
     <string name="settings__localization__summary" comment="Home summary of languages and layouts entry">أضف لغات وبدّل التخطيطات واضبط أنواع الإدخال الفرعية</string>
     <string name="settings__theme__summary" comment="Home summary of theme entry">سمات نهارية وليلية جاهزة، أو صمّم سمتك بنفسك</string>
@@ -1295,7 +1291,6 @@
     <string name="drs__home__status_ready_title">كل شيء جاهز</string>
     <string name="drs__home__status_ready_desc">لوحة المفاتيح مفعّلة ومحدّدة — ابدأ الكتابة في أي تطبيق</string>
     <string name="drs__home__system_change">تغيير</string>
-    <string name="drs__home__quick_actions_title">إجراءات سريعة</string>
     <string name="drs__onboarding__welcome_title">مرحباً بك في لوحة المفاتيح DRS</string>
     <string name="drs__onboarding__welcome_body">سنجهّز تجربة الكيبورد المناسبة لك في أقل من دقيقة. أخبرنا كيف تستخدم لوحة المفاتيح وسنجهز لك الأدوات المناسبة.</string>
     <string name="drs__onboarding__how_it_works">كل شيء يعمل على جهازك فقط. لا يتم تخزين ما تكتبه ولا إرساله لأي جهة.</string>
@@ -1957,4 +1952,135 @@
     <string name="drs__unified__system_performance_summary">قياسات فعلية لزمن الاستجابة والذاكرة والتخزين</string>
     <string name="drs__unified__system_diagnostics_summary">فحص شامل للخدمة والمحرك واللغات والأدوات</string>
     <string name="drs__unified__system_backup_summary">حفظ واستعادة إعدادات وبيانات لوحتك محليًا</string>
+
+    <!-- DRS v1.0.8: navigation shell (البند 11) -->
+    <string name="drs__nav__home">الرئيسية</string>
+    <string name="drs__nav__tools">الأدوات</string>
+    <string name="drs__nav__appearance">المظهر</string>
+    <string name="drs__nav__settings">الإعدادات</string>
+
+    <!-- DRS v1.0.8: per-system dashboards (البند 9) -->
+    <string name="drs__dash__language">اللغة الحالية</string>
+    <string name="drs__dash__theme">الثيم الحالي</string>
+    <string name="drs__dash__clipboard">الحافظة</string>
+    <string name="drs__dash__clipboard_count">{count} عنصرًا</string>
+    <string name="drs__dash__quick_tools">الأدوات السريعة</string>
+    <string name="drs__dash__shortcuts_count">{count} اختصار</string>
+    <string name="drs__dash__recent_clipboard">الحافظة الحديثة</string>
+    <string name="drs__dash__clipboard_empty_title">الحافظة فارغة</string>
+    <string name="drs__dash__clipboard_empty_desc">انسخ أي نص من أي تطبيق وسيظهر هنا فورًا</string>
+    <string name="drs__dash__clipboard_media_item">عنصر وسائط</string>
+    <string name="drs__dash__customize">التخصيص واللغة</string>
+    <string name="drs__dash__theme_summary">ثيمات نهارية وليلية جاهزة</string>
+    <string name="drs__dash__profiles_summary">ملفات شخصية بإعدادات مستقلة</string>
+    <string name="drs__dash__language_summary">أضف لغات وتخطيطات لوحة المفاتيح</string>
+    <string name="drs__dash__engine_active">لوحة المفاتيح نشطة</string>
+    <string name="drs__dash__engine_enabled_only">مفعّلة وغير مختارة</string>
+    <string name="drs__dash__engine_off">غير نشطة</string>
+    <string name="drs__dash__engine_ready">جاهزة</string>
+    <string name="drs__dash__control_center">مركز التحكم المتقدم</string>
+    <string name="drs__dash__engine_section">حالة المحرك</string>
+    <string name="drs__dash__engine">المحرك</string>
+    <string name="drs__dash__active_language">اللغة النشطة</string>
+    <string name="drs__dash__subtypes">التخطيطات</string>
+    <string name="drs__dash__profile">الملف النشط</string>
+    <string name="drs__dash__theme_section">محرك الثيمات</string>
+    <string name="drs__dash__day_theme">ثيم النهار</string>
+    <string name="drs__dash__night_theme">ثيم الليل</string>
+    <string name="drs__dash__gestures_tools">الإيماءات والأدوات</string>
+    <string name="drs__dash__bound_gestures">إيماءات مرتبطة</string>
+    <string name="drs__dash__shortcuts">الاختصارات</string>
+    <string name="drs__dash__unified_tools">أدوات الشريط</string>
+    <string name="drs__dash__text_tools">أدوات النصوص</string>
+    <string name="drs__dash__text_tools_value">17 أداة</string>
+    <string name="drs__dash__performance_section">الأداء (مقاس فعليًا)</string>
+    <string name="drs__dash__avg_latency">متوسط زمن الضغطة</string>
+    <string name="drs__dash__p95_latency">شريحة 95</string>
+    <string name="drs__dash__system_state">حالة النظام</string>
+    <string name="drs__dash__state_file">ملف البيانات المحلي</string>
+    <string name="drs__dash__bytes">{bytes} بايت</string>
+    <string name="drs__dash__storage_health">سلامة التخزين</string>
+    <string name="drs__dash__health_ok">سليمة</string>
+    <string name="drs__dash__health_error">خطأ</string>
+    <string name="drs__dash__run_diagnostics">افحص كل المكوّنات الآن</string>
+    <string name="drs__dash__quick_controls">التحكم السريع</string>
+    <string name="drs__dash__daily_tools">الأدوات اليومية</string>
+    <string name="drs__dash__advanced_tools">الأدوات المتقدمة</string>
+    <string name="drs__dash__both_systems">الوصول السريع إلى النظامين</string>
+    <string name="drs__dash__switch_systems">بدّل بين النظامين الثلاثة في مكان واحد</string>
+
+    <!-- DRS v1.0.8: tools hub + settings root (البند 10/16) -->
+    <string name="drs__hub__tools_power">أدوات الطاقة</string>
+    <string name="drs__hub__tools_system">أدوات النظام</string>
+    <string name="drs__hub__tools_main">الأدوات الرئيسية</string>
+    <string name="drs__hub__tools_more">المزيد من الأدوات</string>
+    <string name="drs__root__section_appearance">المظهر والكتابة</string>
+    <string name="drs__root__section_tools">الأدوات والحافظة</string>
+    <string name="drs__root__section_system">النظام</string>
+    <string name="drs__root__section_privacy">الخصوصية</string>
+    <string name="drs__root__section_about">المساعدة وحول التطبيق</string>
+    <string name="drs__root__section_unified">النظام الموحد</string>
+    <string name="drs__root__help_summary">حالة التفعيل وأسئلة شائعة بشرح مبسّط</string>
+    <string name="drs__text_tools__title">أدوات النصوص</string>
+    <string name="drs__text_tools__summary">معالجة النص داخل الحقل: حالة الأحرف، التنظيف، الأسطر</string>
+    <string name="drs__tech_toolbar__summary">رتّب مفاتيح التحكم المتقدمة كما يناسبك</string>
+    <string name="drs__unified__system_home_summary">إعدادات موحدة بأساسيات ومتقدم</string>
+
+    <!-- DRS v1.0.8: privacy + permissions (البند 10) -->
+    <string name="drs__privacy__title">الخصوصية والأذونات</string>
+    <string name="drs__privacy__summary">ماذا يستخدم التطبيق فعليًا وما لا يفعله أبدًا</string>
+    <string name="drs__privacy__permissions_section">الأذونات الفعلية</string>
+    <string name="drs__privacy__facts_section">حقائق خصوصية قابلة للتحقق</string>
+    <string name="drs__privacy__controls_section">أدوات التحكم بالبيانات</string>
+    <string name="drs__privacy__data_section">إدارة البيانات</string>
+    <string name="drs__privacy__fact_local">كل بيانات DRS تُخزَّن محليًا في ملف واحد على جهازك فقط</string>
+    <string name="drs__privacy__fact_no_text_log">السجل التقني لا يحتوي أي نص مكتوب — عدّادات وأصناف فقط</string>
+    <string name="drs__privacy__fact_ime_offline">لوحة المفاتيح تعمل دون إنترنت تمامًا</string>
+    <string name="drs__privacy__clipboard_history">سجل الحافظة</string>
+    <string name="drs__privacy__clipboard_history_summary">احتفظ بنسخ سابقة لإعادة اللصق لاحقًا</string>
+    <string name="drs__privacy__sensitive_clean">تنظيف المحتوى الحساس تلقائيًا</string>
+    <string name="drs__privacy__sensitive_clean_summary">أزل كلمات المرور والأرقام البنكية من السجل تلقائيًا</string>
+    <string name="drs__privacy__internal_clipboard">حافظة داخلية مستقلة</string>
+    <string name="drs__privacy__internal_clipboard_summary">أبقِ النسخ داخل التطبيق دون مشاركتها مع النظام</string>
+    <string name="drs__perm__vibrate">الاهتزاز</string>
+    <string name="drs__perm__vibrate_purpose">تغذية راجعة لمسية عند الكتابة — ميزة الاهتزاز</string>
+    <string name="drs__perm__notifications">الإشعارات</string>
+    <string name="drs__perm__notifications_purpose">إبلاغك عن تحديث جديد للتطبيق عند تفعيل الفحص التلقائي</string>
+    <string name="drs__perm__internet">الإنترنت</string>
+    <string name="drs__perm__internet_purpose">مركز التحديث وحزم DRS فقط — الكتابة لا تستخدم الشبكة أبدًا</string>
+    <string name="drs__perm__install">تثبيت الحزم</string>
+    <string name="drs__perm__install_purpose">تثبيت حزم الثيمات واللغات التي تختارها أنت من مركز الحزم</string>
+    <string name="drs__perm__granted">ممنوح</string>
+    <string name="drs__perm__not_granted">غير ممنوح</string>
+    <string name="drs__perm__open_system_settings">فتح إعدادات النظام للتطبيق</string>
+
+    <!-- DRS v1.0.8: storage and data (البند 10) -->
+    <string name="drs__storage__title">التخزين والبيانات</string>
+    <string name="drs__storage__summary">ماذا يخزّن التطبيق محليًا وكم يحجم</string>
+    <string name="drs__storage__local_section">البيانات المحلية</string>
+    <string name="drs__storage__state_file">ملف حالة DRS</string>
+    <string name="drs__storage__profiles">الملفات الشخصية</string>
+    <string name="drs__storage__shortcuts">الاختصارات</string>
+    <string name="drs__storage__clipboard_items">عناصر الحافظة</string>
+    <string name="drs__storage__health">حالة التخزين</string>
+    <string name="drs__storage__usage_section">عدّادات الاستخدام (مجهولة ومحلية)</string>
+    <string name="drs__storage__key_presses">ضغطات المفاتيح</string>
+    <string name="drs__storage__emoji_uses">استخدامات الإيموجي</string>
+    <string name="drs__storage__clipboard_uses">استخدامات الحافظة</string>
+    <string name="drs__storage__shortcut_uses">توسيعات الاختصارات</string>
+    <string name="drs__storage__backup_summary">صدّر إعداداتك وملفك الشخصي في أرشيف واحد</string>
+    <string name="drs__storage__restore_summary">استعد كل شيء من نسخة احتياطية سابقة</string>
+    <string name="pref__other__reduced_motion__label" comment="Preference title">تقليل الحركة</string>
+    <string name="pref__other__reduced_motion__summary" comment="Preference summary">استبدل الانتقالات والرسوم المتحركة بظهور سريع هادئ</string>
+    <string name="drs__unified__level_switch_title">مستوى العرض الحالي</string>
+    <string name="drs__unified__advanced_controls">التحكم المتقدم</string>
+    <string name="drs__unified__advanced_controls_summary">إظهار مجموعات الإعدادات المتقدمة في شاشات النظام الموحد</string>
+    <string name="drs__performance__summary">قياس حي لزمن الضغطة والذاكرة وحجم البيانات</string>
+    <string name="help__faq_tools_hub__title">أين أجد كل أدوات لوحة المفاتيح؟</string>
+    <string name="help__faq_tools_hub__summary">كل الأدوات في مكان واحد: أدوات ذكية، أدوات نصوص، اختصارات، إيماءات</string>
+    <string name="help__faq_privacy__title">ماذا يعرف التطبيق عن كتابتي؟</string>
+    <string name="help__faq_privacy__summary">شاشة الخصوصية تشرح كل إذن وكل بيانات بوضوح — الكتابة لا تُرسل أبدًا</string>
+    <string name="help__faq_storage__title">كم يستهلك التطبيق من مساحة التخزين؟</string>
+    <string name="help__faq_storage__summary">اعرض ماذا يُخزَّن محليًا وحجمه الفعلي وعدّادات الاستخدام</string>
+
 </resources>

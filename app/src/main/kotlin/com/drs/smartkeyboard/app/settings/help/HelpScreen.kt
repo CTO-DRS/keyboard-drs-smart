@@ -18,6 +18,9 @@ package com.drs.smartkeyboard.app.settings.help
 
 import android.content.Intent
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ContentPaste
@@ -96,6 +99,25 @@ fun HelpScreen() = DrsScreen {
                 title = stringRes(R.string.help__faq_unified__title),
                 summary = stringRes(R.string.help__faq_unified__summary),
                 onClick = { navController.navigate(Routes.Settings.DrsUnifiedDashboard) },
+            )
+            // DRS v1.0.8: the new navigation hubs and privacy answers.
+            Preference(
+                icon = Icons.Default.Extension,
+                title = stringRes(R.string.help__faq_tools_hub__title),
+                summary = stringRes(R.string.help__faq_tools_hub__summary),
+                onClick = { navController.navigate(Routes.Settings.DrsToolsHub) },
+            )
+            Preference(
+                icon = Icons.Default.Healing,
+                title = stringRes(R.string.help__faq_privacy__title),
+                summary = stringRes(R.string.help__faq_privacy__summary),
+                onClick = { navController.navigate(Routes.Settings.DrsPrivacy) },
+            )
+            Preference(
+                icon = Icons.Default.Storage,
+                title = stringRes(R.string.help__faq_storage__title),
+                summary = stringRes(R.string.help__faq_storage__summary),
+                onClick = { navController.navigate(Routes.Settings.DrsStorage) },
             )
             Preference(
                 icon = Icons.Default.Language,
