@@ -163,6 +163,10 @@ configure<ApplicationExtension> {
 
     lint {
         baseline = file("lint.xml")
+        // Workaround for a known AGP lint tool crash (not a code defect):
+        // the UElementAsPsi detector throws while resolving KtLambdaExpression
+        // in Flog.kt under the K2 frontend. Lint itself suggests disabling it.
+        disable += "UElementAsPsi"
     }
 
     testOptions {
