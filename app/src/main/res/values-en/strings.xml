@@ -1655,6 +1655,8 @@
     <string name="updates__notify">Notify when an update is available</string>
     <string name="updates__notification_channel">App updates</string>
     <string name="updates__privacy_hint">Checks use the official GitHub API over HTTPS only; no personal data is ever sent.</string>
+    <string name="updates__guide__title">How do I update?</string>
+    <string name="updates__guide__body">1. Tap “Check now” and wait for the newer version to appear.\n2. Tap “Download” — the app automatically verifies file integrity (SHA-256) once the download completes.\n3. Tap “Install” and allow installs from this source when the system asks. Your current version is replaced in place with no data or settings loss.\nNote: only the APK file is installable — ignore the AAB file if you see it on the release page.</string>
 
     <!-- DRS Package Center -->
     <string name="packages__center__title">DRS Package Center</string>

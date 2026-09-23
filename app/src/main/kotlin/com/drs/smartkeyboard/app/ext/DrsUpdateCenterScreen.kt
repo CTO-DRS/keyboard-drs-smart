@@ -121,9 +121,11 @@ fun DrsUpdateCenterScreen() = DrsScreen {
                         )
                     }
                     is DrsUpdateCenter.CheckState.Available -> {
+                        // DRS v1.0.2: name the exact upgrade target so the user
+                        // always knows what they are about to download.
                         IconChip(
                             icon = { Icon(modifier=Modifier.size(18.dp), imageVector = Icons.Filled.SystemUpdateAlt, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-                            text = stringRes(R.string.updates__available_short),
+                            text = stringRes(R.string.updates__available_short) + " · v" + state.info.version,
                         )
                     }
                     is DrsUpdateCenter.CheckState.Failed -> {
@@ -244,6 +246,35 @@ fun DrsUpdateCenterScreen() = DrsScreen {
                 prefs.updates.notifyOnUpdate,
                 icon = Icons.Filled.SystemUpdateAlt,
                 title = stringRes(R.string.updates__notify),
+            )
+        }
+
+        // DRS v1.0.2: a compact walkthrough card — every step of the update
+        // flow in plain language, so a stalled install (wrong system dialog,
+        // missing install-permission, interrupted download) is never a
+        // dead end for the user.
+        DrsOutlinedBox(modifier = Modifier.defaultDrsOutlinedBox()) {
+            Row(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    imageVector = Icons.Outlined.Security,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    text = stringRes(R.string.updates__guide__title),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+            }
+            Text(
+                modifier = Modifier.padding(start = 16.dp, top = 6.dp, end = 16.dp, bottom = 12.dp),
+                text = stringRes(R.string.updates__guide__body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
