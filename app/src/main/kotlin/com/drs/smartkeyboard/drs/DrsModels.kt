@@ -68,6 +68,8 @@ data class DrsShortcut(
     val shortcut: String,
     val expansion: String,
     val isTechnical: Boolean = false,
+    /** DRS v1.0.6: disabled shortcuts stay stored but never expand. */
+    val enabled: Boolean = true,
 )
 
 /**
@@ -153,6 +155,13 @@ data class DrsState(
     val shortcutsEnabled: Boolean = true,
     val nextShortcutId: Long = 1,
     val wallet: DrsWallet = DrsWallet(),
+    /**
+     * DRS v1.0.6: the user's customized technical toolbar key order.
+     * Key ids follow [DrsTechToolbarKeys catalogue ids]; an empty list means
+     * "use the default arrangement". Persisted with the rest of the DRS
+     * state so the strip survives restarts exactly as customized.
+     */
+    val techToolbarKeys: List<String> = emptyList(),
 )
 
 /** Suggestion ids produced by the local adaptation engine. */

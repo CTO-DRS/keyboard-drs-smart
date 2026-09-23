@@ -19,7 +19,10 @@ package com.drs.smartkeyboard.ime
 enum class ImeUiMode(val value: Int) {
     TEXT(0),
     MEDIA(1),
-    CLIPBOARD(2);
+    CLIPBOARD(2),
+
+    /** DRS v1.0.6: technical text tools panel (case, spacing, lines, info). */
+    TEXT_TOOLS(3);
 
     companion object {
         fun fromInt(int: Int) = entries.firstOrNull { it.value == int } ?: TEXT

@@ -40,6 +40,7 @@ object DrsShortcuts {
         "{hijri}" to "١٤٥٠ رمضان",
         "{clipboard}" to "...",
         "{newline}" to "",
+        "{cursor}" to "",
     )
 
     private val TEMPLATE_REGEX = Regex("\\{([a-zA-Z_]+)\\}")
@@ -74,6 +75,23 @@ object DrsShortcuts {
         }
     }
 
+    /** True when the given expansion text places the cursor via {cursor}. */
+    fun hasCursorMarker(text: String): Boolean = text.contains(CURSOR_MARKER)
+
+    const val CURSOR_MARKER = "{cursor}"
+
+    /**
+     * Removes the first {cursor} marker from [text] and returns the cleaned
+     * text plus the character offset (from the start) where the cursor must
+     * land. When there is no marker the offset is -1 (= normal behavior:
+     * cursor ends up after the inserted text).
+     */
+    fun extractCursorMarker(text: String): Pair<String, Int> {
+        val index = text.indexOf(CURSOR_MARKER)
+        if (index == -1) return text to -1
+        return (text.substring(0, index) + text.substring(index + CURSOR_MARKER.length)) to index
+    }
+
     private fun formatDate(): String =
         DateFormat.getDateInstance(DateFormat.DEFAULT, Locale.getDefault()).format(Date())
 
@@ -101,7 +119,7 @@ object DrsShortcuts {
         val state = DrsStore.state.value
         if (!state.shortcutsEnabled || state.shortcuts.isEmpty()) return null
         val needle = word.lowercase()
-        return state.shortcuts.firstOrNull { it.shortcut == needle }?.expansion
+        return state.shortcuts.firstOrNull { it.shortcut == needle && it.enabled }?.expansion
     }
 
     fun add(shortcut: String, expansion: String, isTechnical: Boolean) {
@@ -114,6 +132,49 @@ object DrsShortcuts {
             state.copy(
                 shortcuts = filtered + DrsShortcut(id, trimmedShortcut, trimmedExpansion, isTechnical),
                 nextShortcutId = id + 1,
+            )
+        }
+    }
+
+    /**
+     * DRS v1.0.6: edits an existing shortcut in place, keyed by id.
+     * Returns false (without touching anything) when the new abbreviation is
+     * already owned by a DIFFERENT shortcut - previously this collision
+     * silently created a duplicate entry with the old abbreviation left
+     * behind. The caller surfaces the error to the user.
+     */
+    fun update(id: Long, shortcut: String, expansion: String, isTechnical: Boolean): Boolean {
+        val trimmedShortcut = shortcut.trim().lowercase()
+        val trimmedExpansion = expansion.trim()
+        if (trimmedShortcut.isEmpty() || trimmedExpansion.isEmpty()) return false
+        val current = DrsStore.state.value
+        if (current.shortcuts.none { it.id == id }) return false
+        if (current.shortcuts.any { it.id != id && it.shortcut == trimmedShortcut }) return false
+        DrsStore.update { state ->
+            state.copy(
+                shortcuts = state.shortcuts.map { sc ->
+                    if (sc.id == id) {
+                        sc.copy(
+                            shortcut = trimmedShortcut,
+                            expansion = trimmedExpansion,
+                            isTechnical = isTechnical,
+                        )
+                    } else {
+                        sc
+                    }
+                },
+            )
+        }
+        return true
+    }
+
+    /** DRS v1.0.6: enables/disables a single shortcut without removing it. */
+    fun setItemEnabled(id: Long, enabled: Boolean) {
+        DrsStore.update { state ->
+            state.copy(
+                shortcuts = state.shortcuts.map { sc ->
+                    if (sc.id == id) sc.copy(enabled = enabled) else sc
+                },
             )
         }
     }

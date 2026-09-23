@@ -52,6 +52,15 @@ object DrsCrashHandler {
                 } catch (_: Throwable) {
                     // Logging must never break crash handling.
                 }
+                runCatching {
+                    // DRS v1.0.6: also surface the crash in the sanitized
+                    // in-memory event log (class name only, no user data).
+                    DrsEventLog.record(
+                        DrsEventLog.Level.ERROR,
+                        DrsEventLog.Categories.CRASH,
+                        "${thread.name}: ${DrsEventLog.throwableDetail(throwable)}",
+                    )
+                }
                 defaultHandler?.uncaughtException(thread, throwable)
             }
         }

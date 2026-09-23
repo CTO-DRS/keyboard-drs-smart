@@ -18,6 +18,8 @@
 package com.drs.smartkeyboard.drs.ui
 
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -31,6 +33,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -55,6 +59,8 @@ import com.drs.smartkeyboard.BuildConfig
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsCrashHandler
+import com.drs.smartkeyboard.drs.DrsBackup
+import com.drs.smartkeyboard.drs.DrsEventLog
 import com.drs.smartkeyboard.drs.DrsEconomy
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRewardCatalog
@@ -92,6 +98,7 @@ fun DrsDiagnosticsScreen() = DrsScreen {
 
     var showClearDataDialog by remember { mutableStateOf(false) }
     val crashLog = remember { DrsCrashHandler.readLog() }
+    val navController = com.drs.smartkeyboard.app.LocalNavController.current
 
     val layoutsAvailable = remember {
         try {
@@ -132,6 +139,42 @@ fun DrsDiagnosticsScreen() = DrsScreen {
         }
     }
 
+    // ---------------- DRS v1.0.6: full technical test runner ----------------
+    var testResults by remember { mutableStateOf<List<DrsTestResult>?>(null) }
+    fun runFullTest() {
+        testResults = computeDrsFullTest(
+            imeEnabled = isEnabled,
+            imeSelected = isSelected,
+            prefsLoaded = appContext.preferenceStoreLoaded.value,
+            profileReady = drsState.profiles.any { it.path == drsState.userPath },
+            tuningMatch = run {
+                val active = DrsProfileManager.activeProfile(drsState)
+                active?.path == drsState.userPath || active?.path == "CUSTOM"
+            },
+            layoutsAvailable = layoutsAvailable,
+            themesAvailable = themesAvailable,
+            drsThemesAvailable = drsThemesAvailable,
+            nativeLibAvailable = nativeLibAvailable,
+            soundPacksAvailable = soundPacksAvailable,
+            onboardingDone = drsState.onboardingDone,
+            shortcutsUnique = drsState.shortcuts.map { it.shortcut }.distinct().size == drsState.shortcuts.size,
+            profileThemesValid = drsState.profiles.all { profile ->
+                try {
+                    ExtensionComponentName.from(profile.dayThemeId)
+                    ExtensionComponentName.from(profile.nightThemeId)
+                    true
+                } catch (_: Throwable) {
+                    false
+                }
+            },
+            storeHealthy = DrsStore.storageHealthy(),
+            activeProfileOk = DrsProfileManager.activeProfile(drsState) != null,
+            walletHealthy = drsState.wallet.ledger.size <= 24 &&
+                DrsEconomy.balanceOf(drsState.wallet, DrsSystems.specOfName(drsState.userPath).path) >= 0,
+            eventErrorCount = DrsEventLog.snapshot().count { it.level == DrsEventLog.Level.ERROR },
+        )
+    }
+
     content {
         Column(
             modifier = Modifier
@@ -152,6 +195,38 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                     label = stringRes(R.string.drs__diagnostics__check_prefs_loaded),
                     passed = appContext.preferenceStoreLoaded.value,
                 )
+            }
+
+            // ---------------- full technical test (DRS v1.0.6) ----------------
+            DrsDiagCard(title = stringRes(R.string.drs__diagnostics__test_section)) {
+                OutlinedButton(onClick = { runFullTest() }) {
+                    Text(stringRes(R.string.drs__diagnostics__test_run))
+                }
+                testResults?.let { results ->
+                    val passed = results.count { it.severity == DrsTestSeverity.PASS }
+                    val warnings = results.count { it.severity == DrsTestSeverity.WARNING }
+                    val errors = results.count { it.severity == DrsTestSeverity.ERROR }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = stringRes(
+                            R.string.drs__diagnostics__test_summary,
+                            "passed" to passed.toString(),
+                            "warnings" to warnings.toString(),
+                            "errors" to errors.toString(),
+                        ),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            errors > 0 -> MaterialTheme.colorScheme.error
+                            warnings > 0 -> MaterialTheme.colorScheme.tertiary
+                            else -> MaterialTheme.colorScheme.primary
+                        },
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    results.forEach { result ->
+                        TestResultRow(result)
+                    }
+                }
             }
 
             // ---------------- active system ----------------
@@ -331,6 +406,103 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                 }
             }
 
+            // ---------------- sanitized event log (DRS v1.0.6) ----------------
+            DrsDiagCard(title = stringRes(R.string.drs__diagnostics__events_section)) {
+                val eventEntries = remember { DrsEventLog.snapshot() }
+                if (eventEntries.isEmpty()) {
+                    Text(
+                        text = stringRes(R.string.drs__diagnostics__events_empty),
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                } else {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState())
+                            .height(180.dp),
+                    ) {
+                        eventEntries.forEach { entry ->
+                            Text(
+                                text = eventLine(entry),
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace,
+                                color = when (entry.level) {
+                                    DrsEventLog.Level.ERROR -> MaterialTheme.colorScheme.error
+                                    DrsEventLog.Level.WARNING -> MaterialTheme.colorScheme.tertiary
+                                    DrsEventLog.Level.INFO -> MaterialTheme.colorScheme.onSurfaceVariant
+                                },
+                            )
+                        }
+                    }
+                }
+                Row {
+                    OutlinedButton(onClick = { DrsEventLog.clear() }) {
+                        Text(stringRes(R.string.drs__diagnostics__events_clear))
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    OutlinedButton(onClick = { navController.navigate(com.drs.smartkeyboard.app.Routes.Settings.DrsPerformance) }) {
+                        Text(stringRes(R.string.drs__performance__title))
+                    }
+                }
+                Text(
+                    text = stringRes(R.string.drs__diagnostics__events_privacy),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            // ---------------- DRS data backup / restore (DRS v1.0.6) --------
+            DrsDiagCard(title = stringRes(R.string.drs__diagnostics__backup_section)) {
+                Text(
+                    text = stringRes(R.string.drs__diagnostics__backup_hint),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val exportState = remember { mutableStateOf<String?>(null) }
+                val exportLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument("application/json"),
+                ) { uri ->
+                    val payload = exportState.value
+                    if (uri != null && payload != null) {
+                        runCatching {
+                            appContext.contentResolver.openOutputStream(uri)?.use { out ->
+                                out.write(payload.toByteArray(Charsets.UTF_8))
+                            } ?: throw IllegalStateException("output stream null")
+                            DrsEventLog.recordInfo(DrsEventLog.Categories.STORE, "backup exported")
+                        }
+                    }
+                    exportState.value = null
+                }
+                OutlinedButton(onClick = {
+                    exportState.value = DrsBackup.exportJson()
+                    exportLauncher.launch(DrsBackup.defaultFileName())
+                }) {
+                    Text(stringRes(R.string.drs__diagnostics__backup_export))
+                }
+                var importError by remember { mutableStateOf<String?>(null) }
+                val importLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.OpenDocument(),
+                ) { uri ->
+                    if (uri != null) {
+                        val result = DrsBackup.importFrom(appContext, uri)
+                        importError = result.errorRes?.let { res ->
+                            appContext.getString(res)
+                        }
+                    }
+                }
+                OutlinedButton(onClick = { importError = null; importLauncher.launch(arrayOf("application/json")) }) {
+                    Text(stringRes(R.string.drs__diagnostics__backup_import))
+                }
+                importError?.let { message ->
+                    Text(
+                        text = message,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
+
             DrsDiagCard(title = stringRes(R.string.drs__diagnostics__privacy_section)) {
                 Text(
                     text = stringRes(R.string.drs__diagnostics__privacy_note),
@@ -426,4 +598,109 @@ private fun DrsCheckRow(label: String, passed: Boolean) {
             modifier = Modifier.padding(bottom = 0.dp),
         )
     }
+}
+
+// ---------------- DRS v1.0.6: full technical test runner ----------------
+
+private enum class DrsTestSeverity { PASS, WARNING, ERROR }
+
+private data class DrsTestResult(
+    val labelRes: Int,
+    val severity: DrsTestSeverity,
+    val hintRes: Int?,
+)
+
+@Composable
+private fun TestResultRow(result: DrsTestResult) {
+    Column(modifier = Modifier.padding(vertical = 2.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = when (result.severity) {
+                    DrsTestSeverity.PASS -> "✓"
+                    DrsTestSeverity.WARNING -> "!"
+                    DrsTestSeverity.ERROR -> "✗"
+                },
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                color = when (result.severity) {
+                    DrsTestSeverity.PASS -> MaterialTheme.colorScheme.primary
+                    DrsTestSeverity.WARNING -> MaterialTheme.colorScheme.tertiary
+                    DrsTestSeverity.ERROR -> MaterialTheme.colorScheme.error
+                },
+            )
+            Text(
+                text = "  " + stringRes(result.labelRes),
+                fontSize = 13.sp,
+            )
+        }
+        if (result.severity != DrsTestSeverity.PASS && result.hintRes != null) {
+            Text(
+                text = stringRes(result.hintRes),
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 20.dp),
+            )
+        }
+    }
+}
+
+/**
+ * Severity rules for the full test: every input comes from a REAL check
+ * already used elsewhere on this screen. Warnings mean "degraded but
+ * usable - user action recommended"; errors mean "a core feature cannot
+ * work". Nothing here is simulated.
+ */
+private fun computeDrsFullTest(
+    imeEnabled: Boolean,
+    imeSelected: Boolean,
+    prefsLoaded: Boolean,
+    profileReady: Boolean,
+    tuningMatch: Boolean,
+    layoutsAvailable: Boolean,
+    themesAvailable: Boolean,
+    drsThemesAvailable: Boolean,
+    nativeLibAvailable: Boolean,
+    soundPacksAvailable: Boolean,
+    onboardingDone: Boolean,
+    shortcutsUnique: Boolean,
+    profileThemesValid: Boolean,
+    storeHealthy: Boolean,
+    activeProfileOk: Boolean,
+    walletHealthy: Boolean,
+    eventErrorCount: Int,
+): List<DrsTestResult> {
+    fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
+        DrsTestResult(
+            label,
+            when {
+                pass -> DrsTestSeverity.PASS
+                warn -> DrsTestSeverity.WARNING
+                else -> DrsTestSeverity.ERROR
+            },
+            if (pass) null else hint,
+        )
+    return listOf(
+        result(imeEnabled, warn = true, R.string.drs__diagnostics__check_ime_enabled, R.string.drs__diagnostics__hint_ime),
+        result(imeSelected, warn = true, R.string.drs__diagnostics__check_ime_selected, R.string.drs__diagnostics__hint_ime),
+        result(prefsLoaded, warn = false, R.string.drs__diagnostics__check_prefs_loaded, R.string.drs__diagnostics__hint_restart),
+        result(profileReady, warn = false, R.string.drs__diagnostics__system_profile_ready, R.string.drs__diagnostics__hint_profile),
+        result(tuningMatch, warn = true, R.string.drs__diagnostics__system_tuning_match, R.string.drs__diagnostics__hint_tuning),
+        result(layoutsAvailable, warn = false, R.string.drs__diagnostics__check_character_layouts, R.string.drs__diagnostics__hint_assets),
+        result(themesAvailable, warn = false, R.string.drs__diagnostics__check_theme_assets, R.string.drs__diagnostics__hint_assets),
+        result(drsThemesAvailable, warn = true, R.string.drs__diagnostics__check_drs_themes, R.string.drs__diagnostics__hint_assets),
+        result(nativeLibAvailable, warn = true, R.string.drs__diagnostics__check_native_lib, R.string.drs__diagnostics__hint_native),
+        result(soundPacksAvailable, warn = true, R.string.drs__diagnostics__check_sound_packs, R.string.drs__diagnostics__hint_assets),
+        result(onboardingDone, warn = true, R.string.drs__diagnostics__check_onboarding, R.string.drs__diagnostics__hint_onboarding),
+        result(shortcutsUnique, warn = true, R.string.drs__diagnostics__check_shortcuts_unique, R.string.drs__diagnostics__hint_shortcuts),
+        result(profileThemesValid, warn = false, R.string.drs__diagnostics__check_profile_themes, R.string.drs__diagnostics__hint_profile_themes),
+        result(storeHealthy, warn = false, R.string.drs__diagnostics__check_store_file, R.string.drs__diagnostics__hint_store),
+        result(activeProfileOk, warn = false, R.string.drs__diagnostics__check_active_profile, R.string.drs__diagnostics__hint_profile),
+        result(walletHealthy, warn = true, R.string.drs__diagnostics__check_wallet, R.string.drs__diagnostics__hint_restart),
+        result(eventErrorCount == 0, warn = true, R.string.drs__diagnostics__check_events_clean, R.string.drs__diagnostics__hint_events),
+    )
+}
+
+private fun eventLine(entry: DrsEventLog.Entry): String {
+    val timeFormat = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.US)
+    return "${timeFormat.format(java.util.Date(entry.timestampMs))} [${entry.level}] ${entry.category}: ${entry.detail}"
 }

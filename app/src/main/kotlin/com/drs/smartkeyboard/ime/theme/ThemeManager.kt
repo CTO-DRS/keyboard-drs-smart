@@ -34,6 +34,7 @@ import androidx.core.graphics.ColorUtils
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.appContext
+import com.drs.smartkeyboard.drs.DrsEventLog
 import com.drs.smartkeyboard.extensionManager
 import com.drs.smartkeyboard.ime.smartbar.CachedInlineSuggestionsChipStyleSet
 import com.drs.smartkeyboard.lib.devtools.flogInfo
@@ -153,6 +154,14 @@ class ThemeManager(context: Context) {
                 _activeThemeInfo.value = newInfo
             },
             onFailure = { cause ->
+                // DRS v1.0.6: sanitized event log entry for theme load
+                // failures (class name only - never file or user content).
+                runCatching {
+                    DrsEventLog.recordError(
+                        DrsEventLog.Categories.THEME,
+                        "${themeConfig.id}: ${DrsEventLog.throwableDetail(cause)}",
+                    )
+                }
                 _activeThemeInfo.value = ThemeInfo.DEFAULT.copy(
                     loadFailure = LoadFailure(themeExt.meta, themeConfig, cause)
                 )

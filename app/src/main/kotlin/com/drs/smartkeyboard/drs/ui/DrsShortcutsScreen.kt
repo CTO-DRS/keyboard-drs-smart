@@ -60,6 +60,7 @@ private data class DrsShortcutEditorState(
     val id: Long? = null,
     val shortcut: String = "",
     val expansion: String = "",
+    val isTechnical: Boolean = false,
 )
 
 /**
@@ -77,6 +78,7 @@ fun DrsShortcutsScreen() = DrsScreen {
     val drsState by DrsStore.state.collectAsState()
 
     var editorState by remember { mutableStateOf<DrsShortcutEditorState?>(null) }
+    var showDuplicateError by remember { mutableStateOf(false) }
     var showRemoveAllDialog by remember { mutableStateOf(false) }
 
     content {
@@ -211,22 +213,38 @@ fun DrsShortcutsScreen() = DrsScreen {
                                     .padding(vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
+                                // DRS v1.0.6: per-shortcut enable/disable.
+                                Switch(
+                                    checked = sc.enabled,
+                                    onCheckedChange = { checked ->
+                                        DrsShortcuts.setItemEnabled(sc.id, checked)
+                                    },
+                                    modifier = Modifier.padding(end = 4.dp),
+                                )
                                 Column(modifier = Modifier.weight(1f)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Text(
                                             text = sc.shortcut,
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = MaterialTheme.colorScheme.primary
+                                                .copy(alpha = if (sc.enabled) 1f else 0.45f),
                                         )
                                         Spacer(Modifier.padding(horizontal = 4.dp))
-                                        Text(text = "→", fontSize = 12.sp)
+                                        Text(
+                                            text = "→",
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                .copy(alpha = if (sc.enabled) 1f else 0.45f),
+                                        )
                                         Spacer(Modifier.padding(horizontal = 4.dp))
                                         Text(
                                             text = sc.expansion.replace("\n", " ⏎ "),
                                             fontSize = 13.sp,
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                                .copy(alpha = if (sc.enabled) 1f else 0.45f),
                                         )
                                     }
                                     if (DrsShortcuts.isTemplate(sc.expansion)) {
@@ -238,7 +256,12 @@ fun DrsShortcutsScreen() = DrsScreen {
                                     }
                                 }
                                 TextButton(onClick = {
-                                    editorState = DrsShortcutEditorState(sc.id, sc.shortcut, sc.expansion)
+                                    editorState = DrsShortcutEditorState(
+                                        sc.id,
+                                        sc.shortcut,
+                                        sc.expansion,
+                                        sc.isTechnical,
+                                    )
                                 }) {
                                     Text(text = stringRes(R.string.drs__shortcuts__edit_action))
                                 }
@@ -262,10 +285,26 @@ fun DrsShortcutsScreen() = DrsScreen {
     editorState?.let { editing ->
         DrsShortcutEditorDialog(
             initial = editing,
-            onDismiss = { editorState = null },
-            onSave = { shortcut, expansion ->
-                DrsShortcuts.add(shortcut, expansion, editing.id != null)
+            showError = showDuplicateError,
+            onDismiss = {
                 editorState = null
+                showDuplicateError = false
+            },
+            onSave = { shortcut, expansion ->
+                val saved = if (editing.id != null) {
+                    // DRS v1.0.6: edit by id - the old abbreviation is really
+                    // replaced now (it used to stay behind as a duplicate).
+                    DrsShortcuts.update(editing.id, shortcut, expansion, editing.isTechnical)
+                } else {
+                    DrsShortcuts.add(shortcut, expansion, editing.isTechnical)
+                    true
+                }
+                if (saved) {
+                    editorState = null
+                    showDuplicateError = false
+                } else {
+                    showDuplicateError = true
+                }
             },
         )
     }
@@ -322,6 +361,7 @@ private val DrsShortcutPresets = listOf(
 @Composable
 private fun DrsShortcutEditorDialog(
     initial: DrsShortcutEditorState,
+    showError: Boolean,
     onDismiss: () -> Unit,
     onSave: (shortcut: String, expansion: String) -> Unit,
 ) {
@@ -388,6 +428,14 @@ private fun DrsShortcutEditorDialog(
                     }
                 }
                 Spacer(Modifier.height(4.dp))
+                if (showError) {
+                    Text(
+                        text = stringRes(R.string.drs__shortcuts__duplicate_error),
+                        fontSize = 11.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                }
                 Text(
                     text = stringRes(R.string.drs__shortcuts__template_hint),
                     fontSize = 11.sp,

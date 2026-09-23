@@ -76,7 +76,16 @@ class InputEventDispatcher private constructor(private val repeatableKeyCodes: I
             KeyCode.DELETE_WORD, KeyCode.FORWARD_DELETE_WORD, KeyCode.UNDO, KeyCode.REDO -> 5.0f
             else -> 1.0f
         }
-        return (KeyRepeatDelay * factor).toLong()
+        // DRS v1.0.6: honor the user's repeat-rate percentage (50..300).
+        // Higher rate = shorter delay, so the platform delay is divided by
+        // the factor. The pref read is cheap (jetpref in-memory cache).
+        val ratePercent = try {
+            prefs.keyboard.keyRepeatRatePercent.get().coerceIn(50, 300)
+        } catch (_: Throwable) {
+            100
+        }
+        val platformDelay = KeyRepeatDelay * 100f / ratePercent
+        return (platformDelay * factor).toLong()
     }
 
     private fun determineRepeatData(data: KeyData): KeyData {

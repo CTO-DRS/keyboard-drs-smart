@@ -99,6 +99,9 @@ object KeyCode {
     const val IME_UI_MODE_MEDIA =           -212
     const val IME_UI_MODE_CLIPBOARD =       -213
 
+    // DRS v1.0.6: opens the technical text tools panel.
+    const val IME_UI_MODE_TEXT_TOOLS =      -214
+
     const val SYSTEM_INPUT_METHOD_PICKER =  -221
     const val SYSTEM_PREV_INPUT_METHOD =    -222
     const val SYSTEM_NEXT_INPUT_METHOD =    -223
@@ -121,6 +124,26 @@ object KeyCode {
     const val URI_COMPONENT_TLD =           -255
 
     const val SETTINGS =                    -301
+
+    // DRS v1.0.6: technical text tool codes (see DrsTextTool for the full
+    // list and DrsTextTools for the pure transformations behind them).
+    const val TEXT_TOOL_UPPERCASE =             -601
+    const val TEXT_TOOL_LOWERCASE =             -602
+    const val TEXT_TOOL_TITLE_CASE =            -603
+    const val TEXT_TOOL_SENTENCE_CASE =         -604
+    const val TEXT_TOOL_TRIM_SPACES =           -611
+    const val TEXT_TOOL_TRIM_LINE_EDGES =       -612
+    const val TEXT_TOOL_REMOVE_EMPTY_LINES =    -613
+    const val TEXT_TOOL_REMOVE_LINE_BREAKS =    -614
+    const val TEXT_TOOL_SORT_LINES =            -615
+    const val TEXT_TOOL_REMOVE_DUPLICATE_LINES =-616
+    const val TEXT_TOOL_REMOVE_DIACRITICS =     -621
+    const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
+    const val TEXT_TOOL_CLEAN_TEXT =            -632
+    const val TEXT_TOOL_COUNT =                 -641
+    const val TEXT_TOOL_DELETE_LINE =           -651
+    const val TEXT_TOOL_DELETE_TO_LINE_START =  -652
+    const val TEXT_TOOL_DELETE_TO_LINE_END =    -653
 
     const val CURRENCY_SLOT_1 =             -801
     const val CURRENCY_SLOT_2 =             -802

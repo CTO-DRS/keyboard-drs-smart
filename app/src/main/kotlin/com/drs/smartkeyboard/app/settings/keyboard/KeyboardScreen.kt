@@ -153,6 +153,16 @@ fun KeyboardScreen() = DrsScreen {
                 max = 700,
                 stepIncrement = 10,
             )
+            // DRS v1.0.6: real repeat-rate control - wired into the input
+            // event dispatcher, so holding a key actually repeats faster.
+            DialogSliderPreference(
+                prefs.keyboard.keyRepeatRatePercent,
+                title = stringRes(R.string.pref__keyboard__key_repeat_rate__label),
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = 50,
+                max = 300,
+                stepIncrement = 10,
+            )
             SwitchPreference(
                 prefs.keyboard.spaceBarSwitchesToCharacters,
                 title = stringRes(R.string.pref__keyboard__space_bar_switches_to_characters__label),

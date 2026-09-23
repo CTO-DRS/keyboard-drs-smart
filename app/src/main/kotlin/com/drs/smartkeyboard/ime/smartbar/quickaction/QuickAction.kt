@@ -103,6 +103,25 @@ val SmartToolCodes = setOf(
     KeyCode.LANGUAGE_SWITCH,
     KeyCode.IME_UI_MODE_MEDIA,
     KeyCode.IME_UI_MODE_CLIPBOARD,
+    KeyCode.IME_UI_MODE_TEXT_TOOLS,
+    // DRS v1.0.6: every technical text tool counts as a tool press.
+    KeyCode.TEXT_TOOL_UPPERCASE,
+    KeyCode.TEXT_TOOL_LOWERCASE,
+    KeyCode.TEXT_TOOL_TITLE_CASE,
+    KeyCode.TEXT_TOOL_SENTENCE_CASE,
+    KeyCode.TEXT_TOOL_TRIM_SPACES,
+    KeyCode.TEXT_TOOL_TRIM_LINE_EDGES,
+    KeyCode.TEXT_TOOL_REMOVE_EMPTY_LINES,
+    KeyCode.TEXT_TOOL_REMOVE_LINE_BREAKS,
+    KeyCode.TEXT_TOOL_SORT_LINES,
+    KeyCode.TEXT_TOOL_REMOVE_DUPLICATE_LINES,
+    KeyCode.TEXT_TOOL_REMOVE_DIACRITICS,
+    KeyCode.TEXT_TOOL_NORMALIZE_PUNCTUATION,
+    KeyCode.TEXT_TOOL_CLEAN_TEXT,
+    KeyCode.TEXT_TOOL_COUNT,
+    KeyCode.TEXT_TOOL_DELETE_LINE,
+    KeyCode.TEXT_TOOL_DELETE_TO_LINE_START,
+    KeyCode.TEXT_TOOL_DELETE_TO_LINE_END,
     KeyCode.VOICE_INPUT,
     KeyCode.TOGGLE_FLOATING_WINDOW,
     KeyCode.TOGGLE_COMPACT_LAYOUT,
@@ -133,6 +152,7 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.FORWARD_DELETE -> R.string.quick_action__forward_delete
             KeyCode.IME_UI_MODE_CLIPBOARD -> R.string.quick_action__ime_ui_mode_clipboard
             KeyCode.IME_UI_MODE_MEDIA -> R.string.quick_action__ime_ui_mode_media
+            KeyCode.IME_UI_MODE_TEXT_TOOLS -> R.string.quick_action__ime_ui_mode_text_tools
             KeyCode.LANGUAGE_SWITCH -> R.string.quick_action__language_switch
             KeyCode.SETTINGS -> R.string.quick_action__settings
             KeyCode.UNDO -> R.string.quick_action__undo
@@ -176,6 +196,7 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.MOVE_WORD_RIGHT -> R.string.quick_action__move_word_right__tooltip
             KeyCode.IME_UI_MODE_CLIPBOARD -> R.string.quick_action__ime_ui_mode_clipboard__tooltip
             KeyCode.IME_UI_MODE_MEDIA -> R.string.quick_action__ime_ui_mode_media__tooltip
+            KeyCode.IME_UI_MODE_TEXT_TOOLS -> R.string.quick_action__ime_ui_mode_text_tools__tooltip
             KeyCode.LANGUAGE_SWITCH -> R.string.quick_action__language_switch__tooltip
             KeyCode.SETTINGS -> R.string.quick_action__settings__tooltip
             KeyCode.UNDO -> R.string.quick_action__undo__tooltip

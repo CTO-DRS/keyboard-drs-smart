@@ -60,6 +60,7 @@ import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.devtools.DevtoolsOverlay
 import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.clipboard.ClipboardInputLayout
+import com.drs.smartkeyboard.drs.ui.DrsTextToolsPanel
 import com.drs.smartkeyboard.ime.input.LocalInputFeedbackController
 import com.drs.smartkeyboard.ime.keyboard.ProvideKeyboardRowBaseHeight
 import com.drs.smartkeyboard.ime.media.MediaInputLayout
@@ -227,6 +228,7 @@ private fun ImeInnerWindow() {
                 ImeUiMode.TEXT -> TextInputLayout()
                 ImeUiMode.MEDIA -> ProvideActualLayoutDirection { MediaInputLayout() }
                 ImeUiMode.CLIPBOARD -> ProvideActualLayoutDirection { ClipboardInputLayout() }
+                ImeUiMode.TEXT_TOOLS -> ProvideActualLayoutDirection { DrsTextToolsPanel() }
             }
             ImeSystemUiFloating()
         }

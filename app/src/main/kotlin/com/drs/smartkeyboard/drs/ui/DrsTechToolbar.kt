@@ -36,7 +36,9 @@ import com.drs.smartkeyboard.drs.DrsContextMode
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRuntimeState
 import com.drs.smartkeyboard.drs.DrsStore
+import com.drs.smartkeyboard.drs.DrsTechToolbarKeys
 import com.drs.smartkeyboard.drs.DrsUserPath
+import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import com.drs.smartkeyboard.ime.text.key.KeyType
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
@@ -44,6 +46,10 @@ import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
 import org.drs.lib.snygg.ui.SnyggIconButton
 import org.drs.lib.snygg.ui.SnyggRow
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Close
+import org.drs.lib.snygg.ui.SnyggIcon
 
 /**
  * One button of the DRS technical toolbar.
@@ -55,6 +61,10 @@ private data class DrsTechKey(val label: String, val code: Int, val type: KeyTyp
  * smartbar whenever the active profile enables it. Provides quick access to
  * coding symbols ({ } [ ] ( ) < > / \ | @ # $ % ^ & *), Tab/Esc and arrow
  * navigation keys. Hidden automatically in password fields.
+ *
+ * DRS v1.0.6: the keys after the fixed "text tools" toggle are the user's
+ * persisted arrangement ([DrsState.techToolbarKeys], edited in the toolbar
+ * editor screen); an empty arrangement falls back to the full default set.
  *
  * Theme is inherited from the existing smartbar Snygg elements, so it adapts
  * to every installed theme without extra styling rules.
@@ -79,33 +89,10 @@ fun DrsTechToolbar(modifier: Modifier = Modifier) {
         contextMode != DrsContextMode.PASSWORD
     if (!visible) return
 
-    val keys = remember {
-        listOf(
-            DrsTechKey("←", KeyCode.ARROW_LEFT, KeyType.NAVIGATION),
-            DrsTechKey("→", KeyCode.ARROW_RIGHT, KeyType.NAVIGATION),
-            DrsTechKey("↑", KeyCode.ARROW_UP, KeyType.NAVIGATION),
-            DrsTechKey("↓", KeyCode.ARROW_DOWN, KeyType.NAVIGATION),
-            DrsTechKey("Tab", KeyCode.TAB, KeyType.FUNCTION),
-            DrsTechKey("Esc", KeyCode.ESCAPE, KeyType.FUNCTION),
-            DrsTechKey("{", '{'.code, KeyType.CHARACTER),
-            DrsTechKey("}", '}'.code, KeyType.CHARACTER),
-            DrsTechKey("[", '['.code, KeyType.CHARACTER),
-            DrsTechKey("]", ']'.code, KeyType.CHARACTER),
-            DrsTechKey("(", '('.code, KeyType.CHARACTER),
-            DrsTechKey(")", ')'.code, KeyType.CHARACTER),
-            DrsTechKey("<", '<'.code, KeyType.CHARACTER),
-            DrsTechKey(">", '>'.code, KeyType.CHARACTER),
-            DrsTechKey("/", '/'.code, KeyType.CHARACTER),
-            DrsTechKey("\\", '\\'.code, KeyType.CHARACTER),
-            DrsTechKey("|", '|'.code, KeyType.CHARACTER),
-            DrsTechKey("@", '@'.code, KeyType.CHARACTER),
-            DrsTechKey("#", '#'.code, KeyType.CHARACTER),
-            DrsTechKey("$", '$'.code, KeyType.CHARACTER),
-            DrsTechKey("%", '%'.code, KeyType.CHARACTER),
-            DrsTechKey("^", '^'.code, KeyType.CHARACTER),
-            DrsTechKey("&", '&'.code, KeyType.CHARACTER),
-            DrsTechKey("*", '*'.code, KeyType.CHARACTER),
-        )
+    val keys = remember(drsState.techToolbarKeys) {
+        DrsTechToolbarKeys.resolve(drsState.techToolbarKeys).map {
+            DrsTechKey(it.label, it.code, it.type)
+        }
     }
 
     SnyggRow(
@@ -116,6 +103,24 @@ fun DrsTechToolbar(modifier: Modifier = Modifier) {
             .horizontalScroll(rememberScrollState()),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
+        // DRS v1.0.6: fixed leading button that opens the technical text
+        // tools panel (case, spacing, lines, counts). It closes again with
+        // the same button when the panel is already open.
+        val isTextToolsOpen = keyboardManager.activeState.imeUiMode == ImeUiMode.TEXT_TOOLS
+        SnyggIconButton(
+            elementName = DrsImeUi.SmartbarActionKey.elementName,
+            onClick = {
+                keyboardManager.inputEventDispatcher.sendDownUp(
+                    TextKeyData.IME_UI_MODE_TEXT_TOOLS,
+                )
+                DrsAdaptationEngine.recordTechToolUse()
+            },
+            modifier = Modifier.sizeIn(minWidth = 38.dp).height(40.dp),
+        ) {
+            SnyggIcon(
+                imageVector = if (isTextToolsOpen) Icons.Default.Close else Icons.Default.Build,
+            )
+        }
         keys.forEach { key ->
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,

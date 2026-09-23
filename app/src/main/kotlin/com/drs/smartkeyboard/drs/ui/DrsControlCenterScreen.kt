@@ -276,6 +276,8 @@ fun DrsControlCenterScreen() = DrsScreen {
                 DrsLinkRow(stringRes(R.string.settings__typing__title)) { navController.navigate(Routes.Settings.Typing) }
                 DrsLinkRow(stringRes(R.string.settings__gestures__title)) { navController.navigate(Routes.Settings.Gestures) }
                 DrsLinkRow(stringRes(R.string.drs__shortcuts__title)) { navController.navigate(Routes.Settings.DrsShortcuts) }
+                // DRS v1.0.6: technical toolbar key editor.
+                DrsLinkRow(stringRes(R.string.drs__tech_toolbar__title)) { navController.navigate(Routes.Settings.DrsTechToolbar) }
                 DrsLinkRow(stringRes(R.string.settings__clipboard__title)) { navController.navigate(Routes.Settings.Clipboard) }
                 DrsLinkRow(stringRes(R.string.settings__localization__title)) { navController.navigate(Routes.Settings.Localization) }
                 DrsLinkRow(stringRes(R.string.settings__other__title)) { navController.navigate(Routes.Settings.Other) }

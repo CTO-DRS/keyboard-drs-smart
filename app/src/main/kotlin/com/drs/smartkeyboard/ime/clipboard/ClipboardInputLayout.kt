@@ -54,6 +54,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.Backspace
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.FilterList
@@ -602,6 +604,15 @@ fun ClipboardInputLayout(
                                 text = stringRes(R.string.clip__delete_item),
                             ) {
                                 clipboardManager.deleteClip(popupItem!!, onlyIfUnpinned = false)
+                                popupItem = null
+                            }
+                            // DRS v1.0.6: copy the item back to the system
+                            // clipboard without inserting it anywhere.
+                            PopupAction(
+                                icon = Icons.Default.ContentCopy,
+                                text = stringRes(R.string.clip__copy_item_again),
+                            ) {
+                                clipboardManager.copyItemBack(popupItem!!)
                                 popupItem = null
                             }
                             PopupAction(

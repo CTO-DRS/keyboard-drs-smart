@@ -43,16 +43,37 @@ object DrsIntegration {
             val word = editorInstance.activeContent.currentWordText
             if (word.isEmpty() || word.length > 32) return false
             val rawExpansion = DrsShortcuts.findExpansion(word) ?: return false
+            val placesCursor = DrsShortcuts.hasCursorMarker(rawExpansion)
             val expansion = DrsShortcuts.expandTemplate(rawExpansion, clipboardText)
+            // DRS v1.0.6: a {cursor} marker inside the template moves the
+            // cursor there after insertion instead of appending a trailing
+            // space - essential for letter templates with a fill-in gap.
+            val (finalText, cursorOffset) = if (placesCursor) {
+                DrsShortcuts.extractCursorMarker(expansion)
+            } else {
+                expansion to -1
+            }
             repeat(word.length) {
                 editorInstance.deleteBackwards(com.drs.smartkeyboard.ime.editor.OperationUnit.CHARACTERS)
             }
-            editorInstance.commitText(expansion)
-            editorInstance.commitText(KeyCode.SPACE.toChar().toString())
+            editorInstance.commitText(finalText)
+            if (placesCursor && cursorOffset >= 0) {
+                val selectionEnd = editorInstance.activeContent.selection.end
+                val target = (selectionEnd - finalText.length + cursorOffset).coerceAtLeast(0)
+                editorInstance.setSelection(target, target)
+            } else {
+                editorInstance.commitText(KeyCode.SPACE.toChar().toString())
+            }
             DrsAdaptationEngine.recordShortcutUse()
             return true
-        } catch (_: Throwable) {
+        } catch (t: Throwable) {
             // The DRS layer must never break normal typing.
+            runCatching {
+                DrsEventLog.recordError(
+                    DrsEventLog.Categories.SHORTCUTS,
+                    DrsEventLog.throwableDetail(t),
+                )
+            }
             return false
         }
     }

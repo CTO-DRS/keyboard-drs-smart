@@ -21,12 +21,16 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.view.KeyEvent
+import android.view.inputmethod.ExtractedTextRequest
+import android.view.inputmethod.InputConnection
 import androidx.core.view.inputmethod.InputConnectionCompat
 import androidx.core.view.inputmethod.InputContentInfoCompat
 import com.drs.smartkeyboard.DrsImeService
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsRuntimeState
+import com.drs.smartkeyboard.drs.DrsTextTool
+import com.drs.smartkeyboard.drs.DrsTextTools
 import com.drs.smartkeyboard.appContext
 import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.ime.ImeUiMode
@@ -44,6 +48,7 @@ import com.drs.smartkeyboard.keyboardManager
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
 import com.drs.smartkeyboard.nlpManager
 import com.drs.smartkeyboard.subtypeManager
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.runBlocking
 import org.drs.lib.android.showShortToastSync
@@ -519,6 +524,156 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
             appContext.startActivity(chooser)
             true
         }.getOrElse { false }
+    }
+
+    /**
+     * DRS v1.0.6: applies a technical text tool (see [DrsTextTool]) to the
+     * current selection, or to the whole field when nothing is selected.
+     * Runs inside a single input-connection batch edit so the host app sees
+     * one atomic change and its own undo stack stays usable. Password fields
+     * and incognito mode are refused - the tool surface must never be used to
+     * bulk-rewrite credentials.
+     *
+     * @return True when the tool was applied (or, for the info tool, the
+     *         counts were shown), false otherwise.
+     */
+    fun performTextTool(tool: DrsTextTool): Boolean {
+        autoSpace.setInactive()
+        phantomSpace.setInactive()
+        if (activeInfo.isRawInputEditor || activeState.isIncognitoMode ||
+            activeState.keyVariation == KeyVariation.PASSWORD
+        ) {
+            return false
+        }
+        val ic = currentInputConnection() ?: return false
+        ic.beginBatchEdit()
+        try {
+            ic.finishComposingText()
+            val extracted = try {
+                ic.getExtractedText(ExtractedTextRequest(), 0)
+            } catch (_: Throwable) {
+                null
+            }
+            if (extracted?.text != null) {
+                val full = extracted.text.toString()
+                val start = extracted.selectionStart.coerceIn(0, full.length)
+                val end = extracted.selectionEnd.coerceIn(0, full.length)
+                return applyTextToolToRange(ic, tool, full, start, end)
+            }
+            // Fallback: the content window maintained by the IME itself.
+            val content = activeContent
+            val full = content.text.toString()
+            val start = content.selection.start.coerceIn(0, full.length)
+            val end = content.selection.end.coerceIn(0, full.length)
+            return applyTextToolToRange(ic, tool, full, start, end)
+        } catch (t: Throwable) {
+            appContext.showShortToastSync(R.string.drs__text_tools__failed)
+            runCatching {
+                com.drs.smartkeyboard.drs.DrsEventLog.recordError(
+                    com.drs.smartkeyboard.drs.DrsEventLog.Categories.TEXT_TOOLS,
+                    com.drs.smartkeyboard.drs.DrsEventLog.throwableDetail(t),
+                )
+            }
+            return false
+        } finally {
+            try {
+                ic.endBatchEdit()
+            } catch (_: Throwable) {
+            }
+        }
+    }
+
+    private fun applyTextToolToRange(
+        ic: InputConnection,
+        tool: DrsTextTool,
+        full: String,
+        selectionStart: Int,
+        selectionEnd: Int,
+    ): Boolean {
+        val from = minOf(selectionStart, selectionEnd)
+        val to = maxOf(selectionStart, selectionEnd)
+        val hasSelection = from != to
+        if (tool.isEditorOp) {
+            return performEditorLineOp(ic, tool, full, from, to)
+        }
+        val target = if (hasSelection) full.substring(from, to) else full
+        if (tool.isInfoOnly) {
+            val (chars, words, lines) = DrsTextTools.countInfo(target)
+            appContext.showShortToastSync(
+                R.string.drs__text_tools__count_result,
+                "chars" to chars,
+                "words" to words,
+                "lines" to lines,
+            )
+            return true
+        }
+        if (target.isEmpty()) {
+            appContext.showShortToastSync(R.string.drs__text_tools__no_text)
+            return false
+        }
+        val transformed = DrsTextTools.apply(tool, target, Locale.getDefault())
+        if (transformed == target) {
+            appContext.showShortToastSync(R.string.drs__text_tools__no_change)
+            return false
+        }
+        val ok = if (hasSelection) {
+            ic.setSelection(from, to) && ic.commitText(transformed, 1)
+        } else {
+            ic.setSelection(0, full.length) && ic.commitText(transformed, 1)
+        }
+        if (!ok) {
+            appContext.showShortToastSync(R.string.drs__text_tools__failed)
+        }
+        return ok
+    }
+
+    /**
+     * Cursor-relative line operations: delete the whole (selected) line(s),
+     * or delete from the cursor to the start/end of the line. Implemented on
+     * the real input connection so behavior matches the actual field content.
+     */
+    private fun performEditorLineOp(
+        ic: InputConnection,
+        tool: DrsTextTool,
+        full: String,
+        from: Int,
+        to: Int,
+    ): Boolean {
+        if (full.isEmpty()) {
+            appContext.showShortToastSync(R.string.drs__text_tools__no_text)
+            return false
+        }
+        val lineStart = full.lastIndexOf('\n', (from - 1).coerceAtLeast(0)).let {
+            if (it == -1 || from == 0) 0 else it + 1
+        }
+        val lineEnd = full.indexOf('\n', to).let { if (it == -1) full.length else it }
+        val rangeStart: Int
+        val rangeEnd: Int
+        when (tool) {
+            DrsTextTool.DELETE_LINE -> {
+                // Include the trailing newline so no empty line is left over.
+                rangeStart = lineStart
+                rangeEnd = if (lineEnd < full.length) lineEnd + 1 else lineEnd
+            }
+            DrsTextTool.DELETE_TO_LINE_START -> {
+                rangeStart = lineStart
+                rangeEnd = to
+            }
+            DrsTextTool.DELETE_TO_LINE_END -> {
+                rangeStart = from
+                rangeEnd = lineEnd
+            }
+            else -> return false
+        }
+        if (rangeStart >= rangeEnd) {
+            appContext.showShortToastSync(R.string.drs__text_tools__no_change)
+            return false
+        }
+        val ok = ic.setSelection(rangeStart, rangeEnd) && ic.commitText("", 1)
+        if (!ok) {
+            appContext.showShortToastSync(R.string.drs__text_tools__failed)
+        }
+        return ok
     }
 
     /**

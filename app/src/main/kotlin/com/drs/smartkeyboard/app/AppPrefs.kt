@@ -598,6 +598,14 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "keyboard__long_press_delay",
             default = 300,
         )
+        // DRS v1.0.6: key repeat RATE as a percentage of the platform rate.
+        // 100 = system default, higher = faster repeating (shorter delay).
+        // Real behavior change: InputEventDispatcher divides the platform
+        // repeat delay by this factor.
+        val keyRepeatRatePercent = int(
+            key = "keyboard__key_repeat_rate_percent",
+            default = 100,
+        )
         val spaceBarSwitchesToCharacters = boolean(
             key = "keyboard__space_bar_switches_to_characters",
             default = true,

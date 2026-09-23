@@ -17,6 +17,7 @@
 package com.drs.smartkeyboard.ime.text.keyboard
 
 import android.icu.lang.UCharacter
+import com.drs.smartkeyboard.drs.DrsTextTool
 import com.drs.smartkeyboard.ime.keyboard.AbstractKeyData
 import com.drs.smartkeyboard.ime.keyboard.ComputingEvaluator
 import com.drs.smartkeyboard.ime.keyboard.KeyData
@@ -136,6 +137,11 @@ data class TextKeyData(
                 IME_UI_MODE_TEXT,
                 IME_UI_MODE_MEDIA,
                 IME_UI_MODE_CLIPBOARD,
+                IME_UI_MODE_TEXT_TOOLS,
+                // DRS v1.0.6: every technical text tool code is internal.
+                *DrsTextTool.entries.map { tool ->
+                    TextKeyData(type = KeyType.FUNCTION, code = tool.code, label = "drs_text_tool")
+                }.toTypedArray(),
                 SYSTEM_INPUT_METHOD_PICKER,
                 SYSTEM_PREV_INPUT_METHOD,
                 SYSTEM_NEXT_INPUT_METHOD,
@@ -447,6 +453,12 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.IME_UI_MODE_CLIPBOARD,
             label = "ime_ui_mode_clipboard",
+        )
+        /** DRS v1.0.6: predefined key data for [KeyCode.IME_UI_MODE_TEXT_TOOLS] */
+        val IME_UI_MODE_TEXT_TOOLS = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.IME_UI_MODE_TEXT_TOOLS,
+            label = "ime_ui_mode_text_tools",
         )
 
         /** Predefined key data for [KeyCode.SYSTEM_INPUT_METHOD_PICKER] */

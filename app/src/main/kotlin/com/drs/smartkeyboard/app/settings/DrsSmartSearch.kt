@@ -39,7 +39,9 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
@@ -483,6 +485,25 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
             keywords = listOf("help", "guide", "faq", "how to", "مساعدة", "دليل", "كيف", "شرح", "استخدام"),
             icon = Icons.Default.Help,
             route = Routes.Settings.Help,
+        ),
+        // DRS v1.0.6: technical system surfaces.
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__tech_toolbar__title),
+            keywords = listOf("tech toolbar", "toolbar", "strip", "الشريط التقني", "تخصيص الشريط", "مفاتيح", "ترتيب"),
+            icon = Icons.Default.Build,
+            route = Routes.Settings.DrsTechToolbar,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__performance__title),
+            keywords = listOf("performance", "latency", "memory", "speed", "monitor", "أداء", "الذاكرة", "سرعة", "مراقبة", "استجابة"),
+            icon = Icons.Default.Speed,
+            route = Routes.Settings.DrsPerformance,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__diagnostics__backup_section),
+            keywords = listOf("backup", "restore", "export", "import state", "نسخ احتياطي", "استيراد", "تصدير", "استعادة"),
+            icon = Icons.Default.Backup,
+            route = Routes.Settings.DrsDiagnostics,
         ),
     )
 }

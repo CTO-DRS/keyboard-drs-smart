@@ -103,8 +103,16 @@ object DrsStore {
                 f.writeText(tmp.readText())
                 tmp.delete()
             }
-        } catch (_: Throwable) {
+        } catch (t: Throwable) {
             // Persisting the adaptive layer must never crash the keyboard.
+            // DRS v1.0.6: record the failure in the sanitized event log so
+            // diagnostics can show WHY data was not persisted.
+            runCatching {
+                DrsEventLog.recordError(
+                    DrsEventLog.Categories.STORE,
+                    DrsEventLog.throwableDetail(t),
+                )
+            }
         }
     }
 
@@ -123,6 +131,19 @@ object DrsStore {
             f.parentFile?.canWrite() == true
         } catch (_: Throwable) {
             false
+        }
+    }
+
+    /**
+     * DRS v1.0.6: real on-disk size of the state file in bytes (0 when the
+     * store is not initialized yet). Surfaced in the performance screen -
+     * measured, never estimated.
+     */
+    fun fileSizeBytes(): Long {
+        return try {
+            file?.takeIf { it.isFile }?.length() ?: 0L
+        } catch (_: Throwable) {
+            0L
         }
     }
 }

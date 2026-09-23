@@ -31,6 +31,8 @@ import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.drs.DrsAdaptationEngine
 import com.drs.smartkeyboard.drs.DrsEconomy
 import com.drs.smartkeyboard.drs.DrsIntegration
+import com.drs.smartkeyboard.drs.DrsPerformance
+import com.drs.smartkeyboard.drs.DrsTextTool
 import com.drs.smartkeyboard.editorInstance
 import com.drs.smartkeyboard.extensionManager
 import com.drs.smartkeyboard.ime.ImeUiMode
@@ -759,7 +761,19 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         }
     }
 
-    override fun onInputKeyUp(data: KeyData) = activeState.batchEdit {
+    override fun onInputKeyUp(data: KeyData) {
+        // DRS v1.0.6: measure the REAL wall-clock time the key handler takes
+        // per press (µs) into a bounded in-memory window. Pure RAM sampling,
+        // lock-free, allocation-free - it never affects typing behavior.
+        val startNs = System.nanoTime()
+        try {
+            onInputKeyUpBody(data)
+        } finally {
+            DrsPerformance.recordKeyLatency((System.nanoTime() - startNs) / 1000L)
+        }
+    }
+
+    private fun onInputKeyUpBody(data: KeyData) = activeState.batchEdit {
         val windowController = DrsImeService.windowControllerOrNull() ?: return@batchEdit
         DrsAdaptationEngine.recordKey(data.code)
         DrsEconomy.recordKeyEarn(data.code)
@@ -860,6 +874,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.IME_UI_MODE_CLIPBOARD -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.CLIPBOARD
+            }
+            KeyCode.IME_UI_MODE_TEXT_TOOLS -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.TEXT_TOOLS
+            }
+            in DrsTextTool.CODE_RANGE -> {
+                DrsTextTool.fromCode(data.code)?.let { editorInstance.performTextTool(it) }
             }
             KeyCode.VOICE_INPUT -> DrsImeService.switchToVoiceInputMethod()
             KeyCode.KANA_SWITCHER -> handleKanaSwitch()

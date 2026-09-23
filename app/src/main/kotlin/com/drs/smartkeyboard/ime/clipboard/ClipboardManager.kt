@@ -18,6 +18,7 @@ package com.drs.smartkeyboard.ime.clipboard
 
 import android.content.ClipData
 import android.content.Context
+import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.appContext
 import com.drs.smartkeyboard.drs.DrsAdaptationEngine
@@ -396,6 +397,23 @@ class ClipboardManager(
         // DRS v1.0.5: clipboard use from the clipboard panel is now credited
         // (the hook existed in the adaptation engine but was never called).
         DrsAdaptationEngine.recordClipboardUse()
+    }
+
+    /**
+     * DRS v1.0.6: "copy again" - puts a history item back as the primary
+     * system clipboard content without inserting it into the editor. Text
+     * items only (media stays where it is); the call goes through the same
+     * sync path as a normal clipboard set, so behavior is identical.
+     */
+    fun copyItemBack(item: ClipboardItem): Boolean {
+        if (item.type != ItemType.TEXT) return false
+        return try {
+            updatePrimaryClip(item)
+            appContext.showShortToastSync(R.string.clip__copied_item_again)
+            true
+        } catch (_: Throwable) {
+            false
+        }
     }
 
     /**

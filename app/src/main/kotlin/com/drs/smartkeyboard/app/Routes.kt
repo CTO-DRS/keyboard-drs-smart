@@ -84,7 +84,9 @@ import com.drs.smartkeyboard.app.ext.DrsRewardsScreen
 import com.drs.smartkeyboard.drs.ui.DrsDiagnosticsScreen
 import com.drs.smartkeyboard.drs.ui.DrsGesturesScreen
 import com.drs.smartkeyboard.drs.ui.DrsProfilesScreen
+import com.drs.smartkeyboard.drs.ui.DrsPerformanceScreen
 import com.drs.smartkeyboard.drs.ui.DrsShortcutsScreen
+import com.drs.smartkeyboard.drs.ui.DrsTechToolbarScreen
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
@@ -236,6 +238,14 @@ object Routes {
         @Serializable
         @Deeplink("settings/drs/rewards")
         object DrsRewards
+
+        @Serializable
+        @Deeplink("settings/drs/tech-toolbar")
+        object DrsTechToolbar
+
+        @Serializable
+        @Deeplink("settings/drs/performance")
+        object DrsPerformance
     }
 
     object Devtools {
@@ -374,6 +384,8 @@ object Routes {
             composableWithDeepLink(Settings.DrsProfiles::class) { DrsProfilesScreen() }
             composableWithDeepLink(Settings.DrsGestures::class) { DrsGesturesScreen() }
             composableWithDeepLink(Settings.DrsRewards::class) { DrsRewardsScreen() }
+            composableWithDeepLink(Settings.DrsTechToolbar::class) { DrsTechToolbarScreen() }
+            composableWithDeepLink(Settings.DrsPerformance::class) { DrsPerformanceScreen() }
 
             composableWithDeepLink(Devtools.Home::class) { DevtoolsScreen() }
             composableWithDeepLink(Devtools.AndroidLocales::class) { AndroidLocalesScreen() }
