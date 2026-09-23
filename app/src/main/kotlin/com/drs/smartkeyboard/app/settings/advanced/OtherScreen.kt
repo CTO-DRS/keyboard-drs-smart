@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.FormatColorFill
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Palette
@@ -183,6 +184,12 @@ fun OtherScreen() = DrsScreen {
                     }
                 }
             }
+        )
+        SwitchPreference(
+            prefs.search.historyEnabled,
+            icon = Icons.Default.History,
+            title = stringRes(R.string.pref__search__history_enabled__label),
+            summary = stringRes(R.string.pref__search__history_enabled__summary),
         )
         SwitchPreference(
             prefs.other.showAppIcon,

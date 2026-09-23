@@ -35,6 +35,7 @@ import com.drs.smartkeyboard.ime.input.InputFeedbackActivationMode
 import com.drs.smartkeyboard.ime.keyboard.IncognitoMode
 import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
 import com.drs.smartkeyboard.ime.landscapeinput.LandscapeInputUiMode
+import com.drs.smartkeyboard.app.settings.DrsSearchHistory
 import com.drs.smartkeyboard.ime.media.emoji.EmojiHairStyle
 import com.drs.smartkeyboard.ime.media.emoji.EmojiHistory
 import com.drs.smartkeyboard.ime.media.emoji.EmojiSkinTone
@@ -295,6 +296,22 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val suggestionCandidateMaxCount = int(
             key = "emoji__suggestion_candidate_max_count",
             default = 5,
+        )
+    }
+
+    // DRS v1.0.4: persistent smart-search history — recent queries are stored
+    // here (most recent first, deduplicated, capped) and surfaced as one-tap
+    // chips inside the search dialog.
+    val search = Search()
+    inner class Search {
+        val historyEnabled = boolean(
+            key = "search__history_enabled",
+            default = true,
+        )
+        val historyData = custom(
+            key = "search__history_data",
+            default = DrsSearchHistory.Empty,
+            serializer = DrsSearchHistory.Serializer,
         )
     }
 

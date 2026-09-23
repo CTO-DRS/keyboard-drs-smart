@@ -36,37 +36,54 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.AddCircle
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Healing
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.People
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
+import androidx.compose.material.icons.filled.SettingsInputComponent
 import androidx.compose.material.icons.filled.SmartButton
+import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.material.icons.filled.Spellcheck
+import androidx.compose.material.icons.filled.Swipe
 import androidx.compose.material.icons.filled.SettingsBackupRestore
 import androidx.compose.material.icons.filled.SystemUpdateAlt
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TouchApp
+import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.Vibration
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.CloudDownload
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,7 +101,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.app.DrsPreferenceModel
+import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.app.Routes
+import com.drs.smartkeyboard.app.ext.ExtensionImportScreenType
+import com.drs.smartkeyboard.app.settings.localization.LanguagePackManagerScreenAction
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import org.drs.jetpref.datastore.model.PreferenceSerializer
+import org.drs.jetpref.datastore.model.collectAsState
 import org.drs.lib.compose.stringRes
 import java.text.Normalizer
 
@@ -102,6 +131,70 @@ data class DrsSearchEntry(
     val icon: ImageVector,
     val route: Any,
 )
+
+/**
+ * DRS v1.0.4: persistent recent-search history. Queries the user actually
+ * acted on are stored most-recent-first, deduplicated (Arabic-normalized
+ * comparison) and capped — then surfaced as one-tap rows the next time the
+ * search dialog opens. Serialized as JSON into the JetPref datastore,
+ * mirroring the emoji-history storage pattern.
+ */
+@Serializable
+data class DrsSearchHistory(val queries: List<String> = emptyList()) {
+    object Serializer : PreferenceSerializer<DrsSearchHistory> {
+        override fun serialize(value: DrsSearchHistory): String {
+            return Json.encodeToString(value)
+        }
+
+        override fun deserialize(value: String): DrsSearchHistory {
+            return runCatching { Json.decodeFromString<DrsSearchHistory>(value) }
+                .getOrDefault(Empty)
+        }
+    }
+
+    companion object {
+        val Empty = DrsSearchHistory()
+    }
+}
+
+/** Thread-safe mutation helpers for [DrsSearchHistory] in the prefs store. */
+object DrsSearchHistoryHelper {
+    const val MaxSize = 8
+    private const val MinRecordLength = 2
+    private val mutex = Mutex()
+
+    /** Record a query the user acted on (front-insert, dedupe, cap). */
+    suspend fun record(prefs: DrsPreferenceModel, rawQuery: String) {
+        if (!prefs.search.historyEnabled.get()) return
+        val trimmed = rawQuery.trim()
+        if (trimmed.length < MinRecordLength) return
+        mutex.withLock {
+            val normalized = drsSearchNormalize(trimmed)
+            val current = prefs.search.historyData.get().queries
+            val next = (listOf(trimmed) + current.filter { drsSearchNormalize(it) != normalized })
+                .take(MaxSize)
+            prefs.search.historyData.set(DrsSearchHistory(next))
+        }
+    }
+
+    /** Remove one query (normalized comparison, so casing/diacritics don't matter). */
+    suspend fun remove(prefs: DrsPreferenceModel, rawQuery: String) {
+        val normalized = drsSearchNormalize(rawQuery)
+        mutex.withLock {
+            val current = prefs.search.historyData.get().queries
+            prefs.search.historyData.set(
+                DrsSearchHistory(current.filter { drsSearchNormalize(it) != normalized }),
+            )
+        }
+    }
+
+    /** Drop the whole history ("مسح الكل"). */
+    suspend fun clear(prefs: DrsPreferenceModel) {
+        mutex.withLock {
+            prefs.search.historyData.set(DrsSearchHistory.Empty)
+        }
+    }
+}
 
 private val drsMnRegex = Regex("\\p{Mn}+")
 private val drsNonLetterRegex = Regex("[^\\p{L}\\p{Nd}\\s]")
@@ -310,24 +403,109 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
             icon = Icons.Default.SettingsBackupRestore,
             route = Routes.Settings.Backup,
         ),
+        // DRS v1.0.4: deeper reach — sub-screens and individual settings are
+        // now searchable, routing straight to the page that owns them.
+        DrsSearchEntry(
+            title = stringRes(R.string.settings__input_feedback__title),
+            keywords = listOf("sound", "haptic", "vibration", "audio", "feedback", "صوت", "أصوات", "اهتزاز", "لمس", "نقرة"),
+            icon = Icons.Default.Vibration,
+            route = Routes.Settings.InputFeedback,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.physical_keyboard__title),
+            keywords = listOf("physical", "hardware", "bluetooth", "usb", "فيزيائية", "خارجية", "بلوتوث"),
+            icon = Icons.Default.SettingsInputComponent,
+            route = Routes.Settings.PhysicalKeyboard,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.settings__dictionary__title),
+            keywords = listOf("dictionary", "words", "learn", "قاموس", "كلمات", "تعلم", "تعليم"),
+            icon = Icons.AutoMirrored.Filled.MenuBook,
+            route = Routes.Settings.Dictionary,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.backup_and_restore__restore__title),
+            keywords = listOf("restore", "استعادة", "استرجاع", "استيراد الإعدادات", "رجوع"),
+            icon = Icons.Default.Restore,
+            route = Routes.Settings.Restore,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.settings__localization__subtype_add_title),
+            keywords = listOf("add language", "new layout", "إضافة لغة", "لوحة جديدة", "نوع فرعي", "لغة جديدة"),
+            icon = Icons.Default.AddCircle,
+            route = Routes.Settings.SubtypeAdd,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.settings__localization__language_pack_title),
+            keywords = listOf("language pack", "packs", "حزم اللغة", "حزمة لغة", "تثبيت لغة", "لغات إضافية"),
+            icon = Icons.Default.Translate,
+            route = Routes.Settings.LanguagePackManager(LanguagePackManagerScreenAction.MANAGE),
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.ext__import__ext_any),
+            keywords = listOf("import", "file", "flex", "استيراد", "ملف", "ملحق", "إضافة من ملف"),
+            icon = Icons.Default.FileDownload,
+            route = Routes.Ext.Import(ExtensionImportScreenType.EXT_ANY),
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__keyboard__number_row__label),
+            keywords = listOf("number row", "أرقام", "صف الأرقام", "أعداد"),
+            icon = Icons.Default.Numbers,
+            route = Routes.Settings.Keyboard,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__suggestion__next_word_enabled__label),
+            keywords = listOf("next word", "prediction", "تنبؤ", "الكلمة التالية", "اقتراح"),
+            icon = Icons.Default.FastForward,
+            route = Routes.Settings.Typing,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__correction__auto_capitalization__label),
+            keywords = listOf("capitalization", "caps", "حرف كبير", "أحرف كبيرة", "تلقائي"),
+            icon = Icons.Default.TextFields,
+            route = Routes.Settings.Typing,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__correction__double_space_period__label),
+            keywords = listOf("period", "double space", "نقطة", "مسافة مزدوجة"),
+            icon = Icons.Default.SpaceBar,
+            route = Routes.Settings.Typing,
+        ),
+        DrsSearchEntry(
+            title = stringRes(R.string.pref__glide__title),
+            keywords = listOf("glide", "swipe typing", "كتابة بالتمرير", "انزلاق", "سحب متصل"),
+            icon = Icons.Default.Swipe,
+            route = Routes.Settings.Gestures,
+        ),
     )
 }
 
-/** Quick suggestions shown before the user types anything. */
-private val drsSuggestionIndices = listOf(0, 2, 6, 5, 1, 17)
+/**
+ * Quick suggestions shown before the user types anything. DRS v1.0.4:
+ * resolved by ROUTE (not list index) so the list can grow without silently
+ * pointing at the wrong entries.
+ */
+private val drsSuggestionRoutes = listOf(
+    Routes.Settings.DrsControlCenter,
+    Routes.Settings.DrsProfiles,
+    Routes.Settings.Keyboard,
+    Routes.Settings.Localization,
+    Routes.Settings.DrsShortcuts,
+    Routes.Ext.CheckUpdates,
+)
 
 @Composable
 private fun DrsSearchResultRow(
     entry: DrsSearchEntry,
     query: String,
-    onNavigate: (Any) -> Unit,
+    onClick: () -> Unit,
 ) {
     val colorScheme = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
-            .clickable { onNavigate(entry.route) }
+            .clickable { onClick() }
             .padding(horizontal = 8.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -391,9 +569,62 @@ private fun buildHighlightedTitle(title: String, rawQuery: String): AnnotatedStr
 }
 
 /**
+ * DRS v1.0.4: one-tap row for a recent search — tap re-runs the query,
+ * the trailing X removes it from the history.
+ */
+@Composable
+private fun DrsSearchHistoryRow(
+    queryText: String,
+    onSelect: () -> Unit,
+    onRemove: () -> Unit,
+) {
+    val colorScheme = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(14.dp))
+            .clickable { onSelect() }
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(colorScheme.onSurfaceVariant.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = Icons.Default.History,
+                contentDescription = null,
+                tint = colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = queryText,
+            style = MaterialTheme.typography.bodyLarge,
+            color = colorScheme.onSurface,
+            maxLines = 1,
+            modifier = Modifier.weight(1f),
+        )
+        IconButton(onClick = onRemove, modifier = Modifier.size(30.dp)) {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = stringRes(R.string.action__delete),
+                tint = colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                modifier = Modifier.size(16.dp),
+            )
+        }
+    }
+}
+
+/**
  * DRS smart search popup: a floating, elevated dialog with an auto-focused
  * search field, Arabic-aware live filtering and one-tap navigation to any
- * settings screen. Shows quick suggestions when the query is empty.
+ * settings screen. Shows recent searches (persistent) plus quick suggestions
+ * when the query is empty.
  */
 @Composable
 fun DrsSmartSearchDialog(
@@ -404,6 +635,24 @@ fun DrsSmartSearchDialog(
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
     val entries = rememberDrsSearchEntries()
+
+    // DRS v1.0.4: persistent recent-searches — every result the user actually
+    // opens is recorded (NonCancellable so the write survives the dialog
+    // leaving composition) and shown as one-tap rows next time.
+    val prefs by DrsPreferenceStore
+    val scope = rememberCoroutineScope()
+    val historyEnabled by prefs.search.historyEnabled.collectAsState()
+    val historyData by prefs.search.historyData.collectAsState()
+    val historyQueries = historyData.queries
+
+    fun openResult(entry: DrsSearchEntry) {
+        if (query.trim().length >= 2) {
+            scope.launch(NonCancellable) {
+                DrsSearchHistoryHelper.record(prefs, query)
+            }
+        }
+        onNavigate(entry.route)
+    }
 
     val normalizedQuery = drsSearchNormalize(query)
     // DRS v1.0.3: ranked results — best match first (title hits weigh double,
@@ -418,7 +667,9 @@ fun DrsSmartSearchDialog(
             .map { it.first }
             .toList()
     }
-    val suggestions = drsSuggestionIndices.mapNotNull { entries.getOrNull(it) }
+    val suggestions = drsSuggestionRoutes.mapNotNull { route ->
+        entries.firstOrNull { it.route == route }
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -461,7 +712,7 @@ fun DrsSmartSearchDialog(
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                     keyboardActions = KeyboardActions(
                         onSearch = {
-                            results.firstOrNull()?.let { onNavigate(it.route) }
+                            results.firstOrNull()?.let { openResult(it) }
                         },
                     ),
                     modifier = Modifier
@@ -474,44 +725,91 @@ fun DrsSmartSearchDialog(
                 }
                 Spacer(modifier = Modifier.padding(top = 12.dp))
 
-                if (normalizedQuery.isEmpty()) {
-                    Text(
-                        text = stringRes(R.string.drs__home__search_suggestions),
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = colorScheme.primary,
-                        modifier = Modifier.padding(start = 8.dp, bottom = 4.dp),
-                    )
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(suggestions) { entry ->
-                            DrsSearchResultRow(entry = entry, query = query, onNavigate = onNavigate)
+                LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                    if (normalizedQuery.isEmpty()) {
+                        // DRS v1.0.4: persistent recent searches first — one
+                        // tap re-runs the query, X removes a single row,
+                        // "مسح الكل" drops the whole history.
+                        if (historyEnabled && historyQueries.isNotEmpty()) {
+                            item(key = "history_header") {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(start = 8.dp, end = 2.dp, bottom = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Text(
+                                        text = stringRes(R.string.drs__search__history__title),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = colorScheme.primary,
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    TextButton(
+                                        onClick = {
+                                            scope.launch {
+                                                DrsSearchHistoryHelper.clear(prefs)
+                                            }
+                                        },
+                                    ) {
+                                        Text(
+                                            text = stringRes(R.string.drs__search__history__clear),
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                }
+                            }
+                            items(historyQueries.size, key = { "history_$it" }) { index ->
+                                DrsSearchHistoryRow(
+                                    queryText = historyQueries[index],
+                                    onSelect = { query = historyQueries[index] },
+                                    onRemove = {
+                                        scope.launch {
+                                            DrsSearchHistoryHelper.remove(prefs, historyQueries[index])
+                                        }
+                                    },
+                                )
+                            }
                         }
-                    }
-                } else if (results.isEmpty()) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = null,
-                            tint = colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            modifier = Modifier.size(36.dp),
-                        )
-                        Spacer(modifier = Modifier.padding(top = 12.dp))
-                        Text(
-                            text = stringRes(R.string.drs__home__search_no_results),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                } else {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        item(key = "suggestions_header") {
+                            Text(
+                                text = stringRes(R.string.drs__home__search_suggestions),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = colorScheme.primary,
+                                modifier = Modifier.padding(start = 8.dp, bottom = 4.dp, top = 8.dp),
+                            )
+                        }
+                        items(suggestions) { entry ->
+                            DrsSearchResultRow(entry = entry, query = query, onClick = { openResult(entry) })
+                        }
+                    } else if (results.isEmpty()) {
+                        item(key = "no_results") {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 32.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
+                                    contentDescription = null,
+                                    tint = colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier.size(36.dp),
+                                )
+                                Spacer(modifier = Modifier.padding(top = 12.dp))
+                                Text(
+                                    text = stringRes(R.string.drs__home__search_no_results),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                )
+                            }
+                        }
+                    } else {
                         items(results) { entry ->
-                            DrsSearchResultRow(entry = entry, query = query, onNavigate = onNavigate)
+                            DrsSearchResultRow(entry = entry, query = query, onClick = { openResult(entry) })
                         }
                     }
                 }

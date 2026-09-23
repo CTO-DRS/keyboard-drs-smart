@@ -1231,6 +1231,10 @@
     <string name="drs__home__search_hint">ابحث في كل الإعدادات الذكية…</string>
     <string name="drs__home__search_suggestions">اقتراحات سريعة</string>
     <string name="drs__home__search_no_results">لا توجد نتائج مطابقة — جرّب كلمة أخرى</string>
+    <string name="drs__search__history__title" comment="Header of the recent-searches section inside the smart search dialog">البحث الحديث</string>
+    <string name="drs__search__history__clear" comment="Action that clears the entire search history">مسح الكل</string>
+    <string name="pref__search__history_enabled__label" comment="Label of the search-history preference">سجل البحث</string>
+    <string name="pref__search__history_enabled__summary" comment="Summary of the search-history preference">تذكّر عمليات البحث الأخيرة واعرضها كاقتراحات سريعة داخل البحث الذكي</string>
     <string name="drs__home__avatar_desc">صورة الملف الشخصي — افتح ملفك الشخصي</string>
     <string name="drs__home__theme_toggle_desc">زر تبديل الوضع الليلي والنهاري</string>
     <string name="drs__home__theme_menu_title">وضع العرض</string>

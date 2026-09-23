@@ -1306,6 +1306,10 @@
     <string name="drs__home__search_hint">Search all smart settings…</string>
     <string name="drs__home__search_suggestions">Quick suggestions</string>
     <string name="drs__home__search_no_results">No matching results — try another word</string>
+    <string name="drs__search__history__title" comment="Header of the recent-searches section inside the smart search dialog">Recent searches</string>
+    <string name="drs__search__history__clear" comment="Action that clears the entire search history">Clear all</string>
+    <string name="pref__search__history_enabled__label" comment="Label of the search-history preference">Search history</string>
+    <string name="pref__search__history_enabled__summary" comment="Summary of the search-history preference">Remember recent searches and offer them as quick suggestions inside smart search</string>
     <string name="drs__home__avatar_desc">Profile picture — open your profile</string>
     <string name="drs__home__theme_toggle_desc">Toggle night and day mode</string>
     <string name="drs__home__theme_menu_title">Display mode</string>
