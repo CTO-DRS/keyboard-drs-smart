@@ -35,10 +35,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
@@ -108,10 +106,15 @@ fun DrsRewardsScreen() = DrsScreen {
     val ownedCount = wallet.ownedItems.size
 
     content {
+        // DRS fix: this Column must NOT scroll on its own. DrsScreen already
+        // wraps the content in a vertical scroll container (scrollable = true
+        // by default); nesting a second vertical scroll here crashes during
+        // measure with "Vertically scrollable component was measured with an
+        // infinity maximum height constraints". The outer scroll owns the
+        // gesture, the app-bar scroll-away and the DRS scrollbar.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
