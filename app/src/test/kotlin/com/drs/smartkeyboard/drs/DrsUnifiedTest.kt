@@ -291,13 +291,14 @@ class DrsUnifiedTest : FunSpec({
     }
 
     test("v1.4.0 tools keep the tail-append order contract of the catalogue") {
-        // The two v1.4.0 tools sit just before the v1.5.0 tail, so every
-        // persisted order/pin arrangement keeps its exact meaning.
-        DrsUnifiedTools.ALL.takeLast(5).take(2).map { it.id } shouldBe
+        // DRS v1.6.0: the two v1.4.0 tools sit before the v1.5.0 tail (3)
+        // and the v1.6.0 tail (5), so every persisted order/pin arrangement
+        // keeps its exact meaning.
+        DrsUnifiedTools.ALL.dropLast(8).takeLast(2).map { it.id } shouldBe
             listOf("floating_mode", "smartbar_toggle")
         // The head and the previous tails are untouched.
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
-        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 6].id shouldBe "voice_input"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 11].id shouldBe "voice_input"
     }
 
     test("v1.5.0 tools exist and dispatch real engine codes") {
@@ -310,7 +311,9 @@ class DrsUnifiedTest : FunSpec({
     }
 
     test("v1.5.0 tools keep the tail-append order contract of the catalogue") {
-        DrsUnifiedTools.ALL.takeLast(3).map { it.id } shouldBe
+        // DRS v1.6.0: the v1.5.0 tail of three is now followed by the
+        // v1.6.0 tail of five — same relative order, longer catalogue.
+        DrsUnifiedTools.ALL.dropLast(5).takeLast(3).map { it.id } shouldBe
             listOf("clipboard_history_clear", "next_language", "resize_mode")
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
     }

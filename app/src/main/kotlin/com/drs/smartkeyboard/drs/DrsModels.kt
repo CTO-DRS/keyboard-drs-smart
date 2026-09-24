@@ -109,6 +109,10 @@ data class DrsUsageStats(
     val shortcutUses: Long = 0,
     val techToolUses: Long = 0,
     val gestureUses: Long = 0,
+    // DRS v1.6.0: how many times a suggestion/candidate row entry was
+    // actually committed (auto-completion accepts included). Anonymous
+    // count only — never WHICH word was accepted.
+    val suggestionAccepts: Long = 0,
     // DRS v1.0.5: anonymous per-tool usage counts (KeyCode -> count) used to
     // surface the smart tools the user actually relies on. Counts only —
     // never text, never timestamps. Capped on merge to stay tiny.
@@ -138,6 +142,8 @@ data class DrsDayStats(
     val emojiUses: Long = 0,
     val clipboardUses: Long = 0,
     val shortcutUses: Long = 0,
+    /** DRS v1.6.0: committed suggestion-row entries (accepts). */
+    val suggestionAccepts: Long = 0,
 )
 
 /**

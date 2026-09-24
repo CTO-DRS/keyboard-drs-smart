@@ -172,6 +172,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_tabs_to_spaces,
                 Icons.Default.KeyboardTab,
             ),
+            // DRS v1.6.0: the inverse mapping — runs of 4 spaces -> tab.
+            toolItem(
+                DrsTextTool.SPACES_TO_TABS,
+                R.string.drs__text_tools__tool_spaces_to_tabs,
+                R.string.drs__text_tools__desc_spaces_to_tabs,
+                Icons.Default.KeyboardTab,
+            ),
             toolItem(
                 DrsTextTool.REMOVE_ZERO_WIDTH,
                 R.string.drs__text_tools__tool_remove_zero_width,
@@ -190,6 +197,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_collapse_empty_lines,
                 R.string.drs__text_tools__desc_collapse_empty_lines,
                 Icons.Default.Compress,
+            ),
+            // DRS v1.6.0: blank lines at the text's edges only.
+            toolItem(
+                DrsTextTool.TRIM_BLANK_EDGES,
+                R.string.drs__text_tools__tool_trim_blank_edges,
+                R.string.drs__text_tools__desc_trim_blank_edges,
+                Icons.Default.ClearAll,
             ),
             toolItem(
                 DrsTextTool.REMOVE_LINE_BREAKS,
@@ -243,6 +257,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_remove_duplicate_words,
                 Icons.Default.WrapText,
             ),
+            // DRS v1.6.0: word-order reversal of every line.
+            toolItem(
+                DrsTextTool.REVERSE_WORDS,
+                R.string.drs__text_tools__tool_reverse_words,
+                R.string.drs__text_tools__desc_reverse_words,
+                Icons.Default.SwapHoriz,
+            ),
         ),
     ),
     DrsTextToolsPanelSection(
@@ -285,6 +306,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 DrsTextTool.TO_ARABIC_PUNCTUATION,
                 R.string.drs__text_tools__tool_to_arabic_punctuation,
                 R.string.drs__text_tools__desc_to_arabic_punctuation,
+                Icons.Default.QuestionMark,
+            ),
+            // DRS v1.6.0: the inverse mapping back to Latin marks.
+            toolItem(
+                DrsTextTool.TO_WESTERN_PUNCTUATION,
+                R.string.drs__text_tools__tool_to_western_punctuation,
+                R.string.drs__text_tools__desc_to_western_punctuation,
                 Icons.Default.QuestionMark,
             ),
         ),
@@ -412,6 +440,9 @@ fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.TRIM_SPACES -> R.string.drs__text_tools__tool_trim_spaces
     DrsTextTool.TRIM_LINE_EDGES -> R.string.drs__text_tools__tool_trim_line_edges
     DrsTextTool.TABS_TO_SPACES -> R.string.drs__text_tools__tool_tabs_to_spaces
+    DrsTextTool.SPACES_TO_TABS -> R.string.drs__text_tools__tool_spaces_to_tabs
+    DrsTextTool.TRIM_BLANK_EDGES -> R.string.drs__text_tools__tool_trim_blank_edges
+    DrsTextTool.REVERSE_WORDS -> R.string.drs__text_tools__tool_reverse_words
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__tool_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__tool_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__tool_collapse_empty_lines
@@ -428,6 +459,7 @@ fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.TO_ARABIC_DIGITS -> R.string.drs__text_tools__tool_to_arabic_digits
     DrsTextTool.TO_WESTERN_DIGITS -> R.string.drs__text_tools__tool_to_western_digits
     DrsTextTool.TO_ARABIC_PUNCTUATION -> R.string.drs__text_tools__tool_to_arabic_punctuation
+    DrsTextTool.TO_WESTERN_PUNCTUATION -> R.string.drs__text_tools__tool_to_western_punctuation
     DrsTextTool.NORMALIZE_ARABIC -> R.string.drs__text_tools__tool_normalize_arabic
     DrsTextTool.NORMALIZE_PUNCTUATION -> R.string.drs__text_tools__tool_normalize_punctuation
     DrsTextTool.CLEAN_TEXT -> R.string.drs__text_tools__tool_clean_text
@@ -450,6 +482,9 @@ fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.TRIM_SPACES -> R.string.drs__text_tools__desc_trim_spaces
     DrsTextTool.TRIM_LINE_EDGES -> R.string.drs__text_tools__desc_trim_line_edges
     DrsTextTool.TABS_TO_SPACES -> R.string.drs__text_tools__desc_tabs_to_spaces
+    DrsTextTool.SPACES_TO_TABS -> R.string.drs__text_tools__desc_spaces_to_tabs
+    DrsTextTool.TRIM_BLANK_EDGES -> R.string.drs__text_tools__desc_trim_blank_edges
+    DrsTextTool.REVERSE_WORDS -> R.string.drs__text_tools__desc_reverse_words
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__desc_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__desc_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__desc_collapse_empty_lines
@@ -466,6 +501,7 @@ fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.TO_ARABIC_DIGITS -> R.string.drs__text_tools__desc_to_arabic_digits
     DrsTextTool.TO_WESTERN_DIGITS -> R.string.drs__text_tools__desc_to_western_digits
     DrsTextTool.TO_ARABIC_PUNCTUATION -> R.string.drs__text_tools__desc_to_arabic_punctuation
+    DrsTextTool.TO_WESTERN_PUNCTUATION -> R.string.drs__text_tools__desc_to_western_punctuation
     DrsTextTool.NORMALIZE_ARABIC -> R.string.drs__text_tools__desc_normalize_arabic
     DrsTextTool.NORMALIZE_PUNCTUATION -> R.string.drs__text_tools__desc_normalize_punctuation
     DrsTextTool.CLEAN_TEXT -> R.string.drs__text_tools__desc_clean_text

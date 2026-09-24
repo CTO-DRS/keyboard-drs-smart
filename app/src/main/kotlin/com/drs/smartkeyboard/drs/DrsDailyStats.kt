@@ -50,7 +50,7 @@ object DrsDailyStats {
         keyPresses == 0L && numberPresses == 0L && symbolPresses == 0L &&
             emojiUses == 0L && clipboardUses == 0L &&
             shortcutUses == 0L && techToolUses == 0L && gestureUses == 0L &&
-            toolUses.isEmpty()
+            suggestionAccepts == 0L && toolUses.isEmpty()
 
     /**
      * Merges [delta] (the drained adaptation counters) into [current]'s
@@ -75,6 +75,8 @@ object DrsDailyStats {
             emojiUses = existing.emojiUses + delta.emojiUses,
             clipboardUses = existing.clipboardUses + delta.clipboardUses,
             shortcutUses = existing.shortcutUses + delta.shortcutUses,
+            // DRS v1.6.0: committed suggestion-row entries persist too.
+            suggestionAccepts = existing.suggestionAccepts + delta.suggestionAccepts,
         )
         return prune(current + (today to merged))
     }
@@ -111,7 +113,8 @@ object DrsDailyStats {
                 bucket.gestureUses >= 0 &&
                 bucket.emojiUses >= 0 &&
                 bucket.clipboardUses >= 0 &&
-                bucket.shortcutUses >= 0
+                bucket.shortcutUses >= 0 &&
+                bucket.suggestionAccepts >= 0
         }
     }
 
@@ -128,6 +131,7 @@ object DrsDailyStats {
                 emojiUses = acc.emojiUses + bucket.emojiUses,
                 clipboardUses = acc.clipboardUses + bucket.clipboardUses,
                 shortcutUses = acc.shortcutUses + bucket.shortcutUses,
+                suggestionAccepts = acc.suggestionAccepts + bucket.suggestionAccepts,
             )
         }
     }
@@ -327,5 +331,63 @@ object DrsDailyStats {
     fun DrsDayStats.hasActivity(): Boolean =
         keyPresses > 0L || numberPresses > 0L || symbolPresses > 0L || toolUses > 0L ||
             techToolUses > 0L || gestureUses > 0L ||
-            emojiUses > 0L || clipboardUses > 0L || shortcutUses > 0L
+            emojiUses > 0L || clipboardUses > 0L || shortcutUses > 0L ||
+            suggestionAccepts > 0L
+
+    /**
+     * DRS v1.6.0: how many days of the recorded span have NO activity —
+     * the exact complement of the active-day count inside the recorded
+     * window (span − active). Null when the span itself is unknown.
+     * Pure and JVM-testable.
+     */
+    fun missedDaysCount(
+        stats: Map<String, DrsDayStats>,
+        today: String = todayStamp(),
+    ): Int? {
+        val span = recordedSpanDays(stats, today) ?: return null
+        return span - activeDaysCount(stats)
+    }
+
+    /**
+     * DRS v1.6.0: the share of ACTIVE days inside the recorded window,
+     * as a percentage (0–100). Null when the span is unknown. Pure and
+     * JVM-testable.
+     */
+    fun activeDayRatioPercent(
+        stats: Map<String, DrsDayStats>,
+        today: String = todayStamp(),
+    ): Double? {
+        val span = recordedSpanDays(stats, today) ?: return null
+        return activeDaysCount(stats) * 100.0 / span
+    }
+
+    /**
+     * DRS v1.6.0: the weekday with the LOWEST total of key presses among
+     * the weekdays that have at least one key press recorded — the quiet
+     * counterpart of [busiestWeekday]. Ties resolve deterministically to
+     * the first-encountered weekday; null when no recorded day has key
+     * presses. Pure and JVM-testable.
+     */
+    fun quietestWeekday(stats: Map<String, DrsDayStats>): java.time.DayOfWeek? {
+        val byWeekday = LinkedHashMap<java.time.DayOfWeek, Long>()
+        for ((day, bucket) in stats) {
+            val date = try {
+                LocalDate.parse(day)
+            } catch (_: Throwable) {
+                continue
+            }
+            if (bucket.keyPresses <= 0L) continue
+            val key = date.dayOfWeek
+            byWeekday[key] = (byWeekday[key] ?: 0L) + bucket.keyPresses
+        }
+        var quietest: java.time.DayOfWeek? = null
+        var quietestTotal = -1L
+        for ((key, total) in byWeekday) {
+            if (quietestTotal < 0L || total < quietestTotal) {
+                quietest = key
+                quietestTotal = total
+            }
+        }
+        return quietest
+    }
 }

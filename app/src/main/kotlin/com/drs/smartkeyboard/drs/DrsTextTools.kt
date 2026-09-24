@@ -77,6 +77,10 @@ private val ZERO_WIDTH_CHARS = Regex("[\\u200B\\u200D\\u200E\\u200F\\uFEFF\\u206
  *  existing newlines are left untouched so the tool is idempotent. */
 private val SENTENCE_BOUNDARY = Regex("([.!؟?…])[ \\t\\u00A0]+(?=[^\\s])")
 
+/** DRS v1.6.0: a run of one or more whitespace characters — the word
+ *  separator REVERSE_WORDS splits each line on. */
+private val WHITESPACE_RUN = Regex("\\s+")
+
 enum class DrsTextTool(
     val code: Int,
     /** Info-only tools show a result message instead of modifying text. */
@@ -136,6 +140,13 @@ enum class DrsTextTool(
     REMOVE_DUPLICATE_WORDS(-626),
     WRAP_PARENS(-627),
     SENTENCE_PER_LINE(-628),
+
+    // DRS v1.6.0: the inverse tab↔space and punctuation mappings, the
+    // edge-only blank trim and word-order reversal (same families).
+    SPACES_TO_TABS(-629),
+    TO_WESTERN_PUNCTUATION(-630),
+    TRIM_BLANK_EDGES(-633),
+    REVERSE_WORDS(-634),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -328,6 +339,37 @@ object DrsTextTools {
                 // non-space character comes after it (idempotent, existing
                 // newlines untouched).
                 DrsTextTool.SENTENCE_PER_LINE -> text.replace(SENTENCE_BOUNDARY, "$1\n")
+                // DRS v1.6.0: the inverse of TABS_TO_SPACES — every run of
+                // four consecutive spaces becomes one real tab. The regex
+                // scans left-to-right, so longer runs split deterministically
+                // (8 spaces -> 2 tabs, 5 spaces -> tab + one space).
+                DrsTextTool.SPACES_TO_TABS -> text.replace(" ".repeat(4).toRegex(), "\t")
+                // DRS v1.6.0: the inverse of TO_ARABIC_PUNCTUATION — the
+                // three Arabic sentence marks map back to their Latin
+                // counterparts, per-character, everything else untouched.
+                DrsTextTool.TO_WESTERN_PUNCTUATION -> mapChars(text) { ch ->
+                    when (ch) {
+                        '\u060C' -> ',' // ، -> ,
+                        '\u061B' -> ';' // ؛ -> ;
+                        '\u061F' -> '?' // ؟ -> ?
+                        else -> ch
+                    }
+                }
+                // DRS v1.6.0: strips blank lines at the text's EDGES only —
+                // blank separators inside the text are kept exactly as they
+                // are (distinct from COLLAPSE_EMPTY_LINES, which keeps one
+                // blank separator, and REMOVE_EMPTY_LINES, which removes
+                // them all). See [trimBlankEdges].
+                DrsTextTool.TRIM_BLANK_EDGES -> trimBlankEdges(text)
+                // DRS v1.6.0: reverses the word order of every line — the
+                // word-level sibling of REVERSE_LINES. Tokens are joined
+                // with a single space; blank lines stay blank and a
+                // trailing newline survives as-is.
+                DrsTextTool.REVERSE_WORDS -> text.lines().joinToString("\n") { line ->
+                    line.split(WHITESPACE_RUN).filter { it.isNotEmpty() }
+                        .asReversed()
+                        .joinToString(" ")
+                }
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(
                         text.lines()
@@ -459,6 +501,23 @@ object DrsTextTools {
         val sb = StringBuilder(text.length)
         for (ch in text) sb.append(transform(ch))
         return sb.toString()
+    }
+
+    /**
+     * DRS v1.6.0: removes blank lines at the START and END of the text
+     * only. Blank lines between content are kept exactly as they are —
+     * the edge-only sibling of COLLAPSE_EMPTY_LINES and
+     * REMOVE_EMPTY_LINES. A trailing newline survives as-is when any
+     * non-blank line remains; a text of only blank lines becomes "".
+     */
+    private fun trimBlankEdges(text: String): String {
+        val trailingNewline = text.endsWith("\n")
+        val lines = text.lines().let { if (trailingNewline) it.dropLast(1) else it }
+        val first = lines.indexOfFirst { it.isNotBlank() }
+        if (first == -1) return ""
+        val last = lines.indexOfLast { it.isNotBlank() }
+        val kept = lines.subList(first, last + 1).joinToString("\n")
+        return if (trailingNewline) "$kept\n" else kept
     }
 
     /**

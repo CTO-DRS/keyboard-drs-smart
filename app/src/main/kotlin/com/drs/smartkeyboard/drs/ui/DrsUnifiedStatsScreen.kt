@@ -172,6 +172,8 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             StatsRow(stringRes(R.string.drs__unified__stats_emoji), todayStats.emojiUses)
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), todayStats.clipboardUses)
             StatsRow(stringRes(R.string.drs__unified__stats_shortcuts), todayStats.shortcutUses)
+            // DRS v1.6.0: committed suggestion-row entries.
+            StatsRow(stringRes(R.string.drs__unified__stats_suggestion_accepts), todayStats.suggestionAccepts)
             if (!dayHasActivity(todayStats)) {
                 Text(
                     text = stringRes(R.string.drs__unified__stats_empty),
@@ -207,6 +209,11 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         val longestStreak = DrsDailyStats.longestStreak(drsState.dailyStats)
         val busiestWeekday = DrsDailyStats.busiestWeekday(drsState.dailyStats)
         val recordedSpan = DrsDailyStats.recordedSpanDays(drsState.dailyStats, today)
+        // DRS v1.6.0: missed days inside the recorded window, the active
+        // share of it, and the quietest typing weekday (all pure).
+        val missedDays = DrsDailyStats.missedDaysCount(drsState.dailyStats, today)
+        val activeRatio = DrsDailyStats.activeDayRatioPercent(drsState.dailyStats, today)
+        val quietestWeekday = DrsDailyStats.quietestWeekday(drsState.dailyStats)
         StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_numbers), totalAll.numberPresses)
@@ -217,6 +224,8 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             StatsRow(stringRes(R.string.drs__unified__stats_emoji), totalAll.emojiUses)
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), totalAll.clipboardUses)
             StatsRow(stringRes(R.string.drs__unified__stats_shortcuts), totalAll.shortcutUses)
+            // DRS v1.6.0: committed suggestion-row entries.
+            StatsRow(stringRes(R.string.drs__unified__stats_suggestion_accepts), totalAll.suggestionAccepts)
             // DRS v1.4.0: recorded active days and the mean presses of
             // those days — both pure aggregations of the same buckets.
             StatsRow(stringRes(R.string.drs__unified__stats_active_days), activeDays.toLong())
@@ -245,6 +254,40 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
                     text = stringRes(
                         R.string.drs__unified__stats_recorded_span,
                         "days" to recordedSpan.toString(),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // DRS v1.6.0: missed days + the active share of the window.
+            if (missedDays != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_missed_days,
+                        "days" to missedDays.toString(),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (activeRatio != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_active_ratio,
+                        "ratio" to formatRatio(activeRatio),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (quietestWeekday != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_quietest_weekday,
+                        "day" to quietestWeekday.getDisplayName(
+                            java.time.format.TextStyle.FULL,
+                            java.util.Locale.getDefault(),
+                        ),
                     ),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -434,11 +477,20 @@ private fun formatGrowth(percent: Double): String {
 }
 
 /**
+ * DRS v1.6.0: renders a percentage with one decimal and locale-independent
+ * digits (e.g. "83.3%"), mirroring [formatGrowth].
+ */
+private fun formatRatio(percent: Double): String {
+    val rounded = (percent * 10).toLong() / 10.0
+    return rounded.toString() + "%"
+}
+
+/**
  * DRS v1.1.0: builds the CSV payload of the recorded day buckets
  * (ascending). Counts only — the file can never contain typed text.
  */
 private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
-    val header = "day,key_presses,number_presses,symbol_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses"
+    val header = "day,key_presses,number_presses,symbol_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses,suggestion_accepts"
     return header + "\n" + buckets.joinToString("\n") { b ->
         listOf(
             b.day,
@@ -451,6 +503,7 @@ private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
             b.emojiUses,
             b.clipboardUses,
             b.shortcutUses,
+            b.suggestionAccepts,
         ).joinToString(",")
     } + "\n"
 }

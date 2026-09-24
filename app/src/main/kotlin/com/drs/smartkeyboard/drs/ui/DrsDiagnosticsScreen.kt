@@ -353,6 +353,10 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             spellCheckerWired = spellCheckerWired,
             notificationsHealthy = notificationsHealthy,
             hapticsHealthy = hapticsHealthy,
+            // DRS v1.6.0: state-file decode integrity (the silent-wipe
+            // detector) + whether a crash log from a previous run exists.
+            stateFileParses = DrsStore.stateFileParses(),
+            crashLogPresent = crashLog.isNotBlank(),
         )
     }
 
@@ -902,6 +906,9 @@ private fun computeDrsFullTest(
     spellCheckerWired: Boolean,
     notificationsHealthy: Boolean,
     hapticsHealthy: Boolean,
+    // DRS v1.6.0: state-file decode integrity + crash-log presence.
+    stateFileParses: Boolean?,
+    crashLogPresent: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -1036,6 +1043,25 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_haptics,
             R.string.drs__diagnostics__hint_haptics,
+        ),
+        // DRS v1.6.0: the persisted state file must still decode. A
+        // corrupt file means the whole DRS layer silently resets to
+        // defaults on the next write — a genuine ERROR, not a warning.
+        // Unknown (store not initialized) passes to avoid false alarms.
+        result(
+            stateFileParses != false,
+            warn = false,
+            R.string.drs__diagnostics__check_state_file_integrity,
+            R.string.drs__diagnostics__hint_state_file_integrity,
+        ),
+        // DRS v1.6.0: a recorded crash log from a previous run. Purely
+        // informational — the keyboard recovered, but the user should
+        // know (and can review/clear the log on this very screen).
+        result(
+            !crashLogPresent,
+            warn = true,
+            R.string.drs__diagnostics__check_crash_log,
+            R.string.drs__diagnostics__hint_crash_log,
         ),
     )
 }

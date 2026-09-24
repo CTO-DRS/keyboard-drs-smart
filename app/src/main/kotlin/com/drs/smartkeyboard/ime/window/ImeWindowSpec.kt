@@ -325,6 +325,17 @@ sealed class ImeWindowSpec {
         const val SMARTBAR_HEIGHT_SCALE_MAX_PERCENT = 140
         const val SMARTBAR_HEIGHT_SCALE_DEFAULT_PERCENT = 100
 
+        /**
+         * DRS v1.6.0: bounds of the key-preview (popup) scale preference,
+         * in percent, beside the two height scales so the slider, the
+         * popup bounds provider and the unit tests share one source of
+         * truth. Applied at the presentation layer only — window and row
+         * math stay untouched.
+         */
+        const val KEY_PREVIEW_SCALE_MIN_PERCENT = 70
+        const val KEY_PREVIEW_SCALE_MAX_PERCENT = 200
+        const val KEY_PREVIEW_SCALE_DEFAULT_PERCENT = 100
+
         /** Clamps a raw percent value into the valid scale range and converts it to a multiplier. */
         fun sanitizeHeightScale(percent: Int): Float {
             return percent.coerceIn(HEIGHT_SCALE_MIN_PERCENT, HEIGHT_SCALE_MAX_PERCENT) / 100f
@@ -333,6 +344,11 @@ sealed class ImeWindowSpec {
         /** DRS v1.2.0: same clamp-and-convert contract for the Smartbar scale. */
         fun sanitizeSmartbarHeightScale(percent: Int): Float {
             return percent.coerceIn(SMARTBAR_HEIGHT_SCALE_MIN_PERCENT, SMARTBAR_HEIGHT_SCALE_MAX_PERCENT) / 100f
+        }
+
+        /** DRS v1.6.0: same clamp-and-convert contract for the key-preview scale. */
+        fun sanitizeKeyPreviewScale(percent: Int): Float {
+            return percent.coerceIn(KEY_PREVIEW_SCALE_MIN_PERCENT, KEY_PREVIEW_SCALE_MAX_PERCENT) / 100f
         }
 
         /**

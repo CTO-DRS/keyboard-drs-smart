@@ -536,6 +536,83 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.6.0: clears the FULL clipboard history (pinned items
+     * included) through the real engine action
+     * (KeyCode.CLIPBOARD_CLEAR_FULL_HISTORY — handled in KeyboardManager
+     * via clipboardManager.clearFullHistory). The destructive sibling of
+     * [CLIPBOARD_HISTORY_CLEAR], which keeps pinned entries.
+     */
+    val CLIPBOARD_FULL_CLEAR = DrsUnifiedTool(
+        id = "clipboard_full_clear",
+        code = KeyCode.CLIPBOARD_CLEAR_FULL_HISTORY,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.EDITING,
+    )
+
+    /**
+     * DRS v1.6.0: switches to the PREVIOUS configured subtype through the
+     * real engine action (KeyCode.IME_PREV_SUBTYPE — handled in
+     * KeyboardManager via subtypeManager.switchToPrevSubtype), the exact
+     * counterpart of [NEXT_LANGUAGE].
+     */
+    val PREV_LANGUAGE = DrsUnifiedTool(
+        id = "prev_language",
+        code = KeyCode.IME_PREV_SUBTYPE,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.6.0: moves the compact one-handed window to the LEFT edge
+     * through the real engine action (KeyCode.COMPACT_LAYOUT_TO_LEFT —
+     * handled in KeyboardManager via
+     * windowController.actions.compactLayoutToLeft), the deterministic
+     * complement of the [ONE_HANDED] toggle.
+     */
+    val ONE_HANDED_LEFT = DrsUnifiedTool(
+        id = "one_handed_left",
+        code = KeyCode.COMPACT_LAYOUT_TO_LEFT,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.SHARED,
+        defaultView = DrsToolView.TECHNICAL,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.6.0: moves the compact one-handed window to the RIGHT edge
+     * through the real engine action (KeyCode.COMPACT_LAYOUT_TO_RIGHT —
+     * handled in KeyboardManager via
+     * windowController.actions.compactLayoutToRight).
+     */
+    val ONE_HANDED_RIGHT = DrsUnifiedTool(
+        id = "one_handed_right",
+        code = KeyCode.COMPACT_LAYOUT_TO_RIGHT,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.SHARED,
+        defaultView = DrsToolView.TECHNICAL,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.6.0: switches to the NEXT input method in the system list
+     * through the real engine action (KeyCode.SYSTEM_NEXT_INPUT_METHOD —
+     * handled in KeyboardManager via DrsImeService.switchToNextInputMethod,
+     * the same path the utility key's SWITCH_KEYBOARD_APP action uses).
+     */
+    val NEXT_KEYBOARD_APP = DrsUnifiedTool(
+        id = "next_keyboard_app",
+        code = KeyCode.SYSTEM_NEXT_INPUT_METHOD,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -555,6 +632,9 @@ object DrsUnifiedTools {
         FLOATING_MODE, SMARTBAR_TOGGLE,
         // DRS v1.5.0: same tail-append contract for the new tools.
         CLIPBOARD_HISTORY_CLEAR, NEXT_LANGUAGE, RESIZE_MODE,
+        // DRS v1.6.0: same tail-append contract for the new tools.
+        CLIPBOARD_FULL_CLEAR, PREV_LANGUAGE, ONE_HANDED_LEFT, ONE_HANDED_RIGHT,
+        NEXT_KEYBOARD_APP,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

@@ -624,6 +624,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "keyboard__smartbar_height_scale_percent",
             default = ImeWindowSpec.SMARTBAR_HEIGHT_SCALE_DEFAULT_PERCENT,
         )
+        // DRS v1.6.0: key-popup (long-press preview) scale as a percentage
+        // of the default popup box size. 100 = default. Real behavior
+        // change: the popup bounds provider in TextKeyboardLayout
+        // multiplies the per-orientation popup multipliers by this factor,
+        // so the live key preview really follows the slider.
+        val previewScalePercent = int(
+            key = "keyboard__preview_scale_percent",
+            default = ImeWindowSpec.KEY_PREVIEW_SCALE_DEFAULT_PERCENT,
+        )
         val spaceBarSwitchesToCharacters = boolean(
             key = "keyboard__space_bar_switches_to_characters",
             default = true,

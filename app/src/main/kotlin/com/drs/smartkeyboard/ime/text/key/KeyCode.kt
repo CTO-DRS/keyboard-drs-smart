@@ -181,6 +181,13 @@ object KeyCode {
     const val TEXT_TOOL_SENTENCE_PER_LINE =     -628
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632
+
+    // DRS v1.6.0: inverse tab/space + punctuation mappings, edge-only
+    // blank trim and word-order reversal (same pure-transform families).
+    const val TEXT_TOOL_SPACES_TO_TABS =        -629
+    const val TEXT_TOOL_TO_WESTERN_PUNCTUATION =-630
+    const val TEXT_TOOL_TRIM_BLANK_EDGES =      -633
+    const val TEXT_TOOL_REVERSE_WORDS =         -634
     const val TEXT_TOOL_COUNT =                 -641
     const val TEXT_TOOL_DELETE_LINE =           -651
     const val TEXT_TOOL_DELETE_TO_LINE_START =  -652

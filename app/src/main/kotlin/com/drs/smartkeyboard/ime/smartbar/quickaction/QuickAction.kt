@@ -166,6 +166,17 @@ val SmartToolCodes = setOf(
     KeyCode.TEXT_TOOL_SENTENCE_PER_LINE,
     KeyCode.CLIPBOARD_CLEAR_HISTORY,
     KeyCode.IME_NEXT_SUBTYPE,
+    // DRS v1.6.0: the five new catalogue tools count as tool presses too.
+    KeyCode.CLIPBOARD_CLEAR_FULL_HISTORY,
+    KeyCode.IME_PREV_SUBTYPE,
+    KeyCode.COMPACT_LAYOUT_TO_LEFT,
+    KeyCode.COMPACT_LAYOUT_TO_RIGHT,
+    KeyCode.SYSTEM_NEXT_INPUT_METHOD,
+    // DRS v1.6.0: the four new text tools count as tool presses.
+    KeyCode.TEXT_TOOL_SPACES_TO_TABS,
+    KeyCode.TEXT_TOOL_TO_WESTERN_PUNCTUATION,
+    KeyCode.TEXT_TOOL_TRIM_BLANK_EDGES,
+    KeyCode.TEXT_TOOL_REVERSE_WORDS,
 )
 
 @Composable
@@ -214,6 +225,17 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.MOVE_END_OF_LINE -> R.string.quick_action__move_end_of_line
             KeyCode.CLIPBOARD_SELECT -> R.string.quick_action__clipboard_select
             KeyCode.TOGGLE_SMARTBAR_VISIBILITY -> R.string.quick_action__toggle_smartbar_visibility
+            // DRS v1.6.0: the two remaining smart-tool codes that used to
+            // fall through to the invalid-fatal placeholder when they
+            // surfaced as most-used tiles, plus the five new catalogue
+            // tools (which enter the most-used set via SmartToolCodes).
+            KeyCode.CLIPBOARD_CLEAR_HISTORY -> R.string.quick_action__clipboard_clear_history
+            KeyCode.IME_NEXT_SUBTYPE -> R.string.quick_action__ime_next_subtype
+            KeyCode.CLIPBOARD_CLEAR_FULL_HISTORY -> R.string.quick_action__clipboard_clear_full_history
+            KeyCode.IME_PREV_SUBTYPE -> R.string.quick_action__ime_prev_subtype
+            KeyCode.COMPACT_LAYOUT_TO_LEFT -> R.string.quick_action__compact_layout_to_left
+            KeyCode.COMPACT_LAYOUT_TO_RIGHT -> R.string.quick_action__compact_layout_to_right
+            KeyCode.SYSTEM_NEXT_INPUT_METHOD -> R.string.quick_action__system_next_input_method
             // DRS v1.5.0: text tools show their real panel titles instead
             // of the invalid-fatal placeholder.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
@@ -275,6 +297,15 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.MOVE_END_OF_LINE -> R.string.quick_action__move_end_of_line__tooltip
             KeyCode.CLIPBOARD_SELECT -> R.string.quick_action__clipboard_select__tooltip
             KeyCode.TOGGLE_SMARTBAR_VISIBILITY -> R.string.quick_action__toggle_smartbar_visibility__tooltip
+            // DRS v1.6.0: tooltips for the two previously-placeholdered
+            // codes and the five new catalogue tools.
+            KeyCode.CLIPBOARD_CLEAR_HISTORY -> R.string.quick_action__clipboard_clear_history__tooltip
+            KeyCode.IME_NEXT_SUBTYPE -> R.string.quick_action__ime_next_subtype__tooltip
+            KeyCode.CLIPBOARD_CLEAR_FULL_HISTORY -> R.string.quick_action__clipboard_clear_full_history__tooltip
+            KeyCode.IME_PREV_SUBTYPE -> R.string.quick_action__ime_prev_subtype__tooltip
+            KeyCode.COMPACT_LAYOUT_TO_LEFT -> R.string.quick_action__compact_layout_to_left__tooltip
+            KeyCode.COMPACT_LAYOUT_TO_RIGHT -> R.string.quick_action__compact_layout_to_right__tooltip
+            KeyCode.SYSTEM_NEXT_INPUT_METHOD -> R.string.quick_action__system_next_input_method__tooltip
             // DRS v1.5.0: text tools show their real panel descriptions.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
                 ?.let { textToolDescRes(it) }

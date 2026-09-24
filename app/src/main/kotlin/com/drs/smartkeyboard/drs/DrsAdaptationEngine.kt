@@ -48,6 +48,10 @@ object DrsAdaptationEngine {
     private val shortcutUses = AtomicLong()
     private val techToolUses = AtomicLong()
     private val gestureUses = AtomicLong()
+    // DRS v1.6.0: committed suggestion-row entries (the engine already
+    // routes every accept through KeyboardManager.commitCandidate —
+    // this counts the event, never the word itself).
+    private val suggestionAccepts = AtomicLong()
     // DRS v1.0.5: per-tool counts for the "most used tools" surface. Only
     // tool KeyCodes are counted (never characters), in-memory, flushed
     // aggregated with the rest of the usage stats.
@@ -97,6 +101,19 @@ object DrsAdaptationEngine {
         if (DrsStore.state.value.adaptationEnabled) {
             gestureUses.incrementAndGet()
             maybeFlush(gestureUses)
+        }
+    }
+
+    /**
+     * DRS v1.6.0: records one committed suggestion-row entry. The call
+     * site is KeyboardManager.commitCandidate — the single real accept
+     * path (tapped candidates AND auto-committed completions). Anonymous
+     * count only; which word was accepted is never stored.
+     */
+    fun recordSuggestionAccept() {
+        if (DrsStore.state.value.adaptationEnabled) {
+            suggestionAccepts.incrementAndGet()
+            maybeFlush(suggestionAccepts)
         }
     }
 
@@ -153,6 +170,7 @@ object DrsAdaptationEngine {
             shortcutUses = shortcutUses.getAndSet(0),
             techToolUses = techToolUses.getAndSet(0),
             gestureUses = gestureUses.getAndSet(0),
+            suggestionAccepts = suggestionAccepts.getAndSet(0),
             toolUses = drainedTools,
         )
     }
@@ -185,6 +203,7 @@ object DrsAdaptationEngine {
             shortcutUses = shortcutUses + delta.shortcutUses,
             techToolUses = techToolUses + delta.techToolUses,
             gestureUses = gestureUses + delta.gestureUses,
+            suggestionAccepts = suggestionAccepts + delta.suggestionAccepts,
             toolUses = mergedTools,
         )
     }

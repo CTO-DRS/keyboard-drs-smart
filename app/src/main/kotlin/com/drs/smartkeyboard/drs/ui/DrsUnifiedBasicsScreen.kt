@@ -113,6 +113,17 @@ fun DrsUnifiedBasicsScreen() = DrsScreen {
                 title = stringRes(R.string.pref__keyboard__popup_enabled__label),
                 summary = stringRes(R.string.drs__unified__basics_popups_summary),
             )
+            // DRS v1.6.0: key-preview scale — the live long-press popup
+            // follows it through the popup bounds provider.
+            DialogSliderPreference(
+                prefs.keyboard.previewScalePercent,
+                title = stringRes(R.string.pref__keyboard__preview_scale__label),
+                summary = { _ -> stringRes(R.string.drs__unified__basics_preview_summary) },
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = com.drs.smartkeyboard.ime.window.ImeWindowSpec.KEY_PREVIEW_SCALE_MIN_PERCENT,
+                max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.KEY_PREVIEW_SCALE_MAX_PERCENT,
+                stepIncrement = 10,
+            )
             ListPreference(
                 prefs.keyboard.capitalizationBehavior,
                 title = stringRes(R.string.pref__keyboard__capitalization_behavior__label),

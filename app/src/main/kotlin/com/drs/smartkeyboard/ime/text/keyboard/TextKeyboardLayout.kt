@@ -87,6 +87,7 @@ import com.drs.smartkeyboard.lib.devtools.LogTopic
 import com.drs.smartkeyboard.lib.devtools.flogDebug
 import com.drs.smartkeyboard.lib.toIntOffset
 import org.drs.jetpref.datastore.model.collectAsState
+import com.drs.smartkeyboard.ime.window.ImeWindowSpec
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.isActive
@@ -250,14 +251,21 @@ fun TextKeyboardLayout(
             boundsProvider = { key ->
                 val keyPopupWidth: Float
                 val keyPopupHeight: Float
+                // DRS v1.6.0: the key-preview scale preference multiplies
+                // the per-orientation popup multipliers. Read at call time
+                // (popup show) so a settings change applies on the next
+                // preview without any recomposition plumbing.
+                val previewScale = ImeWindowSpec.sanitizeKeyPreviewScale(
+                    prefs.keyboard.previewScalePercent.get(),
+                )
                 when {
                     configuration.isOrientationLandscape() -> {
-                        keyPopupWidth = desiredKeyHack.value.visibleBounds.width * 1.0f
-                        keyPopupHeight = desiredKeyHack.value.visibleBounds.height * 3.0f
+                        keyPopupWidth = desiredKeyHack.value.visibleBounds.width * 1.0f * previewScale
+                        keyPopupHeight = desiredKeyHack.value.visibleBounds.height * 3.0f * previewScale
                     }
                     else -> {
-                        keyPopupWidth = desiredKeyHack.value.visibleBounds.width * 1.1f
-                        keyPopupHeight = desiredKeyHack.value.visibleBounds.height * 2.5f
+                        keyPopupWidth = desiredKeyHack.value.visibleBounds.width * 1.1f * previewScale
+                        keyPopupHeight = desiredKeyHack.value.visibleBounds.height * 2.5f * previewScale
                     }
                 }
                 val keyPopupDiffX = (key.visibleBounds.width - keyPopupWidth) / 2.0f

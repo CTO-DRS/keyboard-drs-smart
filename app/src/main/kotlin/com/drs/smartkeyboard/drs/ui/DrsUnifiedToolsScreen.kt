@@ -424,6 +424,12 @@ private fun toolTitle(id: String): String = when (id) {
     "clipboard_history_clear" -> stringRes(R.string.drs__unified__tool_clipboard_history_clear)
     "next_language" -> stringRes(R.string.drs__unified__tool_next_language)
     "resize_mode" -> stringRes(R.string.drs__unified__tool_resize_mode)
+    // DRS v1.6.0
+    "clipboard_full_clear" -> stringRes(R.string.drs__unified__tool_clipboard_full_clear)
+    "prev_language" -> stringRes(R.string.drs__unified__tool_prev_language)
+    "one_handed_left" -> stringRes(R.string.drs__unified__tool_one_handed_left)
+    "one_handed_right" -> stringRes(R.string.drs__unified__tool_one_handed_right)
+    "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app)
     else -> id
 }
 
@@ -472,5 +478,11 @@ private fun toolDesc(id: String): String = when (id) {
     "clipboard_history_clear" -> stringRes(R.string.drs__unified__tool_clipboard_history_clear_desc)
     "next_language" -> stringRes(R.string.drs__unified__tool_next_language_desc)
     "resize_mode" -> stringRes(R.string.drs__unified__tool_resize_mode_desc)
+    // DRS v1.6.0
+    "clipboard_full_clear" -> stringRes(R.string.drs__unified__tool_clipboard_full_clear_desc)
+    "prev_language" -> stringRes(R.string.drs__unified__tool_prev_language_desc)
+    "one_handed_left" -> stringRes(R.string.drs__unified__tool_one_handed_left_desc)
+    "one_handed_right" -> stringRes(R.string.drs__unified__tool_one_handed_right_desc)
+    "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app_desc)
     else -> ""
 }

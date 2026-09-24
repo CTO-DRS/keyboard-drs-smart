@@ -310,6 +310,10 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     }
 
     fun commitCandidate(candidate: SuggestionCandidate) {
+        // DRS v1.6.0: every committed suggestion-row entry — tapped
+        // candidates AND auto-committed completions — flows through this
+        // single path, so this is the one real accept counter.
+        DrsAdaptationEngine.recordSuggestionAccept()
         scope.launch {
             candidate.sourceProvider?.notifySuggestionAccepted(subtypeManager.activeSubtype, candidate)
         }

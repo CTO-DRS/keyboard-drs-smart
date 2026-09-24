@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ContentPasteGo
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.East
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Spellcheck
@@ -50,15 +51,18 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PictureInPictureAlt
+import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.material.icons.filled.ViewAgenda
+import androidx.compose.material.icons.filled.West
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -151,6 +155,13 @@ private fun iconForTool(id: String) = when (id) {
     "clipboard_history_clear" -> Icons.Default.History
     "next_language" -> Icons.Default.Translate
     "resize_mode" -> Icons.Default.OpenInFull
+    // DRS v1.6.0: full history wipe + previous language + one-handed sides
+    // + next keyboard app.
+    "clipboard_full_clear" -> Icons.Default.DeleteSweep
+    "prev_language" -> Icons.Default.Replay
+    "one_handed_left" -> Icons.Default.West
+    "one_handed_right" -> Icons.Default.East
+    "next_keyboard_app" -> Icons.Default.SwapHoriz
     else -> Icons.Default.Build
 }
 

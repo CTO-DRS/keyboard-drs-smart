@@ -135,6 +135,27 @@ object DrsStore {
     }
 
     /**
+     * DRS v1.6.0: re-decodes the persisted state file to verify it still
+     * parses. [init] silently falls back to a default [DrsState] when the
+     * file is corrupt — without this check the user's whole DRS layer is
+     * wiped by the next write with ZERO signal. States:
+     *  - `true`  — the file parses (or there is no file yet: fresh install)
+     *  - `false` — the file exists but fails to decode (DATA LOSS pending)
+     *  - `null`  — the store is not initialized yet (unknown)
+     * Never throws.
+     */
+    fun stateFileParses(): Boolean? {
+        return try {
+            val f = file ?: return null
+            if (!f.isFile) return true
+            json.decodeFromString<DrsState>(f.readText())
+            true
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    /**
      * DRS v1.0.6: real on-disk size of the state file in bytes (0 when the
      * store is not initialized yet). Surfaced in the performance screen -
      * measured, never estimated.
