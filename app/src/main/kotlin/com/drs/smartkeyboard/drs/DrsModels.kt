@@ -117,6 +117,11 @@ data class DrsUsageStats(
     // surface the smart tools the user actually relies on. Counts only —
     // never text, never timestamps. Capped on merge to stay tiny.
     val toolUses: Map<Int, Long> = emptyMap(),
+    // DRS v1.7.0: how many input sessions STARTED in each context mode
+    // (normal/writing/password/…). Anonymous counts of a DETECTED attribute
+    // of the focused field — never the field's content or identity.
+    // Capped to the known mode names on merge to stay tiny.
+    val contextStarts: Map<String, Long> = emptyMap(),
 )
 
 /**
@@ -144,6 +149,8 @@ data class DrsDayStats(
     val shortcutUses: Long = 0,
     /** DRS v1.6.0: committed suggestion-row entries (accepts). */
     val suggestionAccepts: Long = 0,
+    /** DRS v1.7.0: input starts per context mode (counts only). */
+    val contextStarts: Map<String, Long> = emptyMap(),
 )
 
 /**

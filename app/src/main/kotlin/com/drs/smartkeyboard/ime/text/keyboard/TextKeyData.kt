@@ -125,6 +125,9 @@ data class TextKeyData(
                 CLIPBOARD_CLEAR_FULL_HISTORY,
                 CLIPBOARD_CLEAR_PRIMARY_CLIP,
                 CLIPBOARD_SHARE,
+                // DRS v1.7.0: the active-clip pin toggle joins the
+                // clipboard family (catalogue tool + counted usage).
+                CLIPBOARD_PIN_ACTIVE,
                 TOGGLE_COMPACT_LAYOUT,
                 COMPACT_LAYOUT_TO_LEFT,
                 COMPACT_LAYOUT_TO_RIGHT,
@@ -166,6 +169,14 @@ data class TextKeyData(
                 // here since v1.1.0 (its stats counted, but the tile never
                 // rendered because getCodeInfoAsTextKeyData(-217) was null).
                 TOGGLE_NUMBER_ROW,
+                // DRS v1.7.0 integration fix: FLOATING_WINDOW and RESIZE_MODE
+                // have been counted in SmartToolCodes since v1.4.0/v1.5.0 but
+                // their most-used tiles never rendered (null key data), and
+                // the fixed LANGUAGE tool never counted at all. All three
+                // join InternalKeys so getCodeInfoAsTextKeyData() resolves.
+                TOGGLE_FLOATING_WINDOW,
+                TOGGLE_RESIZE_MODE,
+                SHOW_SUBTYPE_PICKER,
             )
         }
 
@@ -373,6 +384,13 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.CLIPBOARD_SHARE,
             label = "clipboard_share",
+        )
+
+        /** DRS v1.7.0: predefined key data for [KeyCode.CLIPBOARD_PIN_ACTIVE] */
+        val CLIPBOARD_PIN_ACTIVE = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.CLIPBOARD_PIN_ACTIVE,
+            label = "clipboard_pin_active",
         )
 
         /** Predefined key data for [KeyCode.TOGGLE_FLOATING_WINDOW] */

@@ -50,7 +50,7 @@ object DrsDailyStats {
         keyPresses == 0L && numberPresses == 0L && symbolPresses == 0L &&
             emojiUses == 0L && clipboardUses == 0L &&
             shortcutUses == 0L && techToolUses == 0L && gestureUses == 0L &&
-            suggestionAccepts == 0L && toolUses.isEmpty()
+            suggestionAccepts == 0L && toolUses.isEmpty() && contextStarts.isEmpty()
 
     /**
      * Merges [delta] (the drained adaptation counters) into [current]'s
@@ -77,8 +77,51 @@ object DrsDailyStats {
             shortcutUses = existing.shortcutUses + delta.shortcutUses,
             // DRS v1.6.0: committed suggestion-row entries persist too.
             suggestionAccepts = existing.suggestionAccepts + delta.suggestionAccepts,
+            // DRS v1.7.0: context-mode starts persist as a summed map —
+            // keys are bounded by the known modes (kept via mergeContextMap).
+            contextStarts = mergeContextMap(existing.contextStarts, delta.contextStarts),
         )
         return prune(current + (today to merged))
+    }
+
+    /**
+     * DRS v1.7.0: the known context-mode names — the whitelist both the
+     * merge cap and the sanity check validate against, so a hand-tampered
+     * state file can never smuggle arbitrary keys into the stats.
+     */
+    val KNOWN_CONTEXT_MODES: Set<String> =
+        DrsContextMode.entries.map { it.name }.toSet()
+
+    /** Sums two context maps, keeping known mode keys only. Pure. */
+    fun mergeContextMap(
+        current: Map<String, Long>,
+        delta: Map<String, Long>,
+    ): Map<String, Long> {
+        if (delta.isEmpty()) return current
+        val merged = HashMap(current)
+        for ((mode, count) in delta) {
+            if (mode !in KNOWN_CONTEXT_MODES) continue
+            merged[mode] = (merged[mode] ?: 0L) + count
+        }
+        return merged
+    }
+
+    /**
+     * DRS v1.7.0: the [limit] most frequent context modes across [buckets],
+     * descending, ties broken deterministically by mode name so the display
+     * never flickers. Pure — zero-total modes are dropped so an empty
+     * recording window yields an empty list.
+     */
+    fun topContextModes(
+        buckets: Collection<DrsDayStats>,
+        limit: Int = 3,
+    ): List<Pair<String, Long>> {
+        if (buckets.isEmpty() || limit <= 0) return emptyList()
+        return KNOWN_CONTEXT_MODES
+            .map { mode -> mode to buckets.sumOf { it.contextStarts[mode] ?: 0L } }
+            .filter { it.second > 0 }
+            .sortedWith(compareByDescending<Pair<String, Long>> { it.second }.thenBy { it.first })
+            .take(limit)
     }
 
     /**
@@ -114,7 +157,12 @@ object DrsDailyStats {
                 bucket.emojiUses >= 0 &&
                 bucket.clipboardUses >= 0 &&
                 bucket.shortcutUses >= 0 &&
-                bucket.suggestionAccepts >= 0
+                bucket.suggestionAccepts >= 0 &&
+                // DRS v1.7.0: context-mode starts — counts non-negative,
+                // keys restricted to the known modes, no smuggled keys.
+                bucket.contextStarts.all { (mode, count) ->
+                    mode in KNOWN_CONTEXT_MODES && count >= 0
+                }
         }
     }
 
@@ -132,6 +180,8 @@ object DrsDailyStats {
                 clipboardUses = acc.clipboardUses + bucket.clipboardUses,
                 shortcutUses = acc.shortcutUses + bucket.shortcutUses,
                 suggestionAccepts = acc.suggestionAccepts + bucket.suggestionAccepts,
+                // DRS v1.7.0: the lifetime context view aggregates too.
+                contextStarts = mergeContextMap(acc.contextStarts, bucket.contextStarts),
             )
         }
     }
@@ -332,7 +382,10 @@ object DrsDailyStats {
         keyPresses > 0L || numberPresses > 0L || symbolPresses > 0L || toolUses > 0L ||
             techToolUses > 0L || gestureUses > 0L ||
             emojiUses > 0L || clipboardUses > 0L || shortcutUses > 0L ||
-            suggestionAccepts > 0L
+            suggestionAccepts > 0L ||
+            // DRS v1.7.0: input starts alone count as activity — a day
+            // spent opening password/number fields is a real usage day.
+            contextStarts.values.any { it > 0L }
 
     /**
      * DRS v1.6.0: how many days of the recorded span have NO activity —

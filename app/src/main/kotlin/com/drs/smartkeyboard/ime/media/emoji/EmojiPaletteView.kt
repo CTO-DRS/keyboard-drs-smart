@@ -75,6 +75,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -118,6 +119,21 @@ import kotlin.math.ceil
 private val EmojiCategoryValues = EmojiCategory.entries
 private val EmojiBaseWidth = 42.dp
 private val EmojiDefaultFontSize = 22.sp
+
+/**
+ * DRS v1.7.0: emoji SIZE scale (70–200%) read from the preference at
+ * composition time. Both the adaptive grid cell width and the glyph font
+ * size multiply by this factor, so grid density and glyph legibility
+ * really follow the slider. Sanitization lives in ImeWindowSpec beside
+ * the other visual scales (one source of truth + unit tests).
+ */
+@Composable
+private fun emojiSizeScale(): Float {
+    val prefs by DrsPreferenceStore
+    return com.drs.smartkeyboard.ime.window.ImeWindowSpec.sanitizeEmojiScale(
+        prefs.emoji.sizePercent.get(),
+    )
+}
 
 private val VariantsTriangleShapeLtr = GenericShape { size, _ ->
     moveTo(x = size.width, y = 0f)
@@ -427,7 +443,8 @@ fun EmojiPaletteView(
                         modifier = Modifier
                             .fillMaxSize()
                             .drsScrollbar(lazyGridState),
-                        columns = GridCells.Adaptive(minSize = EmojiBaseWidth),
+                        // DRS v1.7.0: the grid cell follows the emoji size scale.
+                        columns = GridCells.Adaptive(minSize = EmojiBaseWidth * emojiSizeScale()),
                         state = lazyGridState,
                     ) {
                         if (emojiMapping.pinned.isNotEmpty()) {
@@ -492,7 +509,8 @@ fun EmojiPaletteView(
                     modifier = Modifier
                         .fillMaxSize()
                         .drsScrollbar(searchGridState),
-                    columns = GridCells.Adaptive(minSize = EmojiBaseWidth),
+                    // DRS v1.7.0: the search grid follows the scale too.
+                    columns = GridCells.Adaptive(minSize = EmojiBaseWidth * emojiSizeScale()),
                     state = searchGridState,
                 ) {
                     items(searchResults) { emojiSet ->
@@ -612,7 +630,7 @@ private fun EmojiVariationsPopup(
             SnyggRow(
                 elementName = DrsImeUi.MediaEmojiKeyPopupBox.elementName,
                 modifier = Modifier
-                    .widthIn(max = EmojiBaseWidth * 6),
+                    .widthIn(max = EmojiBaseWidth * emojiSizeScale() * 6),
             ) {
                 for (emoji in variations) {
                     SnyggBox(
@@ -621,7 +639,7 @@ private fun EmojiVariationsPopup(
                             .pointerInput(Unit) {
                                 detectTapGestures { onEmojiTap(emoji) }
                             }
-                            .width(EmojiBaseWidth)
+                            .width(EmojiBaseWidth * emojiSizeScale())
                             .height(emojiKeyHeight),
                     ) {
                         EmojiText(
@@ -667,7 +685,7 @@ private fun EmojiHistoryPopup(
                         }
                     }
                 }
-                .width(EmojiBaseWidth)
+                .width(EmojiBaseWidth * emojiSizeScale())
                 .height(emojiKeyHeight),
         ) {
             SnyggIcon(
@@ -690,7 +708,7 @@ private fun EmojiHistoryPopup(
             SnyggRow(
                 elementName = DrsImeUi.MediaEmojiKeyPopupBox.elementName,
                 modifier = Modifier
-                    .widthIn(max = EmojiBaseWidth * 6),
+                    .widthIn(max = EmojiBaseWidth * emojiSizeScale() * 6),
             ) {
                 if (isCurrentlyPinned) {
                     Action(
@@ -744,14 +762,19 @@ fun EmojiText(
     emojiCompatInstance: EmojiCompat?,
     modifier: Modifier = Modifier,
     color: Color = Color.Black,
-    fontSize: TextUnit = EmojiDefaultFontSize,
+    fontSize: TextUnit = TextUnit.Unspecified,
 ) {
+    // DRS v1.7.0: the glyph follows the emoji size scale (70–200%) unless
+    // the caller pinned an explicit size — the text view factory below
+    // receives the effective size in sp.
+    val effectiveSize =
+        if (!fontSize.isUnspecified) fontSize else EmojiDefaultFontSize * emojiSizeScale()
     if (emojiCompatInstance != null) {
         AndroidView(
             modifier = modifier,
             factory = { context ->
                 EmojiTextView(context).also {
-                    it.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.value)
+                    it.setTextSize(TypedValue.COMPLEX_UNIT_SP, effectiveSize.value)
                     it.setTextColor(color.toArgb())
                 }
             },
@@ -764,7 +787,7 @@ fun EmojiText(
             modifier = modifier,
             factory = { context ->
                 TextView(context).also {
-                    it.setTextSize(TypedValue.COMPLEX_UNIT_SP, fontSize.value)
+                    it.setTextSize(TypedValue.COMPLEX_UNIT_SP, effectiveSize.value)
                     it.setTextColor(color.toArgb())
                 }
             },

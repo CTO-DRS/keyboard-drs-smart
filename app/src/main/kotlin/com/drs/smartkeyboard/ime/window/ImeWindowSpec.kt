@@ -336,6 +336,26 @@ sealed class ImeWindowSpec {
         const val KEY_PREVIEW_SCALE_MAX_PERCENT = 200
         const val KEY_PREVIEW_SCALE_DEFAULT_PERCENT = 100
 
+        /**
+         * DRS v1.7.0: bounds of the glide-trail WIDTH scale, in percent of
+         * the density-correct baseline radius (20dp). Beside the other
+         * visual scales so the slider, the trail draw call and the unit
+         * tests share one source of truth. Applied at the presentation
+         * layer only — window and row math stay untouched.
+         */
+        const val GLIDE_TRAIL_SCALE_MIN_PERCENT = 70
+        const val GLIDE_TRAIL_SCALE_MAX_PERCENT = 200
+        const val GLIDE_TRAIL_SCALE_DEFAULT_PERCENT = 100
+
+        /**
+         * DRS v1.7.0: bounds of the emoji SIZE scale, in percent of the
+         * default grid cell (42dp) and glyph (22sp). Same contract as the
+         * other presentation-layer scales.
+         */
+        const val EMOJI_SCALE_MIN_PERCENT = 70
+        const val EMOJI_SCALE_MAX_PERCENT = 200
+        const val EMOJI_SCALE_DEFAULT_PERCENT = 100
+
         /** Clamps a raw percent value into the valid scale range and converts it to a multiplier. */
         fun sanitizeHeightScale(percent: Int): Float {
             return percent.coerceIn(HEIGHT_SCALE_MIN_PERCENT, HEIGHT_SCALE_MAX_PERCENT) / 100f
@@ -349,6 +369,16 @@ sealed class ImeWindowSpec {
         /** DRS v1.6.0: same clamp-and-convert contract for the key-preview scale. */
         fun sanitizeKeyPreviewScale(percent: Int): Float {
             return percent.coerceIn(KEY_PREVIEW_SCALE_MIN_PERCENT, KEY_PREVIEW_SCALE_MAX_PERCENT) / 100f
+        }
+
+        /** DRS v1.7.0: same clamp-and-convert contract for the glide-trail width scale. */
+        fun sanitizeGlideTrailScale(percent: Int): Float {
+            return percent.coerceIn(GLIDE_TRAIL_SCALE_MIN_PERCENT, GLIDE_TRAIL_SCALE_MAX_PERCENT) / 100f
+        }
+
+        /** DRS v1.7.0: same clamp-and-convert contract for the emoji size scale. */
+        fun sanitizeEmojiScale(percent: Int): Float {
+            return percent.coerceIn(EMOJI_SCALE_MIN_PERCENT, EMOJI_SCALE_MAX_PERCENT) / 100f
         }
 
         /**

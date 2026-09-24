@@ -51,6 +51,10 @@ import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.HighlightOff
 import androidx.compose.material.icons.filled.KeyboardTab
 import androidx.compose.material.icons.filled.LastPage
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.LinkOff
+import androidx.compose.material.icons.filled.MergeType
+import androidx.compose.material.icons.filled.SentimentNeutral
 import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.ShortText
@@ -179,6 +183,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_spaces_to_tabs,
                 Icons.Default.KeyboardTab,
             ),
+            // DRS v1.7.0: removes EVERY horizontal space (hashtag style).
+            toolItem(
+                DrsTextTool.REMOVE_ALL_SPACES,
+                R.string.drs__text_tools__tool_remove_all_spaces,
+                R.string.drs__text_tools__desc_remove_all_spaces,
+                Icons.Default.SpaceBar,
+            ),
             toolItem(
                 DrsTextTool.REMOVE_ZERO_WIDTH,
                 R.string.drs__text_tools__tool_remove_zero_width,
@@ -210,6 +221,28 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_remove_line_breaks,
                 R.string.drs__text_tools__desc_remove_line_breaks,
                 Icons.Default.SubdirectoryArrowRight,
+            ),
+            // DRS v1.7.0: list <-> lines (Arabic comma aware) — the two
+            // directions of turning a comma list into one item per line.
+            toolItem(
+                DrsTextTool.SPLIT_TO_LINES,
+                R.string.drs__text_tools__tool_split_to_lines,
+                R.string.drs__text_tools__desc_split_to_lines,
+                Icons.Default.FormatListBulleted,
+            ),
+            toolItem(
+                DrsTextTool.JOIN_LINES,
+                R.string.drs__text_tools__tool_join_lines,
+                R.string.drs__text_tools__desc_join_lines,
+                Icons.Default.MergeType,
+            ),
+            // DRS v1.7.0: strips emoji so pasted social text stops
+            // polluting the counting/sorting tools.
+            toolItem(
+                DrsTextTool.STRIP_EMOJI,
+                R.string.drs__text_tools__tool_strip_emoji,
+                R.string.drs__text_tools__desc_strip_emoji,
+                Icons.Default.SentimentNeutral,
             ),
             toolItem(
                 DrsTextTool.SORT_LINES,
@@ -301,6 +334,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_normalize_arabic,
                 Icons.Default.TextFields,
             ),
+            // DRS v1.7.0: repairs PDF/web Arabic presentation forms.
+            toolItem(
+                DrsTextTool.NORMALIZE_ARABIC_FORMS,
+                R.string.drs__text_tools__tool_normalize_arabic_forms,
+                R.string.drs__text_tools__desc_normalize_arabic_forms,
+                Icons.Default.TextFields,
+            ),
             // DRS v1.5.0: Latin sentence punctuation → Arabic marks.
             toolItem(
                 DrsTextTool.TO_ARABIC_PUNCTUATION,
@@ -351,6 +391,20 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_sentence_per_line,
                 R.string.drs__text_tools__desc_sentence_per_line,
                 Icons.Default.FormatListBulleted,
+            ),
+            // DRS v1.7.0: the URL encode/decode pair — Arabic links become
+            // shareable percent-encoded components and back.
+            toolItem(
+                DrsTextTool.URL_ENCODE,
+                R.string.drs__text_tools__tool_url_encode,
+                R.string.drs__text_tools__desc_url_encode,
+                Icons.Default.Link,
+            ),
+            toolItem(
+                DrsTextTool.URL_DECODE,
+                R.string.drs__text_tools__tool_url_decode,
+                R.string.drs__text_tools__desc_url_decode,
+                Icons.Default.LinkOff,
             ),
         ),
     ),
@@ -443,6 +497,13 @@ fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.SPACES_TO_TABS -> R.string.drs__text_tools__tool_spaces_to_tabs
     DrsTextTool.TRIM_BLANK_EDGES -> R.string.drs__text_tools__tool_trim_blank_edges
     DrsTextTool.REVERSE_WORDS -> R.string.drs__text_tools__tool_reverse_words
+    DrsTextTool.NORMALIZE_ARABIC_FORMS -> R.string.drs__text_tools__tool_normalize_arabic_forms
+    DrsTextTool.SPLIT_TO_LINES -> R.string.drs__text_tools__tool_split_to_lines
+    DrsTextTool.JOIN_LINES -> R.string.drs__text_tools__tool_join_lines
+    DrsTextTool.REMOVE_ALL_SPACES -> R.string.drs__text_tools__tool_remove_all_spaces
+    DrsTextTool.STRIP_EMOJI -> R.string.drs__text_tools__tool_strip_emoji
+    DrsTextTool.URL_ENCODE -> R.string.drs__text_tools__tool_url_encode
+    DrsTextTool.URL_DECODE -> R.string.drs__text_tools__tool_url_decode
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__tool_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__tool_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__tool_collapse_empty_lines
@@ -485,6 +546,13 @@ fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.SPACES_TO_TABS -> R.string.drs__text_tools__desc_spaces_to_tabs
     DrsTextTool.TRIM_BLANK_EDGES -> R.string.drs__text_tools__desc_trim_blank_edges
     DrsTextTool.REVERSE_WORDS -> R.string.drs__text_tools__desc_reverse_words
+    DrsTextTool.NORMALIZE_ARABIC_FORMS -> R.string.drs__text_tools__desc_normalize_arabic_forms
+    DrsTextTool.SPLIT_TO_LINES -> R.string.drs__text_tools__desc_split_to_lines
+    DrsTextTool.JOIN_LINES -> R.string.drs__text_tools__desc_join_lines
+    DrsTextTool.REMOVE_ALL_SPACES -> R.string.drs__text_tools__desc_remove_all_spaces
+    DrsTextTool.STRIP_EMOJI -> R.string.drs__text_tools__desc_strip_emoji
+    DrsTextTool.URL_ENCODE -> R.string.drs__text_tools__desc_url_encode
+    DrsTextTool.URL_DECODE -> R.string.drs__text_tools__desc_url_decode
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__desc_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__desc_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__desc_collapse_empty_lines

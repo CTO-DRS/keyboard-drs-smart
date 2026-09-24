@@ -62,12 +62,14 @@ import com.drs.smartkeyboard.drs.DrsCrashHandler
 import com.drs.smartkeyboard.drs.DrsBackup
 import com.drs.smartkeyboard.drs.DrsDailyStats
 import com.drs.smartkeyboard.drs.DrsEventLog
+import com.drs.smartkeyboard.drs.DrsShortcuts
 import com.drs.smartkeyboard.drs.DrsEconomy
 import com.drs.smartkeyboard.drs.DrsPerformance
 import com.drs.smartkeyboard.drs.DrsHybridViewMode
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRewardCatalog
 import com.drs.smartkeyboard.drs.DrsStore
+import com.drs.smartkeyboard.drs.DrsState
 import com.drs.smartkeyboard.drs.DrsSystems
 import com.drs.smartkeyboard.drs.DrsToolView
 import com.drs.smartkeyboard.drs.DrsUnified
@@ -81,6 +83,7 @@ import com.drs.smartkeyboard.themeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.drs.lib.android.showShortToastSync
 import org.drs.lib.android.systemVibratorOrNull
 import org.drs.lib.compose.stringRes
 
@@ -357,6 +360,10 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             // detector) + whether a crash log from a previous run exists.
             stateFileParses = DrsStore.stateFileParses(),
             crashLogPresent = crashLog.isNotBlank(),
+            // DRS v1.7.0: shortcut template typos — {dat] or {Datee} in an
+            // expansion used to commit literally with zero signal. Null
+            // (no templates at all) degrades to a pass, never a false alarm.
+            shortcutTemplatesValid = DrsShortcuts.templatesValid(drsState),
         )
     }
 
@@ -635,6 +642,47 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                         Text(stringRes(R.string.drs__performance__title))
                     }
                 }
+                // DRS v1.7.0: the renderReport() renderer existed since v1.0.6
+                // but NOTHING ever called it — the report is now actually
+                // exportable (same SAF pattern as the stats CSV above).
+                val reportPayload = remember { mutableStateOf<String?>(null) }
+                val reportLauncher = rememberLauncherForActivityResult(
+                    ActivityResultContracts.CreateDocument("text/plain"),
+                ) { uri ->
+                    val payload = reportPayload.value
+                    if (uri != null && payload != null) {
+                        val ok = runCatching {
+                            appContext.contentResolver.openOutputStream(uri)?.use { out ->
+                                out.write(payload.toByteArray(Charsets.UTF_8))
+                            } ?: throw IllegalStateException("output stream null")
+                        }.isSuccess
+                        appContext.showShortToastSync(
+                            if (ok) R.string.drs__diagnostics__report_export_done
+                            else R.string.drs__diagnostics__report_export_failed,
+                        )
+                    }
+                    reportPayload.value = null
+                }
+                OutlinedButton(onClick = {
+                    val results = testResults
+                    val summary = if (results == null) {
+                        "not run"
+                    } else {
+                        "pass=%d warn=%d error=%d".format(
+                            java.util.Locale.US,
+                            results.count { it.severity == DrsTestSeverity.PASS },
+                            results.count { it.severity == DrsTestSeverity.WARNING },
+                            results.count { it.severity == DrsTestSeverity.ERROR },
+                        )
+                    }
+                    reportPayload.value = DrsEventLog.renderReport(
+                        BuildConfig.VERSION_NAME,
+                        summary,
+                    )
+                    reportLauncher.launch("drs-diagnostic-report.txt")
+                }) {
+                    Text(stringRes(R.string.drs__diagnostics__events_export))
+                }
                 Text(
                     text = stringRes(R.string.drs__diagnostics__events_privacy),
                     fontSize = 11.sp,
@@ -688,18 +736,67 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                     Text(stringRes(R.string.drs__diagnostics__backup_export))
                 }
                 var importError by remember { mutableStateOf<String?>(null) }
+                // DRS v1.7.0: describe-before-restore — the file is parsed
+                // FIRST and a confirm dialog shows what it contains; the
+                // import used to overwrite live state with zero preview.
+                var pendingImport by remember { mutableStateOf<DrsState?>(null) }
+                var pendingParseFailed by remember { mutableStateOf(false) }
                 val importLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.OpenDocument(),
                 ) { uri ->
                     if (uri != null) {
-                        val result = DrsBackup.importFrom(appContext, uri)
-                        importError = result.errorRes?.let { res ->
-                            appContext.getString(res)
+                        val parsed = DrsBackup.parseFrom(appContext, uri)
+                        if (parsed == null) {
+                            pendingParseFailed = true
+                        } else {
+                            pendingImport = parsed
                         }
                     }
                 }
-                OutlinedButton(onClick = { importError = null; importLauncher.launch(arrayOf("application/json")) }) {
+                OutlinedButton(onClick = { importError = null; pendingParseFailed = false; importLauncher.launch(arrayOf("application/json")) }) {
                     Text(stringRes(R.string.drs__diagnostics__backup_import))
+                }
+                pendingImport?.let { parsed ->
+                    val preview = DrsBackup.describeBackup(parsed)
+                    AlertDialog(
+                        onDismissRequest = { pendingImport = null },
+                        title = { Text(stringRes(R.string.drs__diagnostics__backup_preview_title)) },
+                        text = {
+                            Column {
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_shortcuts, "count" to preview.shortcuts.toString()))
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_profiles, "count" to preview.profiles.toString()))
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_wallet, "points" to preview.walletTotal.toString()))
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_days, "days" to preview.daysRecorded.toString()))
+                                Spacer(Modifier.height(8.dp))
+                                Text(
+                                    text = stringRes(R.string.drs__diagnostics__backup_preview_warn),
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                val result = DrsBackup.importParsed(parsed)
+                                importError = result.errorRes?.let { res -> appContext.getString(res) }
+                                pendingImport = null
+                            }) {
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_confirm))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { pendingImport = null }) {
+                                Text(stringRes(R.string.drs__diagnostics__backup_preview_cancel))
+                            }
+                        },
+                    )
+                }
+                if (pendingParseFailed) {
+                    Text(
+                        text = appContext.getString(R.string.drs__diagnostics__backup_error_invalid),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.error,
+                    )
                 }
                 importError?.let { message ->
                     Text(
@@ -909,6 +1006,8 @@ private fun computeDrsFullTest(
     // DRS v1.6.0: state-file decode integrity + crash-log presence.
     stateFileParses: Boolean?,
     crashLogPresent: Boolean,
+    // DRS v1.7.0: shortcut template validity (null = no templates).
+    shortcutTemplatesValid: Boolean?,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -1062,6 +1161,16 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_crash_log,
             R.string.drs__diagnostics__hint_crash_log,
+        ),
+        // DRS v1.7.0: shortcut template typos. expandTemplate keeps
+        // unknown {variables} literal, so {dat] or {Datee} silently
+        // committed garbage on every expansion until now. Null (no
+        // templates at all) passes to avoid false alarms.
+        result(
+            shortcutTemplatesValid != false,
+            warn = true,
+            R.string.drs__diagnostics__check_shortcut_templates,
+            R.string.drs__diagnostics__hint_shortcut_templates,
         ),
     )
 }

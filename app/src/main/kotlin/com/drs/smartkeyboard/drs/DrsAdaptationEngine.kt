@@ -57,6 +57,11 @@ object DrsAdaptationEngine {
     // aggregated with the rest of the usage stats.
     private val toolCounts = java.util.concurrent.ConcurrentHashMap<Int, Long>()
     private val toolUseTotal = AtomicLong()
+    // DRS v1.7.0: input starts per context mode — recorded from
+    // DrsRuntimeState.onInputStarted (a DETECTED attribute of the focused
+    // field, never its content) and drained into the day buckets so the
+    // stats screen can show how typing time splits across contexts.
+    private val contextCounts = java.util.concurrent.ConcurrentHashMap<String, Long>()
     private val flushing = AtomicBoolean(false)
 
     /** Cheap per-keystroke recording. Must never block or throw. */
@@ -129,6 +134,17 @@ object DrsAdaptationEngine {
         }
     }
 
+    /**
+     * DRS v1.7.0: records one input session start in a context mode (the
+     * mode name only — a detected field attribute, never content). Cheap,
+     * never throws.
+     */
+    fun recordContextStart(modeName: String) {
+        if (!DrsStore.state.value.adaptationEnabled) return
+        contextCounts.merge(modeName, 1L, Long::plus)
+        maybeFlush(toolUseTotal)
+    }
+
     private fun maybeFlush(counter: AtomicLong) {
         if (counter.get() % FLUSH_INTERVAL != 0L) return
         if (!flushing.compareAndSet(false, true)) return
@@ -161,6 +177,13 @@ object DrsAdaptationEngine {
             toolCounts.clear()
             snapshot
         }
+        val drainedContexts: Map<String, Long> = if (contextCounts.isEmpty()) {
+            emptyMap()
+        } else {
+            val snapshot = HashMap(contextCounts)
+            contextCounts.clear()
+            snapshot
+        }
         return DrsUsageStats(
             keyPresses = keyPresses.getAndSet(0),
             numberPresses = numberPresses.getAndSet(0),
@@ -172,6 +195,7 @@ object DrsAdaptationEngine {
             gestureUses = gestureUses.getAndSet(0),
             suggestionAccepts = suggestionAccepts.getAndSet(0),
             toolUses = drainedTools,
+            contextStarts = drainedContexts,
         )
     }
 
@@ -194,6 +218,19 @@ object DrsAdaptationEngine {
                 .take(32)
                 .associate { it.toPair() }
         }
+        // DRS v1.7.0: context-mode starts merge too, capped to the known
+        // mode names so the stored map stays tiny by construction.
+        val mergedContexts = if (delta.contextStarts.isEmpty()) {
+            contextStarts
+        } else {
+            val merged = HashMap(contextStarts)
+            for ((mode, count) in delta.contextStarts) {
+                merged[mode] = (merged[mode] ?: 0L) + count
+            }
+            merged.entries
+                .filter { it.key in DrsContextMode.entries.map { m -> m.name } }
+                .associate { it.toPair() }
+        }
         return DrsUsageStats(
             keyPresses = keyPresses + delta.keyPresses,
             numberPresses = numberPresses + delta.numberPresses,
@@ -205,6 +242,7 @@ object DrsAdaptationEngine {
             gestureUses = gestureUses + delta.gestureUses,
             suggestionAccepts = suggestionAccepts + delta.suggestionAccepts,
             toolUses = mergedTools,
+            contextStarts = mergedContexts,
         )
     }
 

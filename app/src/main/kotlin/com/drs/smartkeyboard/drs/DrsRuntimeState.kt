@@ -49,6 +49,11 @@ object DrsRuntimeState {
             return
         }
         _contextMode.value = detect(editorInfo, state.userPath)
+        // DRS v1.7.0: the detected mode was discarded before — it only
+        // drove adaptive UI. Now the (anonymous) START of every input in
+        // each mode is counted so the stats screen shows how typing time
+        // splits across contexts (password/numbers/coding/...).
+        DrsAdaptationEngine.recordContextStart(_contextMode.value.name)
     }
 
     private fun detect(editorInfo: DrsEditorInfo, userPath: String): DrsContextMode {

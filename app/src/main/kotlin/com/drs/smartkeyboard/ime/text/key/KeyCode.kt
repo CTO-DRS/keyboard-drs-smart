@@ -75,6 +75,10 @@ object KeyCode {
     // DRS v1.0.5: share the selected text (or the whole field) via the
     // system share sheet — wired to the real editor content.
     const val CLIPBOARD_SHARE =              -39
+    // DRS v1.7.0: pin/unpin the ACTIVE clipboard entry — the same real
+    // pinClip/unpinClip path the clipboard panel long-press popup uses
+    // (pinned entries survive clearHistory by contract).
+    const val CLIPBOARD_PIN_ACTIVE =         -40
 
     const val TOGGLE_FLOATING_WINDOW =      -109
     const val TOGGLE_COMPACT_LAYOUT =       -110
@@ -188,6 +192,17 @@ object KeyCode {
     const val TEXT_TOOL_TO_WESTERN_PUNCTUATION =-630
     const val TEXT_TOOL_TRIM_BLANK_EDGES =      -633
     const val TEXT_TOOL_REVERSE_WORDS =         -634
+
+    // DRS v1.7.0: PDF presentation-form repair, list<->lines, hashtag
+    // space removal, emoji stripping and the URL encode/decode pair
+    // (same pure-transform families; dispatch flows through CODE_RANGE).
+    const val TEXT_TOOL_NORMALIZE_ARABIC_FORMS =-635
+    const val TEXT_TOOL_SPLIT_TO_LINES =        -636
+    const val TEXT_TOOL_JOIN_LINES =            -637
+    const val TEXT_TOOL_REMOVE_ALL_SPACES =     -638
+    const val TEXT_TOOL_STRIP_EMOJI =           -639
+    const val TEXT_TOOL_URL_ENCODE =            -642
+    const val TEXT_TOOL_URL_DECODE =            -643
     const val TEXT_TOOL_COUNT =                 -641
     const val TEXT_TOOL_DELETE_LINE =           -651
     const val TEXT_TOOL_DELETE_TO_LINE_START =  -652

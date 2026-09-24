@@ -81,6 +81,20 @@ private val SENTENCE_BOUNDARY = Regex("([.!؟?…])[ \\t\\u00A0]+(?=[^\\s])")
  *  separator REVERSE_WORDS splits each line on. */
 private val WHITESPACE_RUN = Regex("\\s+")
 
+/** DRS v1.7.0: emoji and pictograph blocks plus their joiners and
+ *  selectors (VS16, skin-tone modifiers, ZWJ). Letters, digits,
+ *  punctuation, whitespace and every script pass through untouched.
+ *  NOTE: the supplementary-plane bounds use \x{...} — Java/Kotlin \uXXXX
+ *  is exactly four digits, so \u1F000 would silently parse as U+1F00+"0"
+ *  and corrupt the whole class (this really broke the first draft). */
+private val EMOJI_CHARS = Regex(
+    "[\\u2600-\\u27BF\\uFE0F\\u200D\\uD83C-\\uD83E\\uDC00-\\uDFFF\\x{1F000}-\\x{1FAFF}]",
+)
+
+/** DRS v1.7.0: list separators recognized by SPLIT_TO_LINES — both the
+ *  Latin comma/semicolon and their Arabic counterparts (، ؛). */
+private val LIST_SEPARATORS = Regex("[,،;؛]")
+
 enum class DrsTextTool(
     val code: Int,
     /** Info-only tools show a result message instead of modifying text. */
@@ -147,6 +161,17 @@ enum class DrsTextTool(
     TO_WESTERN_PUNCTUATION(-630),
     TRIM_BLANK_EDGES(-633),
     REVERSE_WORDS(-634),
+
+    // DRS v1.7.0: PDF/web paste repair (presentation forms), list↔lines
+    // splitting (Arabic comma aware), hashtag-style space removal, emoji
+    // stripping and the URL encode/decode pair (same pure families).
+    NORMALIZE_ARABIC_FORMS(-635),
+    SPLIT_TO_LINES(-636),
+    JOIN_LINES(-637),
+    REMOVE_ALL_SPACES(-638),
+    STRIP_EMOJI(-639),
+    URL_ENCODE(-642),
+    URL_DECODE(-643),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -369,6 +394,46 @@ object DrsTextTools {
                     line.split(WHITESPACE_RUN).filter { it.isNotEmpty() }
                         .asReversed()
                         .joinToString(" ")
+                }
+                // DRS v1.7.0: repairs Arabic text copied from PDFs and some
+                // websites, where letters arrive as PRESENTATION FORMS
+                // (U+FB50–U+FDFF, U+FE70–U+FEFF) that break search and are
+                // invisible to NORMALIZE_ARABIC. NFKC folds them back to the
+                // base letters (including the لا ligature); everything else
+                // (letters, digits, spacing) passes through untouched.
+                DrsTextTool.NORMALIZE_ARABIC_FORMS ->
+                    java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFKC)
+                // DRS v1.7.0: turns a comma/semicolon list (Latin or Arabic
+                // separators) into one item per line — the natural inverse
+                // of JOIN_LINES, and a natural pre-step for NUMBER_LINES.
+                DrsTextTool.SPLIT_TO_LINES -> text
+                    .split(LIST_SEPARATORS)
+                    .joinToString("\n") { it.trim(' ', '\t', '\u00A0') }
+                // DRS v1.7.0: joins every line into a single list — Arabic
+                // comma (،) for Arabic locales, Latin comma elsewhere. The
+                // inverse of SPLIT_TO_LINES; blank lines are skipped.
+                DrsTextTool.JOIN_LINES -> text.lines()
+                    .filter { it.isNotBlank() }
+                    .joinToString(if (locale.language == "ar") "، " else ", ") { it.trim(' ', '\t', '\u00A0') }
+                // DRS v1.7.0: removes EVERY horizontal space (hashtag style
+                // #وسم_عربي) — newlines are kept so multi-line text stays
+                // line-per-tag. The aggressive sibling of TRIM_SPACES.
+                DrsTextTool.REMOVE_ALL_SPACES -> text.replace(HORIZONTAL_SPACES, "")
+                // DRS v1.7.0: strips emoji/pictographs (and their selectors
+                // and joiners) so pasted social text no longer pollutes the
+                // counting/sorting/search tools downstream.
+                DrsTextTool.STRIP_EMOJI -> text.replace(EMOJI_CHARS, "")
+                // DRS v1.7.0: percent-encodes the text as a UTF-8 URL
+                // component (Arabic links become shareable everywhere).
+                // Spaces become %20, not '+', per RFC 3986 paths.
+                DrsTextTool.URL_ENCODE -> java.net.URLEncoder.encode(text, "UTF-8").replace("+", "%20")
+                // DRS v1.7.0: decodes percent-encoded text back to UTF-8;
+                // malformed sequences return the input untouched so typing
+                // is never destroyed (decode must never throw).
+                DrsTextTool.URL_DECODE -> try {
+                    java.net.URLDecoder.decode(text, "UTF-8")
+                } catch (_: Throwable) {
+                    text
                 }
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(

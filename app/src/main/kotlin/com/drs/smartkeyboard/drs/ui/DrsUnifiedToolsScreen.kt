@@ -430,6 +430,8 @@ private fun toolTitle(id: String): String = when (id) {
     "one_handed_left" -> stringRes(R.string.drs__unified__tool_one_handed_left)
     "one_handed_right" -> stringRes(R.string.drs__unified__tool_one_handed_right)
     "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app)
+    // DRS v1.7.0
+    "clipboard_pin" -> stringRes(R.string.drs__unified__tool_clipboard_pin)
     else -> id
 }
 
@@ -484,5 +486,7 @@ private fun toolDesc(id: String): String = when (id) {
     "one_handed_left" -> stringRes(R.string.drs__unified__tool_one_handed_left_desc)
     "one_handed_right" -> stringRes(R.string.drs__unified__tool_one_handed_right_desc)
     "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app_desc)
+    // DRS v1.7.0
+    "clipboard_pin" -> stringRes(R.string.drs__unified__tool_clipboard_pin_desc)
     else -> ""
 }

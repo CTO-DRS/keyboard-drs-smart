@@ -613,6 +613,22 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.7.0: pins/unpins the ACTIVE clipboard entry through the real
+     * engine action (KeyCode.CLIPBOARD_PIN_ACTIVE — handled in
+     * KeyboardManager via the same pinClip/unpinClip pair the clipboard
+     * panel long-press popup uses). Pinned entries survive clearHistory
+     * by contract, so this is a real one-tap "keep this" tool.
+     */
+    val CLIPBOARD_PIN = DrsUnifiedTool(
+        id = "clipboard_pin",
+        code = KeyCode.CLIPBOARD_PIN_ACTIVE,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -635,6 +651,8 @@ object DrsUnifiedTools {
         // DRS v1.6.0: same tail-append contract for the new tools.
         CLIPBOARD_FULL_CLEAR, PREV_LANGUAGE, ONE_HANDED_LEFT, ONE_HANDED_RIGHT,
         NEXT_KEYBOARD_APP,
+        // DRS v1.7.0: same tail-append contract for the new tools.
+        CLIPBOARD_PIN,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

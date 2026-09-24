@@ -249,6 +249,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "emoji__preferred_skin_tone",
             default = EmojiSkinTone.DEFAULT,
         )
+        // DRS v1.7.0: emoji size scale as a percentage of the default
+        // grid cell (42dp) and glyph (22sp). 100 = default. Real behavior
+        // change: the emoji palette multiplies both its adaptive grid cell
+        // and the glyph font size by this factor — density of the grid and
+        // legibility of the glyphs really follow the slider.
+        val sizePercent = int(
+            key = "emoji__size_percent",
+            default = ImeWindowSpec.EMOJI_SCALE_DEFAULT_PERCENT,
+        )
         val preferredHairStyle = enum(
             key = "emoji__preferred_hair_style",
             default = EmojiHairStyle.DEFAULT,
@@ -385,6 +394,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val trailDuration = int(
             key = "glide__trail_fade_duration",
             default = 200,
+        )
+        // DRS v1.7.0: glide trail WIDTH scale as a percentage of the
+        // density-correct baseline (20dp). 100 = default. Real behavior
+        // change: the trail draw call and the fade-out animator both
+        // derive from this factor, so the ribbon really follows the
+        // slider — on every density (the radius used to be raw px).
+        val trailWidthPercent = int(
+            key = "glide__trail_width_percent",
+            default = ImeWindowSpec.GLIDE_TRAIL_SCALE_DEFAULT_PERCENT,
         )
         val showPreview = boolean(
             key = "glide__show_preview",

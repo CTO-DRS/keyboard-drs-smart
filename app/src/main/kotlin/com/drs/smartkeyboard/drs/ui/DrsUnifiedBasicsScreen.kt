@@ -124,6 +124,29 @@ fun DrsUnifiedBasicsScreen() = DrsScreen {
                 max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.KEY_PREVIEW_SCALE_MAX_PERCENT,
                 stepIncrement = 10,
             )
+            // DRS v1.7.0: glide trail width — the drawn ribbon (and its
+            // fade-out) derive from a density-correct baseline times this
+            // factor, read at draw time.
+            DialogSliderPreference(
+                prefs.glide.trailWidthPercent,
+                title = stringRes(R.string.pref__glide__trail_width__label),
+                summary = { _ -> stringRes(R.string.drs__unified__basics_trail_summary) },
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = com.drs.smartkeyboard.ime.window.ImeWindowSpec.GLIDE_TRAIL_SCALE_MIN_PERCENT,
+                max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.GLIDE_TRAIL_SCALE_MAX_PERCENT,
+                stepIncrement = 10,
+            )
+            // DRS v1.7.0: emoji size — the palette grid cell and the glyph
+            // font size both multiply by this factor.
+            DialogSliderPreference(
+                prefs.emoji.sizePercent,
+                title = stringRes(R.string.pref__emoji__size__label),
+                summary = { _ -> stringRes(R.string.drs__unified__basics_emoji_summary) },
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = com.drs.smartkeyboard.ime.window.ImeWindowSpec.EMOJI_SCALE_MIN_PERCENT,
+                max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.EMOJI_SCALE_MAX_PERCENT,
+                stepIncrement = 10,
+            )
             ListPreference(
                 prefs.keyboard.capitalizationBehavior,
                 title = stringRes(R.string.pref__keyboard__capitalization_behavior__label),

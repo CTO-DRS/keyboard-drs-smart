@@ -56,6 +56,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import com.drs.smartkeyboard.DrsImeService
 import com.drs.smartkeyboard.app.DrsPreferenceStore
@@ -188,16 +189,22 @@ fun TextKeyboardLayout(
             .drawWithContent {
                 drawContent()
                 if (glideEnabled && glideShowTrail) {
-                    val targetDist = 3.0f
-                    val radius = 20.0f
-
+                    // DRS v1.7.0: the trail geometry is density-correct now
+                    // (dp converted through the DrawScope's density — the
+                    // radius used to be RAW PIXELS, so the ribbon rendered
+                    // ~2x thinner on high-density phones) and follows the
+                    // trail-width preference read at draw time.
+                    val targetDist = 3.dp.toPx()
+                    val radius = 20.dp.toPx() * ImeWindowSpec.sanitizeGlideTrailScale(
+                        prefs.glide.trailWidthPercent.get(),
+                    )
                     val radiusReductionFactor = 0.99f
-                    if (controller.fadingGlideRadius > 0) {
+                    if (controller.fadingGlideFraction > 0) {
                         controller.drawGlideTrail(
                             this,
                             controller.fadingGlide,
                             targetDist,
-                            controller.fadingGlideRadius,
+                            radius * controller.fadingGlideFraction,
                             radiusReductionFactor,
                             glideTrailColor,
                         )
@@ -417,7 +424,11 @@ private class TextKeyboardLayoutController(
     val glideTypingDetector = GlideTypingGesture.Detector(context)
     val glideDataForDrawing = mutableStateListOf<Pair<GlideTypingGesture.Detector.Position, Long>>()
     val fadingGlide = mutableStateListOf<Pair<GlideTypingGesture.Detector.Position, Long>>()
-    var fadingGlideRadius by mutableFloatStateOf(0.0f)
+    // DRS v1.7.0: the fade-out now animates a FRACTION (1 -> 0) instead of
+    // a raw pixel radius — the px radius is derived at draw time from the
+    // density-correct baseline times the trail-width scale, so the fading
+    // ribbon matches the live one on every density and setting.
+    var fadingGlideFraction by mutableFloatStateOf(0.0f)
     private val swipeGestureDetector = SwipeGesture.Detector(this)
 
     lateinit var keyboard: TextKeyboard
@@ -942,11 +953,11 @@ private class TextKeyboardLayoutController(
             fadingGlide.clear()
             fadingGlide.addAll(glideDataForDrawing)
 
-            val animator = ValueAnimator.ofFloat(20.0f, 0.0f)
+            val animator = ValueAnimator.ofFloat(1.0f, 0.0f)
             animator.interpolator = AccelerateInterpolator()
             animator.duration = prefs.glide.trailDuration.get().toLong()
             animator.addUpdateListener {
-                fadingGlideRadius = it.animatedValue as Float
+                fadingGlideFraction = it.animatedValue as Float
             }
             animator.start()
 

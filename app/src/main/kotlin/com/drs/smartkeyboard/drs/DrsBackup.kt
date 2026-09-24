@@ -100,23 +100,71 @@ object DrsBackup {
     }
 
     fun importFrom(context: Context, uri: Uri): ImportResult {
+        val parsed = parseFrom(context, uri) ?: return ImportResult(
+            false,
+            R.string.drs__diagnostics__backup_error_invalid,
+        )
+        return importParsed(parsed)
+    }
+
+    /**
+     * DRS v1.7.0: reads and parses a backup file WITHOUT applying it —
+     * the first half of [importFrom], split out so the UI can show a
+     * describe-before-restore preview ([describeBackup]) and only then
+     * confirm through [importParsed]. Returns null on read/parse failure
+     * (the caller shows the shared invalid-file message).
+     */
+    fun parseFrom(context: Context, uri: Uri): DrsState? {
         val raw = try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
                 stream.readBytes().toString(Charsets.UTF_8)
-            } ?: return ImportResult(false, R.string.drs__diagnostics__backup_error_read)
+            } ?: return null
         } catch (_: Throwable) {
-            return ImportResult(false, R.string.drs__diagnostics__backup_error_read)
+            return null
         }
-        if (raw.length > MAX_IMPORT_BYTES) {
-            return ImportResult(false, R.string.drs__diagnostics__backup_error_invalid)
-        }
-        val parsed = try {
+        if (raw.length > MAX_IMPORT_BYTES) return null
+        return try {
             json.decodeFromString<DrsState>(raw)
         } catch (_: Throwable) {
-            return ImportResult(false, R.string.drs__diagnostics__backup_error_invalid)
+            null
         }
-        // Structural sanity: plausible version, a known user path, and no
-        // schema newer than this build understands (DrsBackup v1.5.0).
+    }
+
+    /**
+     * DRS v1.7.0: human-readable counts of what a backup file contains —
+     * shown in a confirm dialog BEFORE a restore overwrites live state
+     * (the import used to apply immediately: the only destructive
+     * unconfirmed action in the app). Pure and JVM-testable.
+     */
+    data class BackupPreview(
+        val version: Int,
+        val shortcuts: Int,
+        val profiles: Int,
+        val walletTotal: Long,
+        val daysRecorded: Int,
+        val activeDayCount: Int,
+    )
+
+    fun describeBackup(parsed: DrsState): BackupPreview = with(DrsDailyStats) {
+        BackupPreview(
+            version = parsed.version,
+            shortcuts = parsed.shortcuts.size,
+            profiles = parsed.profiles.size,
+            // The wallet tracks three independent system balances — the
+            // preview shows their real sum, never a fabricated "points" field.
+            walletTotal = parsed.wallet.normal + parsed.wallet.technical + parsed.wallet.hybrid,
+            daysRecorded = parsed.dailyStats.size,
+            activeDayCount = parsed.dailyStats.values.count { it.hasActivity() },
+        )
+    }
+
+    /**
+     * DRS v1.7.0: applies an ALREADY-PARSED state after [validateParsed] —
+     * the second half of [importFrom], so the preview-then-confirm flow
+     * runs the exact same validation and update path the direct import
+     * always did.
+     */
+    fun importParsed(parsed: DrsState): ImportResult {
         val validationError = validateParsed(parsed)
         if (validationError != null) {
             return ImportResult(false, validationError)

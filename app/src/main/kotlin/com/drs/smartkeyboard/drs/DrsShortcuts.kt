@@ -81,6 +81,30 @@ object DrsShortcuts {
     const val CURSOR_MARKER = "{cursor}"
 
     /**
+     * DRS v1.7.0: pure template validation for the diagnostics runner.
+     * Every {variable} in every enabled shortcut's expansion must belong
+     * to the known set (case-insensitive, matching expandTemplate).
+     * Returns null when NO shortcut uses templates at all — the caller
+     * treats that as a pass (no false alarm for plain-text users).
+     */
+    fun templatesValid(state: DrsState): Boolean? {
+        var sawTemplate = false
+        for (shortcut in state.shortcuts) {
+            if (!shortcut.enabled) continue
+            if (!isTemplate(shortcut.expansion)) continue
+            sawTemplate = true
+            for (match in TEMPLATE_REGEX.findAll(shortcut.expansion)) {
+                val name = match.groupValues[1].lowercase(Locale.ROOT)
+                val known = TEMPLATE_VARIABLES.any { (sample, _) ->
+                    sample.removeSurrounding("{", "}").equals(name, ignoreCase = true)
+                }
+                if (!known) return false
+            }
+        }
+        return if (sawTemplate) true else null
+    }
+
+    /**
      * Removes the first {cursor} marker from [text] and returns the cleaned
      * text plus the character offset (from the start) where the cursor must
      * land. When there is no marker the offset is -1 (= normal behavior:

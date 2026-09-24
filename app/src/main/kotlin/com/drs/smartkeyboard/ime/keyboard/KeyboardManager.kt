@@ -873,8 +873,18 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.CHAR_WIDTH_SWITCHER -> handleCharWidthSwitch()
             KeyCode.CHAR_WIDTH_FULL -> handleCharWidthFull()
             KeyCode.CHAR_WIDTH_HALF -> handleCharWidthHalf()
-            KeyCode.CLIPBOARD_CUT -> editorInstance.performClipboardCut()
-            KeyCode.CLIPBOARD_COPY -> editorInstance.performClipboardCopy()
+            KeyCode.CLIPBOARD_CUT -> {
+                editorInstance.performClipboardCut()
+                // DRS v1.7.0: cut is a clipboard feature use — credit it the
+                // same way paste is credited (economy + adaptation signal).
+                DrsAdaptationEngine.recordClipboardUse()
+            }
+            KeyCode.CLIPBOARD_COPY -> {
+                editorInstance.performClipboardCopy()
+                // DRS v1.7.0: copy-heavy users were invisible to the
+                // clipboard counters and the history suggestion — credit it.
+                DrsAdaptationEngine.recordClipboardUse()
+            }
             KeyCode.CLIPBOARD_PASTE -> {
                 editorInstance.performClipboardPaste()
                 // DRS v1.0.5: clipboard use is now actually credited (was
@@ -892,6 +902,20 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 }
                 clipboardManager.updatePrimaryClip(null)
                 appContext.showShortToastSync(R.string.clipboard__cleared_primary_clip)
+            }
+            // DRS v1.7.0: pin/unpin the ACTIVE clipboard entry through the
+            // exact same real path the clipboard panel long-press popup
+            // uses (pinned entries survive clearHistory by contract).
+            KeyCode.CLIPBOARD_PIN_ACTIVE -> {
+                clipboardManager.primaryClip?.let { clip ->
+                    if (clip.isPinned) {
+                        clipboardManager.unpinClip(clip)
+                        appContext.showShortToastSync(R.string.clipboard__unpinned_active)
+                    } else {
+                        clipboardManager.pinClip(clip)
+                        appContext.showShortToastSync(R.string.clipboard__pinned_active)
+                    }
+                }
             }
             KeyCode.TOGGLE_FLOATING_WINDOW -> windowController.actions.toggleFloatingWindow()
             KeyCode.TOGGLE_COMPACT_LAYOUT -> windowController.actions.toggleCompactLayout()
@@ -954,6 +978,12 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.SPACE -> handleSpace(data)
             KeyCode.SYSTEM_INPUT_METHOD_PICKER -> InputMethodUtils.showImePicker(appContext)
             KeyCode.SHOW_SUBTYPE_PICKER -> {
+                appContext.keyboardManager.value.activeState.isSubtypeSelectionVisible = true
+            }
+            // DRS v1.7.0: IME_SUBTYPE_PICKER had predefined key data since
+            // v1.0.x but NO handler — pressing it silently logged "unknown
+            // key". It is the same action as SHOW_SUBTYPE_PICKER.
+            KeyCode.IME_SUBTYPE_PICKER -> {
                 appContext.keyboardManager.value.activeState.isSubtypeSelectionVisible = true
             }
             KeyCode.SYSTEM_PREV_INPUT_METHOD -> DrsImeService.switchToPrevInputMethod()

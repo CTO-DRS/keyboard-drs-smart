@@ -53,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.drs.DrsContextMode
 import com.drs.smartkeyboard.drs.DrsDailyStats
 import com.drs.smartkeyboard.drs.DrsDayStats
 import com.drs.smartkeyboard.drs.DrsStore
@@ -214,6 +215,11 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         val missedDays = DrsDailyStats.missedDaysCount(drsState.dailyStats, today)
         val activeRatio = DrsDailyStats.activeDayRatioPercent(drsState.dailyStats, today)
         val quietestWeekday = DrsDailyStats.quietestWeekday(drsState.dailyStats)
+        // DRS v1.7.0: how input starts split across the detected context
+        // modes (password/numbers/coding/…) — the mode was detected all
+        // along but never recorded; now the top of the real distribution
+        // shows here (all pure aggregations of the same buckets).
+        val topContexts = DrsDailyStats.topContextModes(drsState.dailyStats.values)
         StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_numbers), totalAll.numberPresses)
@@ -288,6 +294,24 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
                             java.time.format.TextStyle.FULL,
                             java.util.Locale.getDefault(),
                         ),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            // DRS v1.7.0: the real context-mode mix — hidden when no input
+            // start was ever recorded so an empty install stays clean.
+            if (topContexts.isNotEmpty()) {
+                // @Composable display names resolve in this scope; the for
+                // loop (not a lambda) keeps the calls composable-legal.
+                val parts = ArrayList<String>(topContexts.size)
+                for ((mode, count) in topContexts) {
+                    parts.add(contextModeDisplayName(mode) + " " + count)
+                }
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_context_mix,
+                        "mix" to parts.joinToString(" · "),
                     ),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -486,11 +510,29 @@ private fun formatRatio(percent: Double): String {
 }
 
 /**
+ * DRS v1.7.0: localized display name of a context-mode enum name (the
+ * stats surface shows real names, never raw enum tokens). Falls back to
+ * the raw name for unknown tokens so a future mode never renders empty.
+ */
+@Composable
+private fun contextModeDisplayName(modeName: String): String = when (modeName) {
+    DrsContextMode.NORMAL.name -> stringRes(R.string.drs__context_mode__normal)
+    DrsContextMode.CHAT.name -> stringRes(R.string.drs__context_mode__chat)
+    DrsContextMode.WRITING.name -> stringRes(R.string.drs__context_mode__writing)
+    DrsContextMode.CODING.name -> stringRes(R.string.drs__context_mode__coding)
+    DrsContextMode.NUMBERS.name -> stringRes(R.string.drs__context_mode__numbers)
+    DrsContextMode.SEARCH.name -> stringRes(R.string.drs__context_mode__search)
+    DrsContextMode.PASSWORD.name -> stringRes(R.string.drs__context_mode__password)
+    DrsContextMode.TECHNICAL.name -> stringRes(R.string.drs__context_mode__technical)
+    else -> modeName
+}
+
+/**
  * DRS v1.1.0: builds the CSV payload of the recorded day buckets
  * (ascending). Counts only — the file can never contain typed text.
  */
 private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
-    val header = "day,key_presses,number_presses,symbol_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses,suggestion_accepts"
+    val header = "day,key_presses,number_presses,symbol_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses,suggestion_accepts,context_starts"
     return header + "\n" + buckets.joinToString("\n") { b ->
         listOf(
             b.day,
@@ -504,6 +546,11 @@ private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
             b.clipboardUses,
             b.shortcutUses,
             b.suggestionAccepts,
+            // DRS v1.7.0: the day's full context-start map, compact
+            // 'mode:count;mode:count' — empty cell when nothing recorded.
+            b.contextStarts.entries
+                .sortedWith(compareByDescending<Map.Entry<String, Long>> { it.value }.thenBy { it.key })
+                .joinToString(";") { "${it.key}:${it.value}" },
         ).joinToString(",")
     } + "\n"
 }

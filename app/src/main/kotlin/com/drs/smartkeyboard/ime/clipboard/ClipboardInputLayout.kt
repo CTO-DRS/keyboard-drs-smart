@@ -92,6 +92,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.isSpecified
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -139,6 +141,7 @@ import org.drs.lib.snygg.ui.SnyggIcon
 import org.drs.lib.snygg.ui.SnyggIconButton
 import org.drs.lib.snygg.ui.SnyggRow
 import org.drs.lib.snygg.ui.SnyggText
+import org.drs.lib.snygg.ui.rememberSnyggThemeQuery
 
 private val ItemWidth = 200.dp
 private val DialogWidth = 240.dp
@@ -398,6 +401,20 @@ fun ClipboardInputLayout(
     @Composable
     fun SearchRow() {
         if (!isSearchRowShown) return
+        // DRS v1.7.0: the search text used to be hardcoded WHITE — on any
+        // light theme (drs_day and friends) it was invisible while typing.
+        // It follows the themed window foreground now, falling back to a
+        // luminance-derived readable color when the theme leaves it open.
+        val windowStyle = rememberSnyggThemeQuery(DrsImeUi.Window.elementName)
+        val themedForeground = windowStyle.foreground()
+        val searchTextColor = if (themedForeground.isSpecified) {
+            themedForeground
+        } else {
+            windowStyle.background()
+                .takeIf { it.isSpecified }
+                ?.let { readableTextColor(it) }
+                ?: Color.White
+        }
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -409,13 +426,13 @@ fun ClipboardInputLayout(
                 onValueChange = { searchQuery = it },
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(color = Color.White, fontSize = 14.sp),
+                textStyle = LocalTextStyle.current.copy(color = searchTextColor, fontSize = 14.sp),
                 decorationBox = { innerTextField ->
                     Box {
                         if (searchQuery.isEmpty()) {
                             Text(
                                 text = stringRes(R.string.clipboard__search_hint),
-                                color = Color.White.copy(alpha = 0.6f),
+                                color = searchTextColor.copy(alpha = 0.6f),
                                 fontSize = 14.sp,
                             )
                         }
@@ -767,6 +784,15 @@ fun ClipboardInputLayout(
         }
     }
 }
+
+/**
+ * DRS v1.7.0: picks a readable text color for [background] by relative
+ * luminance (the same threshold the system-bar contrast logic uses).
+ * Pure and JVM-testable — the clipboard search row was hardcoded white
+ * before, which was invisible on light themes.
+ */
+fun readableTextColor(background: Color): Color =
+    if (background.luminance() >= 0.5f) Color.Black else Color.White
 
 @Composable
 private fun ClipCategoryTitle(

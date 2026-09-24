@@ -51,6 +51,7 @@ import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PictureInPictureAlt
+import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.filled.Replay
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
@@ -162,6 +163,8 @@ private fun iconForTool(id: String) = when (id) {
     "one_handed_left" -> Icons.Default.West
     "one_handed_right" -> Icons.Default.East
     "next_keyboard_app" -> Icons.Default.SwapHoriz
+    // DRS v1.7.0: the active-clip pin toggle.
+    "clipboard_pin" -> Icons.Default.PushPin
     else -> Icons.Default.Build
 }
 

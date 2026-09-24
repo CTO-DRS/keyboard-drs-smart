@@ -177,6 +177,21 @@ val SmartToolCodes = setOf(
     KeyCode.TEXT_TOOL_TO_WESTERN_PUNCTUATION,
     KeyCode.TEXT_TOOL_TRIM_BLANK_EDGES,
     KeyCode.TEXT_TOOL_REVERSE_WORDS,
+    // DRS v1.7.0: the subtype picker (the LANGUAGE catalogue tool since
+    // v1.5.0 never counted in the stats), the actions-editor toggle (its
+    // tiles would have rendered the invalid-fatal placeholder) and the
+    // active-clip pin toggle all count as tool presses now.
+    KeyCode.SHOW_SUBTYPE_PICKER,
+    KeyCode.TOGGLE_ACTIONS_EDITOR,
+    KeyCode.CLIPBOARD_PIN_ACTIVE,
+    // DRS v1.7.0: the seven new text tools count as tool presses too.
+    KeyCode.TEXT_TOOL_NORMALIZE_ARABIC_FORMS,
+    KeyCode.TEXT_TOOL_SPLIT_TO_LINES,
+    KeyCode.TEXT_TOOL_JOIN_LINES,
+    KeyCode.TEXT_TOOL_REMOVE_ALL_SPACES,
+    KeyCode.TEXT_TOOL_STRIP_EMOJI,
+    KeyCode.TEXT_TOOL_URL_ENCODE,
+    KeyCode.TEXT_TOOL_URL_DECODE,
 )
 
 @Composable
@@ -236,6 +251,11 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.COMPACT_LAYOUT_TO_LEFT -> R.string.quick_action__compact_layout_to_left
             KeyCode.COMPACT_LAYOUT_TO_RIGHT -> R.string.quick_action__compact_layout_to_right
             KeyCode.SYSTEM_NEXT_INPUT_METHOD -> R.string.quick_action__system_next_input_method
+            // DRS v1.7.0: the subtype picker (LANGUAGE tool), the
+            // actions-editor toggle and the active-clip pin toggle.
+            KeyCode.SHOW_SUBTYPE_PICKER -> R.string.quick_action__show_subtype_picker
+            KeyCode.TOGGLE_ACTIONS_EDITOR -> R.string.quick_action__toggle_actions_editor
+            KeyCode.CLIPBOARD_PIN_ACTIVE -> R.string.quick_action__clipboard_pin_active
             // DRS v1.5.0: text tools show their real panel titles instead
             // of the invalid-fatal placeholder.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
@@ -306,6 +326,11 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.COMPACT_LAYOUT_TO_LEFT -> R.string.quick_action__compact_layout_to_left__tooltip
             KeyCode.COMPACT_LAYOUT_TO_RIGHT -> R.string.quick_action__compact_layout_to_right__tooltip
             KeyCode.SYSTEM_NEXT_INPUT_METHOD -> R.string.quick_action__system_next_input_method__tooltip
+            // DRS v1.7.0: the subtype picker (LANGUAGE tool), the
+            // actions-editor toggle and the active-clip pin toggle.
+            KeyCode.SHOW_SUBTYPE_PICKER -> R.string.quick_action__show_subtype_picker__tooltip
+            KeyCode.TOGGLE_ACTIONS_EDITOR -> R.string.quick_action__toggle_actions_editor__tooltip
+            KeyCode.CLIPBOARD_PIN_ACTIVE -> R.string.quick_action__clipboard_pin_active__tooltip
             // DRS v1.5.0: text tools show their real panel descriptions.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
                 ?.let { textToolDescRes(it) }
