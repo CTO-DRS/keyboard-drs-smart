@@ -291,13 +291,36 @@ class DrsUnifiedTest : FunSpec({
     }
 
     test("v1.4.0 tools keep the tail-append order contract of the catalogue") {
-        // The two new tools sit at the tail so every persisted order/pin
-        // arrangement keeps its exact meaning.
-        DrsUnifiedTools.ALL.takeLast(2).map { it.id } shouldBe
+        // The two v1.4.0 tools sit just before the v1.5.0 tail, so every
+        // persisted order/pin arrangement keeps its exact meaning.
+        DrsUnifiedTools.ALL.takeLast(5).take(2).map { it.id } shouldBe
             listOf("floating_mode", "smartbar_toggle")
-        // The head and the previous tail are untouched.
+        // The head and the previous tails are untouched.
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
-        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 3].id shouldBe "voice_input"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 6].id shouldBe "voice_input"
+    }
+
+    test("v1.5.0 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("clipboard_history_clear")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.CLIPBOARD_CLEAR_HISTORY
+        DrsUnifiedTools.byId("next_language")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.IME_NEXT_SUBTYPE
+        DrsUnifiedTools.byId("resize_mode")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_RESIZE_MODE
+    }
+
+    test("v1.5.0 tools keep the tail-append order contract of the catalogue") {
+        DrsUnifiedTools.ALL.takeLast(3).map { it.id } shouldBe
+            listOf("clipboard_history_clear", "next_language", "resize_mode")
+        DrsUnifiedTools.ALL.first().id shouldBe "emoji"
+    }
+
+    test("v1.5.0 fix: the language tool now points at the REAL picker code") {
+        // v1.0.8 regression: LANGUAGE pointed at IME_SUBTYPE_PICKER (-224),
+        // a code with no KeyboardManager handler (silent no-op). It must
+        // use the in-keyboard subtype picker path instead.
+        DrsUnifiedTools.byId("language")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.SHOW_SUBTYPE_PICKER
     }
 
     test("v1.3.0 tools are basic-scope and visible in both levels") {

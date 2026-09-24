@@ -43,15 +43,18 @@ import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.KeyboardHide
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.OpenInFull
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.PictureInPictureAlt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.VerticalAlignTop
@@ -144,6 +147,10 @@ private fun iconForTool(id: String) = when (id) {
     // DRS v1.4.0: floating window + smartbar visibility toggles.
     "floating_mode" -> Icons.Default.PictureInPictureAlt
     "smartbar_toggle" -> Icons.Default.ViewAgenda
+    // DRS v1.5.0: history wipe + next language + resize mode.
+    "clipboard_history_clear" -> Icons.Default.History
+    "next_language" -> Icons.Default.Translate
+    "resize_mode" -> Icons.Default.OpenInFull
     else -> Icons.Default.Build
 }
 

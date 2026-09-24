@@ -2092,4 +2092,54 @@
     <string name="drs__unified__stats_numbers">ضغطات الأرقام</string>
     <string name="drs__unified__stats_symbols">ضغطات الرموز</string>
     <string name="drs__unified__stats_week_over_week">مقارنة أسبوع بأسبوع: {delta} مقارنة بالأسبوع السابق (ضغطات المفاتيح)</string>
+
+
+    <!-- DRS v1.5.0: الجولة الخامسة — عمليات نصية وأدوات كتالوج وأسماء بلاطات وإحصاء وتشخيص ونسخ احتياطي وتبديل الثيم -->
+    <string name="drs__text_tools__tool_toggle_case">عكس حالة الأحرف</string>
+    <string name="drs__text_tools__desc_toggle_case">يقلب حالة كل حرف: الصغير يصبح كبيرًا والعكس، والعربية بلا حالة تبقى كما هي</string>
+    <string name="drs__text_tools__tool_to_arabic_punctuation">ترقيم عربي</string>
+    <string name="drs__text_tools__desc_to_arabic_punctuation">يحوّل الفاصلة والفاصلة المنقوطة وعلامة الاستفهام اللاتينية إلى نظيراتها العربية ، ؛ ؟</string>
+    <string name="drs__text_tools__tool_remove_zero_width">إزالة الأحرف الصفرية</string>
+    <string name="drs__text_tools__desc_remove_zero_width">يحذف المحارف الخفية صفرية العرض (ZWSP وZWJ واتجاه النص وBOM) ويحافظ على نصف المسافة العربي</string>
+    <string name="drs__text_tools__tool_tabs_to_spaces">تبويبات إلى مسافات</string>
+    <string name="drs__text_tools__desc_tabs_to_spaces">يستبدل كل محرف جدولة بأربع مسافات حقيقية لتظهر بثبات في كل الحقول</string>
+    <string name="drs__text_tools__tool_sort_lines_by_length">ترتيب الأسطر بالطول</string>
+    <string name="drs__text_tools__desc_sort_lines_by_length">يرتب الأسطر من الأقصر إلى الأطول ثباتًا، والمتساوي في الطول يحفظ ترتيبه الأصلي</string>
+    <string name="drs__text_tools__tool_remove_duplicate_words">إزالة الكلمات المكررة</string>
+    <string name="drs__text_tools__desc_remove_duplicate_words">يحذف تكرار الكلمات عبر النص كله ويبقي أول ظهور، مع الحفاظ على المسافات والأسطر كما هي</string>
+    <string name="drs__text_tools__tool_wrap_parens">إحاطة بأقواس</string>
+    <string name="drs__text_tools__desc_wrap_parens">يحيط بالنص المحدد أو الحقل كله بقوسين (…) مع الحفاظ على المحتوى دون تغيير</string>
+    <string name="drs__text_tools__tool_sentence_per_line">جملة في كل سطر</string>
+    <string name="drs__text_tools__desc_sentence_per_line">يفصل الجمل إلى أسطر بعد نهايات الجمل (. ! ? ؟ …) دون المساس بأسطر موجودة أصلًا</string>
+    <string name="drs__unified__tool_clipboard_history_clear">مسح سجل الحافظة</string>
+    <string name="drs__unified__tool_clipboard_history_clear_desc">يمسح سجل الحافظة غير المثبت دفعة واحدة عبر مسار المحرك نفسه، وتبقى العناصر المثبتة محفوظة</string>
+    <string name="drs__unified__tool_next_language">اللغة التالية</string>
+    <string name="drs__unified__tool_next_language_desc">ينتقل إلى لغة التخطيط التالية المكوّنة عبر مدير اللغات في المحرك مباشرة</string>
+    <string name="drs__unified__tool_resize_mode">وضع تغيير الحجم</string>
+    <string name="drs__unified__tool_resize_mode_desc">يدخل وضع تحجيم لوحة المفاتيح أو يخرج منه عبر مسار محرر النافذة نفسه</string>
+    <string name="quick_action__move_start_of_page">بداية النص</string>
+    <string name="quick_action__move_start_of_page__tooltip">ينقل المؤشر إلى بداية النص كله</string>
+    <string name="quick_action__move_end_of_page">نهاية النص</string>
+    <string name="quick_action__move_end_of_page__tooltip">ينقل المؤشر إلى نهاية النص كله</string>
+    <string name="quick_action__move_start_of_line">بداية السطر</string>
+    <string name="quick_action__move_start_of_line__tooltip">ينقل المؤشر إلى بداية السطر الحالي</string>
+    <string name="quick_action__move_end_of_line">نهاية السطر</string>
+    <string name="quick_action__move_end_of_line__tooltip">ينقل المؤشر إلى نهاية السطر الحالي</string>
+    <string name="quick_action__clipboard_select">تحديد نص</string>
+    <string name="quick_action__clipboard_select__tooltip">يبدأ تحديد النص لنسخه أو قصّه</string>
+    <string name="quick_action__toggle_smartbar_visibility">إظهار الشريط الذكي</string>
+    <string name="quick_action__toggle_smartbar_visibility__tooltip">يُظهر الشريط الذكي فوق اللوحة أو يخفيه</string>
+    <string name="drs__unified__stats_longest_streak">أطول سلسلة نشاط</string>
+    <string name="drs__unified__stats_busiest_weekday">أكثر يوم كتابة في الأسبوع: {day}</string>
+    <string name="drs__unified__stats_recorded_span">المدى المسجل: {days} يومًا حتى اليوم</string>
+    <string name="drs__diagnostics__check_spell_checker">ربط خدمة التدقيق الإملائي</string>
+    <string name="drs__diagnostics__hint_spell_checker">المدقق الإملائي مفعّل نظاميًا لكنه يشير إلى تطبيق آخر — اختر DRS من إعدادات التدقيق الإملائي في النظام لتعمل ميزة التدقيق داخل لوحة المفاتيح</string>
+    <string name="drs__diagnostics__check_notifications">إذن إشعارات التحديث</string>
+    <string name="drs__diagnostics__hint_notifications">إشعارات التحديث مطلوبة لكن إذن الإشعارات مرفوض (أندرويد 13+) — امنح الإذن من إعدادات النظام لتصل تنبيهات الإصدارات الجديدة</string>
+    <string name="drs__diagnostics__check_haptics">تكوين الاهتزاز اللمسي</string>
+    <string name="drs__diagnostics__hint_haptics">الاهتزاز اللمسي مطلوب بنمط التحكم المباشر بالفيبراتور لكن الجهاز بلا فيبراتور — كل ضغطة ستتخطى الاهتزاز صامتة، بدّل النمط من إعدادات التغذية الراجعة</string>
+    <string name="drs__diagnostics__backup_error_version_newer">ملف النسخة الاحتياطية من إصدار أحدث من التطبيق ولا يمكن استعادته هنا — حدّث التطبيق أولًا</string>
+    <string name="pref__theme__cycle_now__label">تبديل الثيم الآن</string>
+    <string name="pref__theme__cycle_now__summary">ينتقل فورًا إلى الثيم التالي المثبت في الخانة النشطة (نهاري/ليلي حسب الوضع)</string>
+    <string name="pref__theme__cycle_now__single">ثيم واحد مثبت فقط — ثبّت ثيمًا إضافيًا للتبديل</string>
 </resources>

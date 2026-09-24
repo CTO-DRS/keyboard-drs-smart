@@ -244,6 +244,85 @@ object DrsDailyStats {
         return active.sumOf { it.keyPresses } / active.size
     }
 
+    /**
+     * DRS v1.5.0: the LONGEST run of consecutive active days anywhere in
+     * the recorded window — the all-time sibling of [currentStreak], which
+     * is anchored to today. A malformed day stamp simply cannot form a
+     * consecutive pair, so it never inflates the run. Pure and
+     * JVM-testable.
+     */
+    fun longestStreak(stats: Map<String, DrsDayStats>): Int {
+        val activeDays = stats.values
+            .filter { it.hasActivity() }
+            .mapNotNull { bucket ->
+                try {
+                    LocalDate.parse(bucket.day)
+                } catch (_: Throwable) {
+                    null
+                }
+            }
+            .sorted()
+        if (activeDays.isEmpty()) return 0
+        var longest = 1
+        var run = 1
+        for (i in 1 until activeDays.size) {
+            run = if (activeDays[i] == activeDays[i - 1].plusDays(1)) run + 1 else 1
+            if (run > longest) longest = run
+        }
+        return longest
+    }
+
+    /**
+     * DRS v1.5.0: the weekday with the highest total of key presses across
+     * all recorded days (e.g. "you type most on Sundays"). Ties resolve
+     * deterministically to the first-encountered weekday (the one whose
+     * total was reached first); null when no recorded day has any key
+     * presses. Pure and JVM-testable.
+     */
+    fun busiestWeekday(stats: Map<String, DrsDayStats>): java.time.DayOfWeek? {
+        val byWeekday = LinkedHashMap<java.time.DayOfWeek, Long>()
+        for ((day, bucket) in stats) {
+            val date = try {
+                LocalDate.parse(day)
+            } catch (_: Throwable) {
+                continue
+            }
+            if (bucket.keyPresses <= 0L) continue
+            val key = date.dayOfWeek
+            byWeekday[key] = (byWeekday[key] ?: 0L) + bucket.keyPresses
+        }
+        var best: java.time.DayOfWeek? = null
+        var bestTotal = 0L
+        for ((key, total) in byWeekday) {
+            if (total > bestTotal) {
+                best = key
+                bestTotal = total
+            }
+        }
+        return best
+    }
+
+    /**
+     * DRS v1.5.0: how many days the statistics window spans — from the
+     * OLDEST recorded day through [today] inclusive. Null when nothing is
+     * recorded or [today] is malformed. Pure and JVM-testable.
+     */
+    fun recordedSpanDays(
+        stats: Map<String, DrsDayStats>,
+        today: String = todayStamp(),
+    ): Int? {
+        if (stats.isEmpty()) return null
+        val todayDate = try {
+            LocalDate.parse(today)
+        } catch (_: Throwable) {
+            return null
+        }
+        val oldest = stats.keys
+            .mapNotNull { day -> try { LocalDate.parse(day) } catch (_: Throwable) { null } }
+            .minOrNull() ?: return null
+        return java.time.temporal.ChronoUnit.DAYS.between(oldest, todayDate).toInt() + 1
+    }
+
     /** True when at least one counter of the bucket is non-zero. */
     fun DrsDayStats.hasActivity(): Boolean =
         keyPresses > 0L || numberPresses > 0L || symbolPresses > 0L || toolUses > 0L ||

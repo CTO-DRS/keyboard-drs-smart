@@ -97,7 +97,20 @@ class ThemeManager(context: Context) {
             } to version
         }
         indexedThemeConfigs.collectIn(scope) {
-            updateActiveTheme { cachedThemeInfos.clear() }
+            // DRS v1.5.0: the extension-driven cache reset used to leak
+            // EVERY loaded dir (the cache is cleared, but the unzipped
+            // folders stayed in cacheDir/loaded forever). Delete the
+            // folders of the infos being dropped before clearing.
+            updateActiveTheme {
+                cachedThemeInfos.forEach { info ->
+                    runCatching {
+                        info.loadedDir?.let { dir ->
+                            java.io.File(dir.canonicalPath).deleteRecursively()
+                        }
+                    }
+                }
+                cachedThemeInfos.clear()
+            }
         }
         combine(
             prefs.theme.mode.asFlow(),
@@ -136,9 +149,21 @@ class ThemeManager(context: Context) {
         if (themeConfig == null) {
             return@withLock
         }
-        // TODO: loaded dir is implemented already...
-        // TODO: this leaks the loaded dir, but at least the state is not kaput from compose viewpoint
-        val loadedDir = appContext.cacheDir.subDir("loaded").subDir(UUID.randomUUID().toString())
+        // DRS v1.5.0: bound the loaded-dir cache — the upstream TODO said
+        // "this leaks the loaded dir": every theme switch unzipped into a
+        // fresh cacheDir/loaded/<uuid> folder and never cleaned up. Keep
+        // at most 3 cached infos (day + night + preview alternation fits)
+        // and physically delete the folder of every evicted entry.
+        val loadedRoot = appContext.cacheDir.subDir("loaded")
+        runCatching {
+            val livePaths = cachedThemeInfos.mapNotNull { it.loadedDir?.canonicalPath }.toSet()
+            loadedRoot.listFiles()?.forEach { stale ->
+                if (stale.canonicalPath !in livePaths) {
+                    stale.deleteRecursively()
+                }
+            }
+        }
+        val loadedDir = loadedRoot.subDir(UUID.randomUUID().toString())
         runCatching {
             loadedDir.mkdirs()
             loadedDir.deleteContentsRecursively()
@@ -150,6 +175,23 @@ class ThemeManager(context: Context) {
         }.fold(
             onSuccess = { newStylesheet ->
                 val newInfo = ThemeInfo(activeName, themeConfig, newStylesheet, loadedDir, null)
+                // DRS v1.5.0: evict the oldest cached infos beyond the
+                // 3-entry bound and delete their loaded dirs so repeated
+                // theme switching cannot grow the cache without limit.
+                // The info currently live in _activeThemeInfo is never
+                // evicted, so no in-flight composition loses its assets.
+                val liveName = _activeThemeInfo.value?.name
+                while (cachedThemeInfos.size >= 3) {
+                    val idx = cachedThemeInfos
+                        .indexOfFirst { it.name != liveName }
+                        .let { if (it >= 0) it else 0 }
+                    val evicted = cachedThemeInfos.removeAt(idx)
+                    runCatching {
+                        evicted.loadedDir?.let { dir ->
+                            java.io.File(dir.canonicalPath).deleteRecursively()
+                        }
+                    }
+                }
                 cachedThemeInfos.add(newInfo)
                 _activeThemeInfo.value = newInfo
             },

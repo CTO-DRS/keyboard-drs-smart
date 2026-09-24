@@ -176,7 +176,11 @@ object DrsUnifiedTools {
 
     val LANGUAGE = DrsUnifiedTool(
         id = "language",
-        code = KeyCode.IME_SUBTYPE_PICKER,
+        // DRS v1.5.0 fix: this tool pointed at IME_SUBTYPE_PICKER (-224),
+        // a code with NO handler — pressing it silently logged "unknown
+        // key". SHOW_SUBTYPE_PICKER is the real in-keyboard subtype picker
+        // path (KeyboardManager sets isSubtypeSelectionVisible).
+        code = KeyCode.SHOW_SUBTYPE_PICKER,
         type = KeyType.FUNCTION,
         scope = DrsSettingScope.BASIC,
         defaultView = DrsToolView.BOTH,
@@ -487,6 +491,51 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.5.0: clears the UNPINNED clipboard history through the real
+     * engine action (KeyCode.CLIPBOARD_CLEAR_HISTORY — handled in
+     * KeyboardManager via clipboardManager.clearHistory). Pinned items
+     * survive, so the tool is a safe one-tap history wipe.
+     */
+    val CLIPBOARD_HISTORY_CLEAR = DrsUnifiedTool(
+        id = "clipboard_history_clear",
+        code = KeyCode.CLIPBOARD_CLEAR_HISTORY,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.EDITING,
+    )
+
+    /**
+     * DRS v1.5.0: switches to the NEXT configured subtype through the real
+     * engine action (KeyCode.IME_NEXT_SUBTYPE — handled in KeyboardManager
+     * via subtypeManager.switchToNextSubtype), the same switch the
+     * language key performs under its "next language" utility action.
+     */
+    val NEXT_LANGUAGE = DrsUnifiedTool(
+        id = "next_language",
+        code = KeyCode.IME_NEXT_SUBTYPE,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.5.0: enters/leaves the window-resize mode through the real
+     * engine action (KeyCode.TOGGLE_RESIZE_MODE — handled in
+     * KeyboardManager via windowController.editor.toggleEnabled, the same
+     * path the existing quick action uses).
+     */
+    val RESIZE_MODE = DrsUnifiedTool(
+        id = "resize_mode",
+        code = KeyCode.TOGGLE_RESIZE_MODE,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -504,6 +553,8 @@ object DrsUnifiedTools {
         CLIPBOARD_CLEAR, VOICE_INPUT,
         // DRS v1.4.0: same tail-append contract for the new tools.
         FLOATING_MODE, SMARTBAR_TOGGLE,
+        // DRS v1.5.0: same tail-append contract for the new tools.
+        CLIPBOARD_HISTORY_CLEAR, NEXT_LANGUAGE, RESIZE_MODE,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

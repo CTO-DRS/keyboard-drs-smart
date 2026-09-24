@@ -166,6 +166,19 @@ object KeyCode {
     // pure-transform dispatch path via DrsTextTool.CODE_RANGE).
     const val TEXT_TOOL_SORT_LINES_DESC =       -624
     const val TEXT_TOOL_NORMALIZE_ARABIC =      -623
+    // DRS v1.5.0: case inversion, Arabic punctuation mapping, zero-width
+    // cleanup and tab→space conversion (all pure transforms dispatched via
+    // DrsTextTool.CODE_RANGE like every other text tool).
+    const val TEXT_TOOL_TOGGLE_CASE =           -607
+    const val TEXT_TOOL_TO_ARABIC_PUNCTUATION = -608
+    const val TEXT_TOOL_REMOVE_ZERO_WIDTH =     -609
+    const val TEXT_TOOL_TABS_TO_SPACES =        -610
+    // DRS v1.5.0: length sort, word-level dedup, paren wrapping and one
+    // sentence per line (same pure-transform dispatch path).
+    const val TEXT_TOOL_SORT_LINES_BY_LENGTH =  -625
+    const val TEXT_TOOL_REMOVE_DUPLICATE_WORDS =-626
+    const val TEXT_TOOL_WRAP_PARENS =           -627
+    const val TEXT_TOOL_SENTENCE_PER_LINE =     -628
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632
     const val TEXT_TOOL_COUNT =                 -641

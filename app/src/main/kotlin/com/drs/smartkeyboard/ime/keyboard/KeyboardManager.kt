@@ -894,6 +894,12 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.COMPACT_LAYOUT_TO_LEFT -> windowController.actions.compactLayoutToLeft()
             KeyCode.COMPACT_LAYOUT_TO_RIGHT -> windowController.actions.compactLayoutToRight()
             KeyCode.TOGGLE_RESIZE_MODE -> windowController.editor.toggleEnabled()
+            // DRS v1.5.0: the tech-toolbar Tab and Esc keys used to fall
+            // into the unknown-key branch (silent no-op). Tab now commits a
+            // real tab character and Escape hides the keyboard UI — the
+            // same path IME_HIDE_UI uses.
+            KeyCode.TAB -> editorInstance.commitText("\t")
+            KeyCode.ESCAPE -> DrsImeService.hideUi()
             KeyCode.DELETE -> handleBackwardDelete(OperationUnit.CHARACTERS)
             KeyCode.DELETE_WORD -> handleBackwardDelete(OperationUnit.WORDS)
             KeyCode.ENTER -> handleEnter()

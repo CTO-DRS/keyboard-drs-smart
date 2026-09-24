@@ -42,6 +42,14 @@ import kotlinx.serialization.json.Json
  */
 object DrsBackup {
 
+    /**
+     * DRS v1.5.0: the highest state-schema version this build understands.
+     * A file written by a NEWER build may carry fields this build drops
+     * silently on import (ignoreUnknownKeys) — restoring it here would
+     * destroy data on a downgrade-restore, so it is rejected up front.
+     */
+    const val SUPPORTED_STATE_VERSION = 1
+
     private val json = Json {
         ignoreUnknownKeys = true
         encodeDefaults = true
@@ -66,6 +74,31 @@ object DrsBackup {
         val errorRes: Int? = null,
     )
 
+    /**
+     * DRS v1.5.0: structural validation of a parsed state, split out of
+     * [importFrom] so it stays pure and JVM-testable. Returns null when
+     * the state is acceptable, else the error message resource.
+     */
+    fun validateParsed(parsed: DrsState): Int? {
+        if (parsed.version < 1) {
+            return R.string.drs__diagnostics__backup_error_invalid
+        }
+        // DRS v1.5.0: reject files from a NEWER schema — this build would
+        // silently drop the fields it does not know, destroying data.
+        if (parsed.version > SUPPORTED_STATE_VERSION) {
+            return R.string.drs__diagnostics__backup_error_version_newer
+        }
+        if (parsed.userPath !in listOf(
+                DrsUserPath.NORMAL.name,
+                DrsUserPath.TECHNICAL.name,
+                DrsUserPath.HYBRID.name,
+            ) && parsed.userPath !in listOf("CUSTOM")
+        ) {
+            return R.string.drs__diagnostics__backup_error_invalid
+        }
+        return null
+    }
+
     fun importFrom(context: Context, uri: Uri): ImportResult {
         val raw = try {
             context.contentResolver.openInputStream(uri)?.use { stream ->
@@ -82,17 +115,11 @@ object DrsBackup {
         } catch (_: Throwable) {
             return ImportResult(false, R.string.drs__diagnostics__backup_error_invalid)
         }
-        // Structural sanity: a known user path and a plausible version.
-        if (parsed.version < 1) {
-            return ImportResult(false, R.string.drs__diagnostics__backup_error_invalid)
-        }
-        if (parsed.userPath !in listOf(
-                DrsUserPath.NORMAL.name,
-                DrsUserPath.TECHNICAL.name,
-                DrsUserPath.HYBRID.name,
-            ) && parsed.userPath !in listOf("CUSTOM")
-        ) {
-            return ImportResult(false, R.string.drs__diagnostics__backup_error_invalid)
+        // Structural sanity: plausible version, a known user path, and no
+        // schema newer than this build understands (DrsBackup v1.5.0).
+        val validationError = validateParsed(parsed)
+        if (validationError != null) {
+            return ImportResult(false, validationError)
         }
         return try {
             // Preserve runtime-only flags that must not travel with a backup:

@@ -22,10 +22,12 @@ import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.WbTwilight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.drs.smartkeyboard.R
@@ -39,6 +41,7 @@ import com.drs.smartkeyboard.ime.theme.ThemeMode
 import com.drs.smartkeyboard.lib.compose.DrsScreen
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
 import com.drs.smartkeyboard.themeManager
+import kotlinx.coroutines.launch
 import org.drs.jetpref.datastore.model.collectAsState
 import org.drs.jetpref.datastore.ui.ColorPickerPreference
 import org.drs.jetpref.datastore.ui.ListPreference
@@ -46,6 +49,7 @@ import org.drs.jetpref.datastore.ui.LocalTimePickerPreference
 import org.drs.jetpref.datastore.ui.Preference
 import org.drs.jetpref.datastore.ui.PreferenceGroup
 import org.drs.jetpref.datastore.ui.isMaterialYou
+import org.drs.lib.android.showShortToastSync
 import org.drs.lib.color.ColorMappings
 import org.drs.lib.compose.stringRes
 
@@ -56,6 +60,11 @@ fun ThemeScreen() = DrsScreen {
 
     val context = LocalContext.current
     val navController = LocalNavController.current
+    // DRS v1.5.0: cycleTheme was only reachable from the keyboard strip —
+    // the theme screen never offered it. One tap switches the effective
+    // day/night slot to the next installed theme and confirms with its
+    // real label (null = fewer than two themes installed).
+    val scope = rememberCoroutineScope()
     val themeManager by context.themeManager()
 
     @Composable
@@ -91,6 +100,27 @@ fun ThemeScreen() = DrsScreen {
         }
 
         PreferenceGroup(title = stringRes(R.string.pref__theme__group_themes__label)) {
+        // DRS v1.5.0: surface the real cycleTheme engine action here.
+        Preference(
+            icon = Icons.Default.Palette,
+            title = stringRes(R.string.pref__theme__cycle_now__label),
+            summary = stringRes(R.string.pref__theme__cycle_now__summary),
+            onClick = {
+                scope.launch {
+                    val next = themeManager.cycleTheme()
+                    if (next != null) {
+                        // Non-composable resolution: the toast runs inside
+                        // a coroutine, so the @Composable getThemeLabel
+                        // helper cannot be used here.
+                        val label = themeManager.indexedThemeConfigs.value.first[next]?.label
+                            ?: next.toString()
+                        context.showShortToastSync(label)
+                    } else {
+                        context.showShortToastSync(R.string.pref__theme__cycle_now__single)
+                    }
+                }
+            },
+        )
         Preference(
             icon = Icons.Default.LightMode,
             title = stringRes(R.string.pref__theme__day),

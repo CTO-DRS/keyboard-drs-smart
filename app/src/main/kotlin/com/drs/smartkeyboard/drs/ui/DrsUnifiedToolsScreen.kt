@@ -420,6 +420,10 @@ private fun toolTitle(id: String): String = when (id) {
     // DRS v1.4.0
     "floating_mode" -> stringRes(R.string.drs__unified__tool_floating_mode)
     "smartbar_toggle" -> stringRes(R.string.drs__unified__tool_smartbar_toggle)
+    // DRS v1.5.0
+    "clipboard_history_clear" -> stringRes(R.string.drs__unified__tool_clipboard_history_clear)
+    "next_language" -> stringRes(R.string.drs__unified__tool_next_language)
+    "resize_mode" -> stringRes(R.string.drs__unified__tool_resize_mode)
     else -> id
 }
 
@@ -464,5 +468,9 @@ private fun toolDesc(id: String): String = when (id) {
     // DRS v1.4.0
     "floating_mode" -> stringRes(R.string.drs__unified__tool_floating_mode_desc)
     "smartbar_toggle" -> stringRes(R.string.drs__unified__tool_smartbar_toggle_desc)
+    // DRS v1.5.0
+    "clipboard_history_clear" -> stringRes(R.string.drs__unified__tool_clipboard_history_clear_desc)
+    "next_language" -> stringRes(R.string.drs__unified__tool_next_language_desc)
+    "resize_mode" -> stringRes(R.string.drs__unified__tool_resize_mode_desc)
     else -> ""
 }

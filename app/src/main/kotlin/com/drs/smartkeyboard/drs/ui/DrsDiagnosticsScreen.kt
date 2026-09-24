@@ -228,6 +228,66 @@ fun DrsDiagnosticsScreen() = DrsScreen {
         }
     }
 
+    // DRS v1.5.0: whether the system spell checker points at THIS app.
+    // The spell-checker service (DrsSpellCheckerService) only receives
+    // queries when it is both enabled and selected system-wide — the same
+    // Settings.Secure keys the spell-checker settings screen reads.
+    val spellCheckerWired = remember {
+        try {
+            val enabled = android.provider.Settings.Secure.getString(
+                appContext.contentResolver,
+                "spell_checker_enabled",
+            )
+            val selected = android.provider.Settings.Secure.getString(
+                appContext.contentResolver,
+                "selected_spell_checker",
+            )
+            enabled != "1" ||
+                android.content.ComponentName.unflattenFromString(selected.orEmpty())
+                    ?.packageName == appContext.packageName
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
+    // DRS v1.5.0: the update notifications preference silently does
+    // nothing on Android 13+ when POST_NOTIFICATIONS is denied — the
+    // grant state becomes a real diagnostic, not a guess. Older Android
+    // versions need no grant, so they pass.
+    val notificationsHealthy = remember {
+        try {
+            if (android.os.Build.VERSION.SDK_INT < 33) {
+                true
+            } else {
+                appContext.checkSelfPermission(
+                    android.Manifest.permission.POST_NOTIFICATIONS,
+                ) == android.content.pm.PackageManager.PERMISSION_GRANTED ||
+                    !prefs.updates.notifyOnUpdate.get()
+            }
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
+    // DRS v1.5.0: haptics configuration sanity — when the settings ask for
+    // direct vibrator control but the device has no vibrator, every key
+    // press silently skips haptic feedback. A failing probe is unknown
+    // and must not false-alarm.
+    val hapticsHealthy = remember {
+        try {
+            if (!prefs.inputFeedback.hapticEnabled.get()) {
+                true
+            } else {
+                val wantsDirectVibrator =
+                    com.drs.smartkeyboard.ime.input.HapticVibrationMode.USE_VIBRATOR_DIRECTLY ==
+                        prefs.inputFeedback.hapticVibrationMode.get()
+                !wantsDirectVibrator || appContext.systemVibratorOrNull() != null
+            }
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
     // ---------------- DRS v1.0.6: full technical test runner ----------------
     var testResults by remember { mutableStateOf<List<DrsTestResult>?>(null) }
     fun runFullTest() {
@@ -288,6 +348,11 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             // DRS v1.4.0: real latency/memory verdicts from this process.
             typingLatencyHealthy = typingLatencyHealthy,
             memoryPressureHealthy = memoryPressureHealthy,
+            // DRS v1.5.0: spell checker wiring + notification grant + haptics
+            // configuration sanity.
+            spellCheckerWired = spellCheckerWired,
+            notificationsHealthy = notificationsHealthy,
+            hapticsHealthy = hapticsHealthy,
         )
     }
 
@@ -834,6 +899,9 @@ private fun computeDrsFullTest(
     activeThemeLoadFailure: Boolean,
     typingLatencyHealthy: Boolean,
     memoryPressureHealthy: Boolean,
+    spellCheckerWired: Boolean,
+    notificationsHealthy: Boolean,
+    hapticsHealthy: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -940,6 +1008,34 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_memory,
             R.string.drs__diagnostics__hint_memory,
+        ),
+        // DRS v1.5.0: the system spell checker must point at this app for
+        // DrsSpellCheckerService to receive queries. A spell checker that
+        // is off entirely is the user's choice — only the "enabled but
+        // someone else selected" case degrades to a warning.
+        result(
+            spellCheckerWired,
+            warn = true,
+            R.string.drs__diagnostics__check_spell_checker,
+            R.string.drs__diagnostics__hint_spell_checker,
+        ),
+        // DRS v1.5.0: update notifications need the Android-13+
+        // POST_NOTIFICATIONS grant; a denied grant silently silences
+        // them, so it warns only when update notifications are wanted.
+        result(
+            notificationsHealthy,
+            warn = true,
+            R.string.drs__diagnostics__check_notifications,
+            R.string.drs__diagnostics__hint_notifications,
+        ),
+        // DRS v1.5.0: haptics requested with direct vibrator control but
+        // no vibrator present means every key press silently skips the
+        // haptic channel — a real misconfiguration, warning only.
+        result(
+            hapticsHealthy,
+            warn = true,
+            R.string.drs__diagnostics__check_haptics,
+            R.string.drs__diagnostics__hint_haptics,
         ),
     )
 }

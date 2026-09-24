@@ -202,6 +202,11 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         // DRS v1.4.0: real active-day count + per-active-day average.
         val activeDays = DrsDailyStats.activeDaysCount(drsState.dailyStats)
         val dailyAvg = DrsDailyStats.dailyAveragePresses(drsState.dailyStats)
+        // DRS v1.5.0: all-time best streak, the busiest weekday of the
+        // recorded window, and how many days that window spans.
+        val longestStreak = DrsDailyStats.longestStreak(drsState.dailyStats)
+        val busiestWeekday = DrsDailyStats.busiestWeekday(drsState.dailyStats)
+        val recordedSpan = DrsDailyStats.recordedSpanDays(drsState.dailyStats, today)
         StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_numbers), totalAll.numberPresses)
@@ -216,6 +221,35 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             // those days — both pure aggregations of the same buckets.
             StatsRow(stringRes(R.string.drs__unified__stats_active_days), activeDays.toLong())
             StatsRow(stringRes(R.string.drs__unified__stats_daily_average), dailyAvg)
+            // DRS v1.5.0: longest streak, busiest weekday and the span of
+            // the recorded window (all pure aggregations, hidden when the
+            // data cannot answer them).
+            if (longestStreak > 0) {
+                StatsRow(stringRes(R.string.drs__unified__stats_longest_streak), longestStreak.toLong())
+            }
+            if (busiestWeekday != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_busiest_weekday,
+                        "day" to busiestWeekday.getDisplayName(
+                            java.time.format.TextStyle.FULL,
+                            java.util.Locale.getDefault(),
+                        ),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            if (recordedSpan != null && recordedSpan > 0) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_recorded_span,
+                        "days" to recordedSpan.toString(),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             if (wowPercent != null) {
                 Text(
                     text = stringRes(
@@ -322,11 +356,21 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         ) {
             OutlinedButton(
                 onClick = {
-                    val recorded = DrsDailyStats.lastDays(drsState.dailyStats, DrsDailyStats.KEEP_DAYS, today)
-                    if (recorded.isEmpty()) {
+                    // DRS v1.5.0: the CSV is now a CONTINUOUS ascending
+                    // zero-filled window across the full retention span
+                    // (exactly the documented lastDaysZeroFilled contract),
+                    // so exported timelines have no missing-day gaps. The
+                    // empty toast still keys on real activity.
+                    val hasAnyActivity = drsState.dailyStats.values.any { dayHasActivity(it) }
+                    if (!hasAnyActivity) {
                         context.showShortToastSync(R.string.drs__unified__stats_export_empty)
                     } else {
-                        csvPayload.value = buildStatsCsv(recorded.asReversed())
+                        val window = DrsDailyStats.lastDaysZeroFilled(
+                            drsState.dailyStats,
+                            DrsDailyStats.KEEP_DAYS,
+                            today,
+                        )
+                        csvPayload.value = buildStatsCsv(window)
                         exportLauncher.launch("drs-daily-stats-" + csvStamp() + ".csv")
                     }
                 },

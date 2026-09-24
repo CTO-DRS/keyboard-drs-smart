@@ -20,6 +20,9 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.editorInstance
+import com.drs.smartkeyboard.drs.DrsTextTool
+import com.drs.smartkeyboard.drs.ui.textToolDescRes
+import com.drs.smartkeyboard.drs.ui.textToolTitleRes
 import com.drs.smartkeyboard.ime.keyboard.ComputingEvaluator
 import com.drs.smartkeyboard.ime.keyboard.KeyData
 import com.drs.smartkeyboard.ime.text.key.KeyCode
@@ -151,6 +154,18 @@ val SmartToolCodes = setOf(
     KeyCode.TEXT_TOOL_SORT_LINES_DESC,
     KeyCode.TEXT_TOOL_NORMALIZE_ARABIC,
     KeyCode.TOGGLE_SMARTBAR_VISIBILITY,
+    // DRS v1.5.0: the eight new text tools count as tool presses, and the
+    // clipboard-history / next-language catalogue tools join the set.
+    KeyCode.TEXT_TOOL_TOGGLE_CASE,
+    KeyCode.TEXT_TOOL_TO_ARABIC_PUNCTUATION,
+    KeyCode.TEXT_TOOL_REMOVE_ZERO_WIDTH,
+    KeyCode.TEXT_TOOL_TABS_TO_SPACES,
+    KeyCode.TEXT_TOOL_SORT_LINES_BY_LENGTH,
+    KeyCode.TEXT_TOOL_REMOVE_DUPLICATE_WORDS,
+    KeyCode.TEXT_TOOL_WRAP_PARENS,
+    KeyCode.TEXT_TOOL_SENTENCE_PER_LINE,
+    KeyCode.CLIPBOARD_CLEAR_HISTORY,
+    KeyCode.IME_NEXT_SUBTYPE,
 )
 
 @Composable
@@ -190,6 +205,20 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.THEME_CYCLE -> R.string.quick_action__theme_cycle
             KeyCode.INSERT_DATE_TIME -> R.string.quick_action__insert_date_time
             KeyCode.TOGGLE_NUMBER_ROW -> R.string.quick_action__toggle_number_row
+            // DRS v1.5.0: remaining smart-tool codes that used to fall
+            // through to the invalid-fatal placeholder when they surfaced
+            // as most-used tiles.
+            KeyCode.MOVE_START_OF_PAGE -> R.string.quick_action__move_start_of_page
+            KeyCode.MOVE_END_OF_PAGE -> R.string.quick_action__move_end_of_page
+            KeyCode.MOVE_START_OF_LINE -> R.string.quick_action__move_start_of_line
+            KeyCode.MOVE_END_OF_LINE -> R.string.quick_action__move_end_of_line
+            KeyCode.CLIPBOARD_SELECT -> R.string.quick_action__clipboard_select
+            KeyCode.TOGGLE_SMARTBAR_VISIBILITY -> R.string.quick_action__toggle_smartbar_visibility
+            // DRS v1.5.0: text tools show their real panel titles instead
+            // of the invalid-fatal placeholder.
+            in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
+                ?.let { textToolTitleRes(it) }
+                ?: R.string.general__empty_string
             KeyCode.DRAG_MARKER -> if (evaluator.state.debugShowDragAndDropHelpers) {
                 R.string.quick_action__drag_marker
             } else {
@@ -238,6 +267,18 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.THEME_CYCLE -> R.string.quick_action__theme_cycle__tooltip
             KeyCode.INSERT_DATE_TIME -> R.string.quick_action__insert_date_time__tooltip
             KeyCode.TOGGLE_NUMBER_ROW -> R.string.quick_action__toggle_number_row__tooltip
+            // DRS v1.5.0: tooltips for the codes that used to render the
+            // invalid-fatal placeholder as most-used tiles.
+            KeyCode.MOVE_START_OF_PAGE -> R.string.quick_action__move_start_of_page__tooltip
+            KeyCode.MOVE_END_OF_PAGE -> R.string.quick_action__move_end_of_page__tooltip
+            KeyCode.MOVE_START_OF_LINE -> R.string.quick_action__move_start_of_line__tooltip
+            KeyCode.MOVE_END_OF_LINE -> R.string.quick_action__move_end_of_line__tooltip
+            KeyCode.CLIPBOARD_SELECT -> R.string.quick_action__clipboard_select__tooltip
+            KeyCode.TOGGLE_SMARTBAR_VISIBILITY -> R.string.quick_action__toggle_smartbar_visibility__tooltip
+            // DRS v1.5.0: text tools show their real panel descriptions.
+            in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
+                ?.let { textToolDescRes(it) }
+                ?: R.string.general__empty_string
             KeyCode.DRAG_MARKER -> if (evaluator.state.debugShowDragAndDropHelpers) {
                 R.string.quick_action__drag_marker__tooltip
             } else {

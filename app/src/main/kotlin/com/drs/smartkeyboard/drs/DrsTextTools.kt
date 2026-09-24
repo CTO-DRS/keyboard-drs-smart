@@ -66,6 +66,17 @@ private val SPACE_AFTER_PUNCT = Regex("([,;:!?،؛…])(?=[\\p{IsAlphabetic}])")
 /** Arabic letter following a '.' (sentence dot in Arabic text). */
 private val DOT_BEFORE_ARABIC = Regex("\\.(?=[\\u0600-\\u06FF])")
 
+/** DRS v1.5.0: zero-width / invisible formatting characters that carry no
+ *  visible content and break search and copy. U+200C (ZWNJ) is deliberately
+ *  NOT here: نصف المسافة is a real Arabic keyboard character with meaning. */
+private val ZERO_WIDTH_CHARS = Regex("[\\u200B\\u200D\\u200E\\u200F\\uFEFF\\u2066-\\u2069]")
+
+/** DRS v1.5.0: sentence ender followed by horizontal whitespace — the
+ *  boundary where SENTENCE_PER_LINE inserts the line break. The lookahead
+ *  guarantees the ender is between sentences (not at the text's end), and
+ *  existing newlines are left untouched so the tool is idempotent. */
+private val SENTENCE_BOUNDARY = Regex("([.!؟?…])[ \\t\\u00A0]+(?=[^\\s])")
+
 enum class DrsTextTool(
     val code: Int,
     /** Info-only tools show a result message instead of modifying text. */
@@ -111,6 +122,20 @@ enum class DrsTextTool(
     // DRS v1.4.0: unifies Arabic letter variants (hamza-carriers,
     // ta-marbuta, alef maqsura) — same letter-normalization family.
     NORMALIZE_ARABIC(-623),
+
+    // DRS v1.5.0: case inversion, Arabic punctuation mapping, zero-width
+    // cleanup and tab→space conversion (same pure-transform families).
+    TOGGLE_CASE(-607),
+    TO_ARABIC_PUNCTUATION(-608),
+    REMOVE_ZERO_WIDTH(-609),
+    TABS_TO_SPACES(-610),
+
+    // DRS v1.5.0: length sort, word-level dedup, paren wrapping and one
+    // sentence per line (same line/quick families).
+    SORT_LINES_BY_LENGTH(-625),
+    REMOVE_DUPLICATE_WORDS(-626),
+    WRAP_PARENS(-627),
+    SENTENCE_PER_LINE(-628),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -213,10 +238,15 @@ object DrsTextTools {
                 // conversions that never touch letters or punctuation.
                 DrsTextTool.REMOVE_TATWEEL -> text.replace(TATWEEL.toString(), "")
                 DrsTextTool.TO_ARABIC_DIGITS -> mapChars(text) { ch ->
-                    if (ch in '0'..'9') {
-                        (ch.code - '0'.code + ARABIC_INDIC_ZERO.code).toChar()
-                    } else {
-                        ch
+                    when {
+                        ch in '0'..'9' ->
+                            (ch.code - '0'.code + ARABIC_INDIC_ZERO.code).toChar()
+                        // DRS v1.5.0: Persian/Urdu digits (۰-۹) map to the
+                        // Arabic-Indic forms as well so ALL eastern digits
+                        // normalize to one system.
+                        ch.code in EXTENDED_ARABIC_INDIC_ZERO.code..EXTENDED_ARABIC_INDIC_ZERO.code + 9 ->
+                            (ch.code - EXTENDED_ARABIC_INDIC_ZERO.code + ARABIC_INDIC_ZERO.code).toChar()
+                        else -> ch
                     }
                 }
                 DrsTextTool.TO_WESTERN_DIGITS -> mapChars(text) { ch ->
@@ -243,7 +273,61 @@ object DrsTextTools {
                 // meaning once the text is copied elsewhere — per-character,
                 // lossless for everything else (see [normalizeArabicLetters]).
                 DrsTextTool.NORMALIZE_ARABIC -> normalizeArabicLetters(text)
+                // DRS v1.5.0: invert the case of every cased Latin/Cyrillic/
+                // Greek letter; Arabic (and every other script without case
+                // pairs) passes through unchanged.
+                DrsTextTool.TOGGLE_CASE -> mapChars(text) { ch ->
+                    val upper = ch.uppercaseChar()
+                    val lower = ch.lowercaseChar()
+                    when {
+                        // Uppercase letter: its lowercase form differs.
+                        ch == upper && upper != lower -> lower
+                        // Lowercase letter: its uppercase form differs.
+                        ch == lower && upper != lower -> upper
+                        // Caseless (Arabic, digits, punctuation): untouched.
+                        else -> ch
+                    }
+                }
+                // DRS v1.5.0: map the three Latin sentence punctuation marks
+                // to their Arabic counterparts — per-character, everything
+                // else untouched.
+                DrsTextTool.TO_ARABIC_PUNCTUATION -> mapChars(text) { ch ->
+                    when (ch) {
+                        ',' -> '\u060C' // ،
+                        ';' -> '\u061B' // ؛
+                        '?' -> '\u061F' // ؟
+                        else -> ch
+                    }
+                }
+                // DRS v1.5.0: strip invisible zero-width formatting marks
+                // that break search/copy (ZWSP, ZWJ, LRM/RLM, BOM, Unicode
+                // isolates). ZWNJ (نصف المسافة) is intentionally kept.
+                DrsTextTool.REMOVE_ZERO_WIDTH -> text.replace(ZERO_WIDTH_CHARS, "")
+                // DRS v1.5.0: every tab becomes four real spaces so the
+                // text is safe in fields that collapse or misrender tabs.
+                DrsTextTool.TABS_TO_SPACES -> text.replace("\t", "    ")
                 DrsTextTool.NORMALIZE_PUNCTUATION -> normalizePunctuation(text)
+                // DRS v1.5.0: stable sort by line length (ties keep the
+                // original relative order); trailing newline preserved.
+                DrsTextTool.SORT_LINES_BY_LENGTH -> {
+                    val trailingNewline = text.endsWith("\n")
+                    val sorted = text.lines()
+                        .let { if (trailingNewline) it.dropLast(1) else it }
+                        .sortedBy { it.length }
+                        .joinToString("\n")
+                    if (trailingNewline) "$sorted\n" else sorted
+                }
+                // DRS v1.5.0: remove repeated words across the whole text
+                // (first occurrence wins, all whitespace separators kept
+                // verbatim) — see [removeDuplicateWords].
+                DrsTextTool.REMOVE_DUPLICATE_WORDS -> removeDuplicateWords(text)
+                // DRS v1.5.0: surround the text with parentheses.
+                DrsTextTool.WRAP_PARENS -> "(" + text + ")"
+                // DRS v1.5.0: one sentence per line — break after sentence
+                // enders when horizontal whitespace follows and another
+                // non-space character comes after it (idempotent, existing
+                // newlines untouched).
+                DrsTextTool.SENTENCE_PER_LINE -> text.replace(SENTENCE_BOUNDARY, "$1\n")
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(
                         text.lines()
@@ -325,6 +409,42 @@ object DrsTextTools {
 
     private fun collapseHorizontalSpaces(text: String): String =
         text.replace(HORIZONTAL_SPACES, " ")
+
+    /**
+     * DRS v1.5.0: removes repeated whitespace-delimited words across the
+     * whole text — the word-level sibling of REMOVE_DUPLICATE_LINES. A
+     * manual scanner with a one-run lookbehind keeps the output clean:
+     * when a word is dropped, the whitespace run immediately before it is
+     * dropped with it (no dangling trailing spaces), while separators
+     * around kept words survive verbatim. The first occurrence of each
+     * word wins and comparison is exact (case-sensitive) so names and
+     * acronyms are never merged away.
+     */
+    private fun removeDuplicateWords(text: String): String {
+        val seen = HashSet<String>()
+        val sb = StringBuilder(text.length)
+        val pending = StringBuilder()
+        var index = 0
+        while (index < text.length) {
+            val ch = text[index]
+            if (ch.isWhitespace()) {
+                pending.append(ch)
+                index++
+                continue
+            }
+            val wordStart = index
+            while (index < text.length && !text[index].isWhitespace()) index++
+            val word = text.substring(wordStart, index)
+            if (seen.add(word)) {
+                sb.append(pending)
+                sb.append(word)
+            }
+            pending.clear()
+        }
+        // Whitespace after the final word is kept as-is.
+        sb.append(pending)
+        return sb.toString()
+    }
 
     /** DRS v1.3.0: maps every character through [transform] (pure, per-char). */
     private inline fun mapChars(text: String, transform: (Char) -> Char): String {

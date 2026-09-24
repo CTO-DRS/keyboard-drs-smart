@@ -2176,4 +2176,54 @@
     <string name="drs__unified__stats_numbers">Number presses</string>
     <string name="drs__unified__stats_symbols">Symbol presses</string>
     <string name="drs__unified__stats_week_over_week">Week over week: {delta} vs the previous week (key presses)</string>
+
+
+    <!-- DRS v1.5.0: fifth round — text ops, catalog tools, tile names, stats, diagnostics, backup ceiling, theme cycle -->
+    <string name="drs__text_tools__tool_toggle_case">Invert case</string>
+    <string name="drs__text_tools__desc_toggle_case">Flips the case of every letter: lower becomes upper and vice versa; caseless scripts like Arabic pass through unchanged</string>
+    <string name="drs__text_tools__tool_to_arabic_punctuation">Arabic punctuation</string>
+    <string name="drs__text_tools__desc_to_arabic_punctuation">Maps the Latin comma, semicolon and question mark to their Arabic counterparts , ; ؟</string>
+    <string name="drs__text_tools__tool_remove_zero_width">Remove zero-width chars</string>
+    <string name="drs__text_tools__desc_remove_zero_width">Deletes invisible zero-width marks (ZWSP, ZWJ, text-direction and BOM) while keeping the Arabic half-space (ZWNJ)</string>
+    <string name="drs__text_tools__tool_tabs_to_spaces">Tabs to spaces</string>
+    <string name="drs__text_tools__desc_tabs_to_spaces">Replaces every tab character with four real spaces so text renders consistently in every field</string>
+    <string name="drs__text_tools__tool_sort_lines_by_length">Sort lines by length</string>
+    <string name="drs__text_tools__desc_sort_lines_by_length">Sorts lines shortest to longest, stable: equal-length lines keep their original order</string>
+    <string name="drs__text_tools__tool_remove_duplicate_words">Remove duplicate words</string>
+    <string name="drs__text_tools__desc_remove_duplicate_words">Drops repeated words across the whole text keeping the first occurrence, whitespace and lines untouched</string>
+    <string name="drs__text_tools__tool_wrap_parens">Wrap in parentheses</string>
+    <string name="drs__text_tools__desc_wrap_parens">Surrounds the selection (or the whole field) with (…) parentheses, content otherwise unchanged</string>
+    <string name="drs__text_tools__tool_sentence_per_line">One sentence per line</string>
+    <string name="drs__text_tools__desc_sentence_per_line">Splits sentences onto their own lines after enders (. ! ? ؟ …) without touching existing line breaks</string>
+    <string name="drs__unified__tool_clipboard_history_clear">Clear clipboard history</string>
+    <string name="drs__unified__tool_clipboard_history_clear_desc">Wipes the unpinned clipboard history in one tap through the real engine path; pinned items survive</string>
+    <string name="drs__unified__tool_next_language">Next language</string>
+    <string name="drs__unified__tool_next_language_desc">Switches to the next configured layout language through the engine\'s subtype manager directly</string>
+    <string name="drs__unified__tool_resize_mode">Resize mode</string>
+    <string name="drs__unified__tool_resize_mode_desc">Enters or leaves keyboard window resizing through the same window editor path</string>
+    <string name="quick_action__move_start_of_page">Start of text</string>
+    <string name="quick_action__move_start_of_page__tooltip">Moves the cursor to the very start of the text</string>
+    <string name="quick_action__move_end_of_page">End of text</string>
+    <string name="quick_action__move_end_of_page__tooltip">Moves the cursor to the very end of the text</string>
+    <string name="quick_action__move_start_of_line">Start of line</string>
+    <string name="quick_action__move_start_of_line__tooltip">Moves the cursor to the start of the current line</string>
+    <string name="quick_action__move_end_of_line">End of line</string>
+    <string name="quick_action__move_end_of_line__tooltip">Moves the cursor to the end of the current line</string>
+    <string name="quick_action__clipboard_select">Select text</string>
+    <string name="quick_action__clipboard_select__tooltip">Starts a text selection to copy or cut</string>
+    <string name="quick_action__toggle_smartbar_visibility">Show smart bar</string>
+    <string name="quick_action__toggle_smartbar_visibility__tooltip">Shows the smart bar above the keyboard or hides it</string>
+    <string name="drs__unified__stats_longest_streak">Longest activity streak</string>
+    <string name="drs__unified__stats_busiest_weekday">Busiest typing day: {day}</string>
+    <string name="drs__unified__stats_recorded_span">Recorded span: {days} days to date</string>
+    <string name="drs__diagnostics__check_spell_checker">Spell-checker wiring</string>
+    <string name="drs__diagnostics__hint_spell_checker">The system spell checker is enabled but points to another app — select DRS in the system spell-checker settings so in-keyboard proofing works</string>
+    <string name="drs__diagnostics__check_notifications">Update notification permission</string>
+    <string name="drs__diagnostics__hint_notifications">Update notifications are wanted but the notification permission is denied (Android 13+) — grant it in system settings so new releases reach you</string>
+    <string name="drs__diagnostics__check_haptics">Haptic configuration</string>
+    <string name="drs__diagnostics__hint_haptics">Haptics request direct vibrator control but the device has no vibrator — every key press silently skips haptics; switch the mode in feedback settings</string>
+    <string name="drs__diagnostics__backup_error_version_newer">This backup file was written by a newer app version and cannot be restored here — update the app first</string>
+    <string name="pref__theme__cycle_now__label">Cycle theme now</string>
+    <string name="pref__theme__cycle_now__summary">Instantly switches to the next installed theme in the active slot (day/night per the current mode)</string>
+    <string name="pref__theme__cycle_now__single">Only one theme is installed — install another theme to cycle</string>
 </resources>

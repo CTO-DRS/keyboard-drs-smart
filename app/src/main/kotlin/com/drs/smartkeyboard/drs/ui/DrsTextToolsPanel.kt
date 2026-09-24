@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.ClearAll
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
@@ -43,10 +44,12 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.FormatClear
 import androidx.compose.material.icons.filled.FormatLineSpacing
+import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.HighlightOff
+import androidx.compose.material.icons.filled.KeyboardTab
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.SelectAll
@@ -60,6 +63,9 @@ import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TextIncrease
 import androidx.compose.material.icons.filled.Translate
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.WrapText
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -135,6 +141,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_sentence_case,
                 Icons.Default.ShortText,
             ),
+            // DRS v1.5.0: inverts the case of every cased letter.
+            toolItem(
+                DrsTextTool.TOGGLE_CASE,
+                R.string.drs__text_tools__tool_toggle_case,
+                R.string.drs__text_tools__desc_toggle_case,
+                Icons.Default.SwapVert,
+            ),
         ),
     ),
     DrsTextToolsPanelSection(
@@ -151,6 +164,19 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_trim_line_edges,
                 R.string.drs__text_tools__desc_trim_line_edges,
                 Icons.Default.ClearAll,
+            ),
+            // DRS v1.5.0: whitespace family additions.
+            toolItem(
+                DrsTextTool.TABS_TO_SPACES,
+                R.string.drs__text_tools__tool_tabs_to_spaces,
+                R.string.drs__text_tools__desc_tabs_to_spaces,
+                Icons.Default.KeyboardTab,
+            ),
+            toolItem(
+                DrsTextTool.REMOVE_ZERO_WIDTH,
+                R.string.drs__text_tools__tool_remove_zero_width,
+                R.string.drs__text_tools__desc_remove_zero_width,
+                Icons.Default.VisibilityOff,
             ),
             toolItem(
                 DrsTextTool.REMOVE_EMPTY_LINES,
@@ -203,6 +229,20 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_sort_lines_desc,
                 Icons.Default.SortByAlpha,
             ),
+            // DRS v1.5.0: stable sort by line length.
+            toolItem(
+                DrsTextTool.SORT_LINES_BY_LENGTH,
+                R.string.drs__text_tools__tool_sort_lines_by_length,
+                R.string.drs__text_tools__desc_sort_lines_by_length,
+                Icons.Default.FormatLineSpacing,
+            ),
+            // DRS v1.5.0: word-level dedup (first occurrence wins).
+            toolItem(
+                DrsTextTool.REMOVE_DUPLICATE_WORDS,
+                R.string.drs__text_tools__tool_remove_duplicate_words,
+                R.string.drs__text_tools__desc_remove_duplicate_words,
+                Icons.Default.WrapText,
+            ),
         ),
     ),
     DrsTextToolsPanelSection(
@@ -240,6 +280,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_normalize_arabic,
                 Icons.Default.TextFields,
             ),
+            // DRS v1.5.0: Latin sentence punctuation → Arabic marks.
+            toolItem(
+                DrsTextTool.TO_ARABIC_PUNCTUATION,
+                R.string.drs__text_tools__tool_to_arabic_punctuation,
+                R.string.drs__text_tools__desc_to_arabic_punctuation,
+                Icons.Default.QuestionMark,
+            ),
         ),
     ),
     DrsTextToolsPanelSection(
@@ -263,6 +310,19 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_wrap_quotes,
                 R.string.drs__text_tools__desc_wrap_quotes,
                 Icons.Default.FormatQuote,
+            ),
+            // DRS v1.5.0: paren wrapping + one sentence per line.
+            toolItem(
+                DrsTextTool.WRAP_PARENS,
+                R.string.drs__text_tools__tool_wrap_parens,
+                R.string.drs__text_tools__desc_wrap_parens,
+                Icons.Default.Code,
+            ),
+            toolItem(
+                DrsTextTool.SENTENCE_PER_LINE,
+                R.string.drs__text_tools__tool_sentence_per_line,
+                R.string.drs__text_tools__desc_sentence_per_line,
+                Icons.Default.FormatListBulleted,
             ),
         ),
     ),
@@ -337,6 +397,86 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
         ),
     ),
 )
+
+/**
+ * DRS v1.5.0: the panel title of every text tool, shared with the smart
+ * bar's most-used tiles so a heavy text-tool user sees real names instead
+ * of the invalid-fatal placeholder. Mirrors [PANEL_SECTIONS] labels.
+ */
+fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
+    DrsTextTool.UPPERCASE -> R.string.drs__text_tools__tool_uppercase
+    DrsTextTool.LOWERCASE -> R.string.drs__text_tools__tool_lowercase
+    DrsTextTool.TITLE_CASE -> R.string.drs__text_tools__tool_title_case
+    DrsTextTool.SENTENCE_CASE -> R.string.drs__text_tools__tool_sentence_case
+    DrsTextTool.TOGGLE_CASE -> R.string.drs__text_tools__tool_toggle_case
+    DrsTextTool.TRIM_SPACES -> R.string.drs__text_tools__tool_trim_spaces
+    DrsTextTool.TRIM_LINE_EDGES -> R.string.drs__text_tools__tool_trim_line_edges
+    DrsTextTool.TABS_TO_SPACES -> R.string.drs__text_tools__tool_tabs_to_spaces
+    DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__tool_remove_zero_width
+    DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__tool_remove_empty_lines
+    DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__tool_collapse_empty_lines
+    DrsTextTool.REMOVE_LINE_BREAKS -> R.string.drs__text_tools__tool_remove_line_breaks
+    DrsTextTool.SORT_LINES -> R.string.drs__text_tools__tool_sort_lines
+    DrsTextTool.SORT_LINES_DESC -> R.string.drs__text_tools__tool_sort_lines_desc
+    DrsTextTool.SORT_LINES_BY_LENGTH -> R.string.drs__text_tools__tool_sort_lines_by_length
+    DrsTextTool.REMOVE_DUPLICATE_LINES -> R.string.drs__text_tools__tool_remove_duplicate_lines
+    DrsTextTool.REMOVE_DUPLICATE_WORDS -> R.string.drs__text_tools__tool_remove_duplicate_words
+    DrsTextTool.NUMBER_LINES -> R.string.drs__text_tools__tool_number_lines
+    DrsTextTool.REVERSE_LINES -> R.string.drs__text_tools__tool_reverse_lines
+    DrsTextTool.REMOVE_DIACRITICS -> R.string.drs__text_tools__tool_remove_diacritics
+    DrsTextTool.REMOVE_TATWEEL -> R.string.drs__text_tools__tool_remove_tatweel
+    DrsTextTool.TO_ARABIC_DIGITS -> R.string.drs__text_tools__tool_to_arabic_digits
+    DrsTextTool.TO_WESTERN_DIGITS -> R.string.drs__text_tools__tool_to_western_digits
+    DrsTextTool.TO_ARABIC_PUNCTUATION -> R.string.drs__text_tools__tool_to_arabic_punctuation
+    DrsTextTool.NORMALIZE_ARABIC -> R.string.drs__text_tools__tool_normalize_arabic
+    DrsTextTool.NORMALIZE_PUNCTUATION -> R.string.drs__text_tools__tool_normalize_punctuation
+    DrsTextTool.CLEAN_TEXT -> R.string.drs__text_tools__tool_clean_text
+    DrsTextTool.WRAP_QUOTES -> R.string.drs__text_tools__tool_wrap_quotes
+    DrsTextTool.WRAP_PARENS -> R.string.drs__text_tools__tool_wrap_parens
+    DrsTextTool.SENTENCE_PER_LINE -> R.string.drs__text_tools__tool_sentence_per_line
+    DrsTextTool.COUNT -> R.string.drs__text_tools__tool_count
+    DrsTextTool.DELETE_LINE -> R.string.drs__text_tools__tool_delete_line
+    DrsTextTool.DELETE_TO_LINE_START -> R.string.drs__text_tools__tool_delete_to_line_start
+    DrsTextTool.DELETE_TO_LINE_END -> R.string.drs__text_tools__tool_delete_to_line_end
+}
+
+/** DRS v1.5.0: the panel description of every text tool (tile tooltips). */
+fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
+    DrsTextTool.UPPERCASE -> R.string.drs__text_tools__desc_uppercase
+    DrsTextTool.LOWERCASE -> R.string.drs__text_tools__desc_lowercase
+    DrsTextTool.TITLE_CASE -> R.string.drs__text_tools__desc_title_case
+    DrsTextTool.SENTENCE_CASE -> R.string.drs__text_tools__desc_sentence_case
+    DrsTextTool.TOGGLE_CASE -> R.string.drs__text_tools__desc_toggle_case
+    DrsTextTool.TRIM_SPACES -> R.string.drs__text_tools__desc_trim_spaces
+    DrsTextTool.TRIM_LINE_EDGES -> R.string.drs__text_tools__desc_trim_line_edges
+    DrsTextTool.TABS_TO_SPACES -> R.string.drs__text_tools__desc_tabs_to_spaces
+    DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__desc_remove_zero_width
+    DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__desc_remove_empty_lines
+    DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__desc_collapse_empty_lines
+    DrsTextTool.REMOVE_LINE_BREAKS -> R.string.drs__text_tools__desc_remove_line_breaks
+    DrsTextTool.SORT_LINES -> R.string.drs__text_tools__desc_sort_lines
+    DrsTextTool.SORT_LINES_DESC -> R.string.drs__text_tools__desc_sort_lines_desc
+    DrsTextTool.SORT_LINES_BY_LENGTH -> R.string.drs__text_tools__desc_sort_lines_by_length
+    DrsTextTool.REMOVE_DUPLICATE_LINES -> R.string.drs__text_tools__desc_remove_duplicate_lines
+    DrsTextTool.REMOVE_DUPLICATE_WORDS -> R.string.drs__text_tools__desc_remove_duplicate_words
+    DrsTextTool.NUMBER_LINES -> R.string.drs__text_tools__desc_number_lines
+    DrsTextTool.REVERSE_LINES -> R.string.drs__text_tools__desc_reverse_lines
+    DrsTextTool.REMOVE_DIACRITICS -> R.string.drs__text_tools__desc_remove_diacritics
+    DrsTextTool.REMOVE_TATWEEL -> R.string.drs__text_tools__desc_remove_tatweel
+    DrsTextTool.TO_ARABIC_DIGITS -> R.string.drs__text_tools__desc_to_arabic_digits
+    DrsTextTool.TO_WESTERN_DIGITS -> R.string.drs__text_tools__desc_to_western_digits
+    DrsTextTool.TO_ARABIC_PUNCTUATION -> R.string.drs__text_tools__desc_to_arabic_punctuation
+    DrsTextTool.NORMALIZE_ARABIC -> R.string.drs__text_tools__desc_normalize_arabic
+    DrsTextTool.NORMALIZE_PUNCTUATION -> R.string.drs__text_tools__desc_normalize_punctuation
+    DrsTextTool.CLEAN_TEXT -> R.string.drs__text_tools__desc_clean_text
+    DrsTextTool.WRAP_QUOTES -> R.string.drs__text_tools__desc_wrap_quotes
+    DrsTextTool.WRAP_PARENS -> R.string.drs__text_tools__desc_wrap_parens
+    DrsTextTool.SENTENCE_PER_LINE -> R.string.drs__text_tools__desc_sentence_per_line
+    DrsTextTool.COUNT -> R.string.drs__text_tools__desc_count
+    DrsTextTool.DELETE_LINE -> R.string.drs__text_tools__desc_delete_line
+    DrsTextTool.DELETE_TO_LINE_START -> R.string.drs__text_tools__desc_delete_to_line_start
+    DrsTextTool.DELETE_TO_LINE_END -> R.string.drs__text_tools__desc_delete_to_line_end
+}
 
 /**
  * DRS v1.0.6: the technical text tools panel, shown when the keyboard UI
