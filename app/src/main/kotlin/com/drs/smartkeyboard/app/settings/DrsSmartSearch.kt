@@ -53,6 +53,7 @@ import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Healing
 import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Insights
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Numbers
@@ -302,8 +303,8 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
         DrsSearchEntry(
             title = stringRes(R.string.drs__unified__basics_title),
             keywords = listOf(
-                "basics", "spacing", "long press", "repeat", "glide", "number row",
-                "أساسيات", "مسافات", "ضغط مطول", "تكرار", "صف أرقام", "تمرير",
+                "basics", "spacing", "long press", "repeat", "glide", "number row", "keyboard height",
+                "أساسيات", "مسافات", "ضغط مطول", "تكرار", "صف أرقام", "تمرير", "ارتفاع اللوحة",
             ),
             icon = Icons.Default.Tune,
             route = Routes.Settings.DrsUnifiedBasics,
@@ -325,6 +326,16 @@ private fun rememberDrsSearchEntries(): List<DrsSearchEntry> {
             ),
             icon = Icons.Default.Settings,
             route = Routes.Settings.DrsUnifiedSystem,
+        ),
+        // DRS v1.0.8: daily usage statistics + height scale keywords.
+        DrsSearchEntry(
+            title = stringRes(R.string.drs__unified__stats_title),
+            keywords = listOf(
+                "statistics", "usage", "daily", "keys count", "stats",
+                "إحصاءات", "إحصائيات", "استخدام", "يومي", "عدد ضغطات", "عدادات",
+            ),
+            icon = Icons.Default.Insights,
+            route = Routes.Settings.DrsUnifiedStats,
         ),
         DrsSearchEntry(
             title = stringRes(R.string.drs__control_center__title),

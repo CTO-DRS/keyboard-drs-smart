@@ -199,6 +199,41 @@ class ThemeManager(context: Context) {
     }
 
     /**
+     * DRS v1.0.8: cycles the keyboard theme of the currently effective
+     * day/night slot to the next installed theme (deterministic order by
+     * extension id then component id). The live keyboard re-styles
+     * immediately because the theme prefs drive [updateActiveTheme].
+     *
+     * @return the newly selected theme id, or null when fewer than two
+     *         themes are installed (nothing to cycle).
+     */
+    suspend fun cycleTheme(): ExtensionComponentName? {
+        val all = _indexedThemeConfigs.value.first.keys
+        if (all.size < 2) return null
+        val current = evaluateActiveThemeName()
+        val ordered = all.sortedWith(compareBy({ it.extensionId }, { it.componentId }))
+        val next = ordered[(ordered.indexOf(current) + 1).mod(ordered.size)]
+        val isNightSlot = when (prefs.theme.mode.get()) {
+            ThemeMode.ALWAYS_NIGHT -> true
+            ThemeMode.ALWAYS_DAY -> false
+            ThemeMode.FOLLOW_SYSTEM -> appContext.resources.configuration.uiMode and
+                Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+            ThemeMode.FOLLOW_TIME -> {
+                val now = LocalTime.now()
+                val sunrise = prefs.theme.sunriseTime.get().javaLocalTime
+                val sunset = prefs.theme.sunsetTime.get().javaLocalTime
+                now !in sunrise..sunset
+            }
+        }
+        if (isNightSlot) {
+            prefs.theme.nightThemeId.set(next)
+        } else {
+            prefs.theme.dayThemeId.set(next)
+        }
+        return next
+    }
+
+    /**
      * Creates a new inline suggestion UI bundle.
      *
      * @param context The context of the parent view/controller.

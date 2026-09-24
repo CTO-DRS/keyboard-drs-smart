@@ -40,10 +40,14 @@ import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Numbers
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.VerticalAlignBottom
+import androidx.compose.material.icons.filled.VerticalAlignTop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,6 +67,7 @@ import com.drs.smartkeyboard.drs.DrsUnified
 import com.drs.smartkeyboard.drs.DrsUnifiedTools
 import com.drs.smartkeyboard.drs.DrsUserPath
 import com.drs.smartkeyboard.ime.ImeUiMode
+import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import com.drs.smartkeyboard.ime.text.key.KeyType
@@ -114,6 +119,11 @@ private fun iconForTool(id: String) = when (id) {
     "line_end" -> Icons.Default.LastPage
     "delete_word" -> Icons.AutoMirrored.Outlined.Backspace
     "hide_keyboard" -> Icons.Default.KeyboardHide
+    // DRS v1.0.8: the new unified tools.
+    "theme_cycle" -> Icons.Default.Palette
+    "insert_date_time" -> Icons.Default.Schedule
+    "text_start" -> Icons.Default.VerticalAlignTop
+    "text_end" -> Icons.Default.VerticalAlignBottom
     else -> Icons.Default.Build
 }
 
@@ -168,11 +178,15 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
     }
 
     val isTextToolsOpen = keyboardManager.activeState.imeUiMode == ImeUiMode.TEXT_TOOLS
+    // DRS v1.0.8: the strip tracks the real Smartbar height (which follows
+    // the keyboard height scale) instead of a hardcoded 40.dp, so growing
+    // the keyboard grows the strip consistently.
+    val stripHeight = DrsImeSizing.smartbarHeight
     SnyggRow(
         DrsImeUi.Smartbar.elementName,
         modifier = modifier
             .fillMaxWidth()
-            .height(40.dp)
+            .height(stripHeight)
             .horizontalScroll(rememberScrollState()),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
@@ -182,7 +196,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,
                 onClick = { DrsUnified.cycleViewMode() },
-                modifier = Modifier.sizeIn(minWidth = 44.dp).height(40.dp),
+                modifier = Modifier.sizeIn(minWidth = 44.dp).height(stripHeight),
             ) {
                 Text(
                     text = viewModeLabel(view),
@@ -209,7 +223,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
                         DrsAdaptationEngine.recordToolUse(tool.code)
                     }
                 },
-                modifier = Modifier.sizeIn(minWidth = 38.dp).height(40.dp),
+                modifier = Modifier.sizeIn(minWidth = 38.dp).height(stripHeight),
             ) {
                 when {
                     isTextTools -> SnyggIcon(
@@ -231,7 +245,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
                     )
                     DrsAdaptationEngine.recordTechToolUse()
                 },
-                modifier = Modifier.sizeIn(minWidth = 38.dp).height(40.dp),
+                modifier = Modifier.sizeIn(minWidth = 38.dp).height(stripHeight),
             ) {
                 Text(
                     text = key.label,

@@ -114,23 +114,34 @@ class ImeWindowController(
             activeWindowConfig.value = windowConfig
         }
 
-        val userPreferredOptions = combine(
-            activeRootInsets,
+        // DRS v1.0.8: the five user preference factors are combined first
+        // (kotlinx combine supports up to five flows per overload), then
+        // merged with the root insets to build the orientation-aware spec.
+        val userPreferredPrefs = combine(
             prefs.keyboard.keySpacingHorizontal.asFlow(),
             prefs.keyboard.keySpacingVertical.asFlow(),
             prefs.keyboard.fontSizeMultiplierPortrait.asFlow(),
             prefs.keyboard.fontSizeMultiplierLandscape.asFlow(),
-        ) { rootInsets, keySpacingFactorH, keySpacingFactorV, multiplierP, multiplierL ->
+            prefs.keyboard.heightScalePercent.asFlow(),
+        ) { keySpacingH, keySpacingV, multiplierP, multiplierL, heightScalePercent ->
+            ImeUserPrefs(keySpacingH, keySpacingV, multiplierP, multiplierL, heightScalePercent)
+        }
+
+        val userPreferredOptions = combine(
+            activeRootInsets,
+            userPreferredPrefs,
+        ) { rootInsets, userPrefs ->
             // TODO: this should adhere to form factor
             // TODO: font scale needs a rework anyways, change this in font scale rework PR!
             val rootBounds = rootInsets.boundsDp
             ImeWindowSpec.UserPreferredOptions(
-                keySpacingFactorH = keySpacingFactorH / 100f,
-                keySpacingFactorV = keySpacingFactorV / 100f,
+                keySpacingFactorH = userPrefs.keySpacingH / 100f,
+                keySpacingFactorV = userPrefs.keySpacingV / 100f,
                 fontScale = when {
-                    rootBounds.width <= rootBounds.height -> multiplierP / 100f
-                    else -> multiplierL / 100f
+                    rootBounds.width <= rootBounds.height -> userPrefs.fontMultiplierP / 100f
+                    else -> userPrefs.fontMultiplierL / 100f
                 },
+                heightScale = ImeWindowSpec.sanitizeHeightScale(userPrefs.heightScalePercent),
             )
         }
 
@@ -558,3 +569,17 @@ class ImeWindowController(
             get() = isMoveGesture || isResizeGesture
     }
 }
+
+/**
+ * DRS v1.0.8: bundle of the five raw user preference factors read from
+ * [com.drs.smartkeyboard.app.AppPrefs.Keyboard]. Exists because kotlinx
+ * combine supports at most five flows per overload, so the preferences are
+ * combined into one holder first and merged with the root insets after.
+ */
+private data class ImeUserPrefs(
+    val keySpacingH: Int,
+    val keySpacingV: Int,
+    val fontMultiplierP: Int,
+    val fontMultiplierL: Int,
+    val heightScalePercent: Int,
+)

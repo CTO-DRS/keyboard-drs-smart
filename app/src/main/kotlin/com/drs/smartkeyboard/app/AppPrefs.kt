@@ -57,6 +57,7 @@ import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.ThemeMode
 import com.drs.smartkeyboard.ime.theme.extCoreTheme
 import com.drs.smartkeyboard.ime.window.ImeWindowConfig
+import com.drs.smartkeyboard.ime.window.ImeWindowSpec
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
 import com.drs.smartkeyboard.lib.util.VersionName
 import org.drs.jetpref.datastore.annotations.Preferences
@@ -605,6 +606,14 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val keyRepeatRatePercent = int(
             key = "keyboard__key_repeat_rate_percent",
             default = 100,
+        )
+        // DRS v1.0.8: keyboard HEIGHT scale as a percentage of the baseline
+        // height. 100 = default. Real behavior change: ImeWindowController
+        // feeds it into ImeWindowSpec.UserPreferredOptions.heightScale and
+        // ImeWindowSpec.calcRowHeight() scales every rendered row/key.
+        val heightScalePercent = int(
+            key = "keyboard__height_scale_percent",
+            default = ImeWindowSpec.HEIGHT_SCALE_DEFAULT_PERCENT,
         )
         val spaceBarSwitchesToCharacters = boolean(
             key = "keyboard__space_bar_switches_to_characters",

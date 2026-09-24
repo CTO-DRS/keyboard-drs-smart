@@ -131,6 +131,9 @@ val SmartToolCodes = setOf(
     KeyCode.SETTINGS,
     KeyCode.TOGGLE_ACTIONS_OVERFLOW,
     KeyCode.IME_HIDE_UI,
+    // DRS v1.0.8: the new unified-strip tools count as tool presses too.
+    KeyCode.THEME_CYCLE,
+    KeyCode.INSERT_DATE_TIME,
 )
 
 @Composable

@@ -86,6 +86,17 @@ fun DrsUnifiedBasicsScreen() = DrsScreen {
                 title = stringRes(R.string.pref__keyboard__number_row__label),
                 summary = stringRes(R.string.drs__unified__basics_number_row_summary),
             )
+            // DRS v1.0.8: keyboard height scale — a real sizing control the
+            // live keyboard obeys through ImeWindowSpec.calcRowHeight.
+            DialogSliderPreference(
+                prefs.keyboard.heightScalePercent,
+                title = stringRes(R.string.pref__keyboard__height_scale__label),
+                summary = { _ -> stringRes(R.string.drs__unified__basics_height_summary) },
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = com.drs.smartkeyboard.ime.window.ImeWindowSpec.HEIGHT_SCALE_MIN_PERCENT,
+                max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.HEIGHT_SCALE_MAX_PERCENT,
+                stepIncrement = 5,
+            )
             SwitchPreference(
                 prefs.keyboard.popupEnabled,
                 title = stringRes(R.string.pref__keyboard__popup_enabled__label),

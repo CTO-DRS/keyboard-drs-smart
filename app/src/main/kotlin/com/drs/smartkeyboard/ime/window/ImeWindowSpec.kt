@@ -82,9 +82,14 @@ sealed class ImeWindowSpec {
 
     /**
      * Calculates the row height for given baseline [keyboardHeight].
+     *
+     * DRS v1.0.8: the result is scaled by the user's keyboard height scale
+     * ([UserPreferredOptions.heightScale]), so the preference really
+     * changes the rendered keyboard: every consumer (row height, Smartbar
+     * blend, touch bounds, resize conversions) derives from this method.
      */
     fun calcRowHeight(keyboardHeight: Dp): Dp {
-        return keyboardHeight / constraints.baselineRowCount
+        return keyboardHeight * userPreferredOptions.heightScale / constraints.baselineRowCount
     }
 
     /**
@@ -289,9 +294,29 @@ sealed class ImeWindowSpec {
         val keySpacingFactorH: Float,
         val keySpacingFactorV: Float,
         val fontScale: Float,
+        /**
+         * DRS v1.0.8: multiplier applied to the keyboard height (and thus
+         * every row/key height derived from it). 1f = default height; the
+         * value is sanitized from the [companion object] bounds.
+         */
+        val heightScale: Float = 1f,
     )
 
     companion object {
+        /**
+         * DRS v1.0.8: bounds of the keyboard height scale preference, in
+         * percent. Kept here so the slider, the controller and the unit
+         * tests share one source of truth.
+         */
+        const val HEIGHT_SCALE_MIN_PERCENT = 80
+        const val HEIGHT_SCALE_MAX_PERCENT = 130
+        const val HEIGHT_SCALE_DEFAULT_PERCENT = 100
+
+        /** Clamps a raw percent value into the valid scale range and converts it to a multiplier. */
+        fun sanitizeHeightScale(percent: Int): Float {
+            return percent.coerceIn(HEIGHT_SCALE_MIN_PERCENT, HEIGHT_SCALE_MAX_PERCENT) / 100f
+        }
+
         /**
          * The fallback window spec. It does not guarantee the window fits into the root window, and assumes
          * the root window is zero-sized. In practice this is never used, but allows for always having rootInsets,

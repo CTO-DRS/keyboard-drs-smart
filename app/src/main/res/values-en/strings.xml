@@ -2041,4 +2041,38 @@
     <string name="drs__unified__system_performance_summary">Real measurements of latency, memory and storage</string>
     <string name="drs__unified__system_diagnostics_summary">Full checks of the service, engine, languages and tools</string>
     <string name="drs__unified__system_backup_summary">Back up and restore your keyboard data locally</string>
+
+    <!-- DRS v1.0.8: comprehensive feature development round -->
+    <string name="pref__keyboard__height_scale__label">Keyboard height</string>
+    <string name="drs__unified__basics_height_summary">Scale the whole keyboard height up or down — applies instantly to every row and key</string>
+    <string name="drs__unified__tool_theme_cycle">Cycle theme</string>
+    <string name="drs__unified__tool_theme_cycle_desc">Switch to the next installed theme (day or night slot, following your current mode)</string>
+    <string name="drs__unified__tool_insert_date_time">Date &amp; time</string>
+    <string name="drs__unified__tool_insert_date_time_desc">Insert the current date &amp; time formatted with your active keyboard language</string>
+    <string name="drs__unified__tool_text_start">Text start</string>
+    <string name="drs__unified__tool_text_start_desc">Move the cursor to the very start of the whole text</string>
+    <string name="drs__unified__tool_text_end">Text end</string>
+    <string name="drs__unified__tool_text_end_desc">Move the cursor to the very end of the whole text</string>
+    <string name="drs__unified__stats_title">Daily statistics</string>
+    <string name="drs__unified__stats_summary">Your daily and weekly usage numbers — real local counters only</string>
+    <string name="drs__unified__stats_enable_switch">Record daily statistics</string>
+    <string name="drs__unified__stats_enable_summary">Aggregate usage counters per day (counts only, never any text)</string>
+    <string name="drs__unified__stats_privacy_note">All numbers stay on your device only — anonymous counters with no typed text and no timestamps, and you can reset them anytime.</string>
+    <string name="drs__unified__stats_disabled_hint">Recording is off right now — enable it with the switch above to start counting.</string>
+    <string name="drs__unified__stats_today">Today</string>
+    <string name="drs__unified__stats_last7">Last 7 days</string>
+    <string name="drs__unified__stats_days_list">Recent days detail (up to 14 days)</string>
+    <string name="drs__unified__stats_keys">Key presses</string>
+    <string name="drs__unified__stats_tools">Tool uses</string>
+    <string name="drs__unified__stats_tech_tools">Technical text tools</string>
+    <string name="drs__unified__stats_gestures">Gestures</string>
+    <string name="drs__unified__stats_emoji">Emoji</string>
+    <string name="drs__unified__stats_clipboard">Clipboard</string>
+    <string name="drs__unified__stats_shortcuts">Shortcuts</string>
+    <string name="drs__unified__stats_empty">No activity recorded today yet — type in any app and come back here</string>
+    <string name="drs__unified__stats_day_line">{keys} keys · {tools} tools</string>
+    <string name="drs__unified__stats_reset">Reset statistics</string>
+    <string name="drs__unified__stats_reset_confirm">All local day counters will be permanently deleted. Continue?</string>
+    <string name="drs__diagnostics__check_daily_stats">Daily statistics counters sanity</string>
+    <string name="drs__diagnostics__hint_daily_stats">Daily statistics data contains an invalid day or a negative value — use "Reset statistics" in the Daily Statistics screen to clean it up</string>
 </resources>

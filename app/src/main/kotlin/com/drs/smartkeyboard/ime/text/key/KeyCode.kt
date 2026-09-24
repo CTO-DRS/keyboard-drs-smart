@@ -102,6 +102,13 @@ object KeyCode {
     // DRS v1.0.6: opens the technical text tools panel.
     const val IME_UI_MODE_TEXT_TOOLS =      -214
 
+    // DRS v1.0.8: unified-strip tools. THEME_CYCLE switches the keyboard
+    // theme of the currently effective day/night slot to the next installed
+    // theme; INSERT_DATE_TIME commits the current date & time formatted
+    // with the active subtype's locale. Both are handled in KeyboardManager.
+    const val THEME_CYCLE =                 -215
+    const val INSERT_DATE_TIME =            -216
+
     const val SYSTEM_INPUT_METHOD_PICKER =  -221
     const val SYSTEM_PREV_INPUT_METHOD =    -222
     const val SYSTEM_NEXT_INPUT_METHOD =    -223

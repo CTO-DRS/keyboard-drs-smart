@@ -123,7 +123,7 @@ object DrsEconomy {
                 normal += delta; earnedNormal += delta
             }
         }
-        return state.copy(
+        val credited = state.copy(
             wallet = w.copy(
                 normal = normal.coerceAtLeast(0),
                 technical = technical.coerceAtLeast(0),
@@ -134,6 +134,24 @@ object DrsEconomy {
                 lastActiveDay = today,
             ),
         )
+        // DRS v1.0.8: feature rewards now really reach the ledger — the
+        // DrsLedgerEntry documentation always promised "daily bonuses,
+        // feature rewards and store purchases", but only the bonus and
+        // purchase paths ever wrote entries. Typing rewards stay silent
+        // (the ledger would flood with one entry per 40 keystrokes) and
+        // the daily bonus / purchase paths keep their own entries.
+        return if (reason.startsWith("earn_") && reason != "earn_typing") {
+            credited.copy(
+                wallet = credited.wallet.copy(
+                    ledger = prependLedger(
+                        credited.wallet.ledger,
+                        DrsLedgerEntry(day = today, reason = reason, delta = delta),
+                    ),
+                ),
+            )
+        } else {
+            credited
+        }
     }
 
     // ------------------------------------------------------------------

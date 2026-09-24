@@ -116,6 +116,27 @@ data class DrsUsageStats(
 )
 
 /**
+ * DRS v1.0.8: one local day of anonymous usage counters, keyed by an ISO
+ * day stamp (e.g. "2026-09-24") inside [DrsState.dailyStats]. Counts only
+ * — never text, never keystroke timing, nothing leaves the device. Powers
+ * the real daily usage statistics screen.
+ */
+@Serializable
+data class DrsDayStats(
+    /** ISO day stamp this bucket belongs to, e.g. "2026-09-24". */
+    val day: String = "",
+    val keyPresses: Long = 0,
+    /** Unified strip / smartbar tool presses (any catalogue tool). */
+    val toolUses: Long = 0,
+    /** Technical text-tool presses (the technical toolbar actions). */
+    val techToolUses: Long = 0,
+    val gestureUses: Long = 0,
+    val emojiUses: Long = 0,
+    val clipboardUses: Long = 0,
+    val shortcutUses: Long = 0,
+)
+
+/**
  * A single entry in the rewards ledger (دفتر المكافآت). Only meaningful
  * events are logged: daily bonuses, feature rewards and store purchases.
  * Typing rewards accumulate silently without flooding the ledger.
@@ -204,6 +225,14 @@ data class DrsState(
     val pinnedUnifiedTools: List<String> = emptyList(),
     /** DRS v1.0.7: per-tool visibility override (tool id -> DrsToolView name). */
     val unifiedToolViews: Map<String, String> = emptyMap(),
+    /**
+     * DRS v1.0.8: per-day anonymous usage counters keyed by ISO day stamp
+     * (see [DrsDayStats]). Bounded to a fixed retention window; used by the
+     * daily usage statistics screen. Local only, never synced.
+     */
+    val dailyStats: Map<String, DrsDayStats> = emptyMap(),
+    /** DRS v1.0.8: master switch of the daily usage statistics recording. */
+    val dailyStatsEnabled: Boolean = true,
 )
 
 /** Suggestion ids produced by the local adaptation engine. */

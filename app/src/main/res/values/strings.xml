@@ -1957,4 +1957,38 @@
     <string name="drs__unified__system_performance_summary">قياسات فعلية لزمن الاستجابة والذاكرة والتخزين</string>
     <string name="drs__unified__system_diagnostics_summary">فحص شامل للخدمة والمحرك واللغات والأدوات</string>
     <string name="drs__unified__system_backup_summary">حفظ واستعادة إعدادات وبيانات لوحتك محليًا</string>
+
+    <!-- DRS v1.0.8: جولة تطوير المميزات الشاملة -->
+    <string name="pref__keyboard__height_scale__label">ارتفاع لوحة المفاتيح</string>
+    <string name="drs__unified__basics_height_summary">تكبير أو تصغير ارتفاع اللوحة كاملة — يسري فورًا على كل الصفوف والمفاتيح</string>
+    <string name="drs__unified__tool_theme_cycle">تبديل الثيم</string>
+    <string name="drs__unified__tool_theme_cycle_desc">التبديل إلى الثيم التالي المثبّت (خانة النهار أو الليل حسب وضعك الحالي)</string>
+    <string name="drs__unified__tool_insert_date_time">التاريخ والوقت</string>
+    <string name="drs__unified__tool_insert_date_time_desc">إدراج التاريخ والوقت الحاليين بصيغة لغة لوحتك النشطة</string>
+    <string name="drs__unified__tool_text_start">بداية النص</string>
+    <string name="drs__unified__tool_text_start_desc">نقل المؤشر إلى بداية النص كاملًا</string>
+    <string name="drs__unified__tool_text_end">نهاية النص</string>
+    <string name="drs__unified__tool_text_end_desc">نقل المؤشر إلى نهاية النص كاملًا</string>
+    <string name="drs__unified__stats_title">الإحصاءات اليومية</string>
+    <string name="drs__unified__stats_summary">أرقام استخدامك اليومية والأسبوعية — عدّادات محلية حقيقية فقط</string>
+    <string name="drs__unified__stats_enable_switch">تسجيل الإحصاءات اليومية</string>
+    <string name="drs__unified__stats_enable_summary">تجميع عدّادات الاستخدام يوميًا (عدّادات فقط، بلا أي نصوص)</string>
+    <string name="drs__unified__stats_privacy_note">كل الأرقام محلية على جهازك فقط — عدّادات مجهولة بلا أي نص مكتوب ولا أوقات، ويمكنك تصفيرها متى شئت.</string>
+    <string name="drs__unified__stats_disabled_hint">التسجيل متوقف الآن — فعّله من المفتاح أعلاه لتبدأ العدّادات بالعمل.</string>
+    <string name="drs__unified__stats_today">اليوم</string>
+    <string name="drs__unified__stats_last7">آخر 7 أيام</string>
+    <string name="drs__unified__stats_days_list">تفصيل الأيام الأخيرة (حتى 14 يومًا)</string>
+    <string name="drs__unified__stats_keys">ضغطات المفاتيح</string>
+    <string name="drs__unified__stats_tools">استخدام الأدوات</string>
+    <string name="drs__unified__stats_tech_tools">أدوات النصوص التقنية</string>
+    <string name="drs__unified__stats_gestures">الإيماءات</string>
+    <string name="drs__unified__stats_emoji">الإيموجي</string>
+    <string name="drs__unified__stats_clipboard">الحافظة</string>
+    <string name="drs__unified__stats_shortcuts">الاختصارات</string>
+    <string name="drs__unified__stats_empty">لا نشاط مسجّل اليوم بعد — اكتب في أي تطبيق ثم عد إلى هنا</string>
+    <string name="drs__unified__stats_day_line">{keys} ضغطة · {tools} أداة</string>
+    <string name="drs__unified__stats_reset">تصفير الإحصاءات</string>
+    <string name="drs__unified__stats_reset_confirm">سيتم حذف جميع عدّادات الأيام المحلية نهائيًا. هل تريد المتابعة؟</string>
+    <string name="drs__diagnostics__check_daily_stats">سلامة عدّادات الإحصاءات اليومية</string>
+    <string name="drs__diagnostics__hint_daily_stats">بيانات الإحصاءات اليومية تحتوي يومًا غير صالح أو قيمة سالبة — استخدم «تصفير الإحصاءات» في شاشة الإحصاءات اليومية لتنظيفها</string>
 </resources>

@@ -328,12 +328,61 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.0.8: cycles the keyboard theme of the currently effective
+     * day/night slot (real pref write — the live keyboard re-styles).
+     */
+    val THEME_CYCLE = DrsUnifiedTool(
+        id = "theme_cycle",
+        code = KeyCode.THEME_CYCLE,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.0.8: commits the current date & time formatted with the
+     * active subtype's locale through the normal commitText path.
+     */
+    val INSERT_DATE_TIME = DrsUnifiedTool(
+        id = "insert_date_time",
+        code = KeyCode.INSERT_DATE_TIME,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /** DRS v1.0.8: moves the cursor to the very start of the whole text. */
+    val TEXT_START = DrsUnifiedTool(
+        id = "text_start",
+        code = KeyCode.MOVE_START_OF_PAGE,
+        type = KeyType.NAVIGATION,
+        scope = DrsSettingScope.SHARED,
+        defaultView = DrsToolView.TECHNICAL,
+        group = DrsToolGroup.CURSOR,
+    )
+
+    /** DRS v1.0.8: moves the cursor to the very end of the whole text. */
+    val TEXT_END = DrsUnifiedTool(
+        id = "text_end",
+        code = KeyCode.MOVE_END_OF_PAGE,
+        type = KeyType.NAVIGATION,
+        scope = DrsSettingScope.SHARED,
+        defaultView = DrsToolView.TECHNICAL,
+        group = DrsToolGroup.CURSOR,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
         UNDO, REDO, SELECT_ALL, COPY, CUT, PASTE, SHARE,
         SELECT_WORD, WORD_LEFT, WORD_RIGHT, LINE_START, LINE_END,
         DELETE_WORD, HIDE_KEYBOARD, SETTINGS,
+        // DRS v1.0.8: appended at the tail so every existing persisted
+        // order/pin arrangement keeps its exact meaning.
+        THEME_CYCLE, INSERT_DATE_TIME, TEXT_START, TEXT_END,
     )
 
     private val BY_ID = ALL.associateBy { it.id }
@@ -539,5 +588,15 @@ object DrsUnified {
                 unifiedToolViews = emptyMap(),
             )
         }
+    }
+
+    /** DRS v1.0.8: master switch of the daily usage statistics recording. */
+    fun setDailyStatsEnabled(enabled: Boolean) {
+        DrsStore.update { it.copy(dailyStatsEnabled = enabled) }
+    }
+
+    /** DRS v1.0.8: wipes all recorded daily usage buckets (local privacy action). */
+    fun resetDailyStats() {
+        DrsStore.update { it.copy(dailyStats = emptyMap()) }
     }
 }

@@ -199,6 +199,38 @@ class DrsUnifiedTest : FunSpec({
     }
 
     // -----------------------------------------------------------
+    // DRS v1.0.8: the four new catalogue tools
+    // -----------------------------------------------------------
+
+    test("v1.0.8 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("theme_cycle")?.code shouldBe com.drs.smartkeyboard.ime.text.key.KeyCode.THEME_CYCLE
+        DrsUnifiedTools.byId("insert_date_time")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.INSERT_DATE_TIME
+        DrsUnifiedTools.byId("text_start")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.MOVE_START_OF_PAGE
+        DrsUnifiedTools.byId("text_end")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.MOVE_END_OF_PAGE
+    }
+
+    test("v1.0.8 basic tools are visible in the simple level, cursor tools are technical") {
+        val simple = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.SIMPLE, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        // theme cycling and date insertion serve everyday typing
+        simple shouldContain "theme_cycle"
+        simple shouldContain "insert_date_time"
+        // text-level cursor jumps are advanced/technical navigation
+        simple shouldNotContain "text_start"
+        simple shouldNotContain "text_end"
+
+        val advanced = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.ADVANCED, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        advanced shouldContain "text_start"
+        advanced shouldContain "text_end"
+    }
+
+    // -----------------------------------------------------------
     // Shortcut availability scopes
     // -----------------------------------------------------------
 
@@ -274,11 +306,15 @@ class DrsUnifiedTest : FunSpec({
         state.hiddenUnifiedTools.isEmpty() shouldBe true
         state.pinnedUnifiedTools.isEmpty() shouldBe true
         state.unifiedToolViews.isEmpty() shouldBe true
+        // DRS v1.0.8: daily statistics default to empty + enabled
+        state.dailyStats.isEmpty() shouldBe true
+        state.dailyStatsEnabled shouldBe true
         // legacy shortcut keeps BOTH scope -> still expands
         DrsShortcuts.isShortcutAvailable(state, state.shortcuts.first().scope) shouldBe true
         // round-trip keeps the new fields
         val encoded = json.encodeToString(state)
         encoded.contains("hybridViewMode") shouldBe true
+        encoded.contains("dailyStatsEnabled") shouldBe true
     }
 
     test("cycle order covers all three levels") {

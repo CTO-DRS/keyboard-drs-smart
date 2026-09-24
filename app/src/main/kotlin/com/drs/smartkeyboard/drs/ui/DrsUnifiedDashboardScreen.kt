@@ -362,6 +362,17 @@ fun DrsUnifiedDashboardScreen() = DrsScreen {
                         modifier = Modifier.weight(1f),
                     ) { Text(stringRes(R.string.drs__gestures__title), maxLines = 1) }
                 }
+                // DRS v1.0.8: daily usage statistics + performance quick links.
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(
+                        onClick = { navController.navigate(Routes.Settings.DrsUnifiedStats) },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringRes(R.string.drs__unified__stats_title), maxLines = 1) }
+                    OutlinedButton(
+                        onClick = { navController.navigate(Routes.Settings.DrsPerformance) },
+                        modifier = Modifier.weight(1f),
+                    ) { Text(stringRes(R.string.drs__performance__title), maxLines = 1) }
+                }
             }
 
             // ---------------- important switches (live) ----------------

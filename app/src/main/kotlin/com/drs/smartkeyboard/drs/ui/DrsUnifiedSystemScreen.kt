@@ -198,6 +198,11 @@ fun DrsUnifiedSystemScreen() = DrsScreen {
         // ---------------- performance & diagnostics ----------------
         PreferenceGroup(title = stringRes(R.string.drs__unified__system_maintenance_group)) {
             Preference(
+                title = stringRes(R.string.drs__unified__stats_title),
+                summary = stringRes(R.string.drs__unified__stats_summary),
+                onClick = { navController.navigate(Routes.Settings.DrsUnifiedStats) },
+            )
+            Preference(
                 title = stringRes(R.string.drs__performance__title),
                 summary = stringRes(R.string.drs__unified__system_performance_summary),
                 onClick = { navController.navigate(Routes.Settings.DrsPerformance) },

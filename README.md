@@ -8,7 +8,7 @@
 
 A free and open-source keyboard for Android — Arabic-first, fully private, deeply customizable.
 
-[![Version](https://img.shields.io/badge/version-1.0.0-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.0.8-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android.com)
 [![License](https://img.shields.io/badge/License-Apache--2.0-1B2A6B?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/CTO-DRS/keyboard-drs-smart?style=flat-square&display_name=release)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
@@ -73,7 +73,7 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 - **نظام اختصارات متقدم**: تعديل الاختصار القائم باسمه الجديد (بلا تكرارات)، تفعيل/تعطيل كل اختصار على حدة، ومتغير `{cursor}` لتحديد موضع المؤشر بعد الإدراج.
 - **تخصيص الشريط التقني**: إخفاء أي مفتاح أو إعادة ترتيبه، والتغيير يُطبَّق مباشرة على الشريط.
 - **مراقب أداء**: زمن معالجة كل ضغطة فعليًا (متوسط/95%/أقصى)، ذاكرة Java وNative، حجم ملف الحالة — قياسات حية بلا أرقام وهمية.
-- **فحص شامل**: 17 فحصًا بنتيجة Pass/Warning/Error مع سبب كل خلل وطريقة إصلاحه.
+- **فحص شامل**: 19 فحصًا بنتيجة Pass/Warning/Error مع سبب كل خلل وطريقة إصلاحه.
 - **سجل أحداث تقني**: في الذاكرة فقط، يُسجِّل نوع الخطأ ورمزه بلا أي نص مكتوب، مع مسح فوري.
 - **نسخ احتياطي لحالة DRS**: تصدير/استيراد JSON عبر نافذة النظام مع فحص صلاحية يرفض الملفات التالفة قبل تطبيقها.
 
@@ -112,13 +112,13 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 | المصدر | الرابط |
 |---|---|
 | 🚀 أحدث إصدار (مستقر دائمًا) | **[github.com/CTO-DRS/keyboard-drs-smart/releases/latest](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)** |
-| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.7.apk` من صفحة الإصدار |
+| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.8.apk` من صفحة الإصدار |
 | 🔄 من داخل التطبيق | مركز تحديثات DRS — تحقق وتنزيل وتثبيت بلا خروج من التطبيق |
 
 > ⚠️ **ثبّت ملف `.apk` فقط**: ملف `.aab` في صفحة الإصدار حزمة نشر لـ Google Play
 > ولا يمكن تثبيته مباشرة على الأجهزة (تظهر رسالة «الحزمة تبدو غير صالحة»).
-> للتحقق من سلامة التنزيل: الحجم الصحيح 30,212,261 بايت وبصمة
-> **SHA-256: `de4007b60eab8a2ceb3c4e50212fc7d47fed4fc6d54a53526b2d87ad76d399ef`** —
+> للتحقق من سلامة التنزيل: قارن حجم الملف وبصمته مع القيم المدونة في
+> ملف `SHA256SUMS.txt` المرفق بالإصدار —
 > إن اختلف أي منهما فالتنزيل غير مكتمل؛ أعِد تنزيل الملف من جديد.
 
 جميع الملفات موقّعة بنفس مفتاح الإصدار، ومرفق ملف `SHA256SUMS.txt` للتحقق اليدوي.

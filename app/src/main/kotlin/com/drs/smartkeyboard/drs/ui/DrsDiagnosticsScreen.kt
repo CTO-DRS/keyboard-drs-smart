@@ -60,6 +60,7 @@ import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsCrashHandler
 import com.drs.smartkeyboard.drs.DrsBackup
+import com.drs.smartkeyboard.drs.DrsDailyStats
 import com.drs.smartkeyboard.drs.DrsEventLog
 import com.drs.smartkeyboard.drs.DrsEconomy
 import com.drs.smartkeyboard.drs.DrsHybridViewMode
@@ -186,6 +187,10 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                 val pinnedKnown = drsState.pinnedUnifiedTools.all { it in knownToolIds }
                 validView && orderKnown && viewsValid && hiddenKnown && pinnedKnown
             }(),
+            // DRS v1.0.8: the daily usage buckets must stay bounded, keyed
+            // by valid ISO days and non-negative — a corrupted state file
+            // degrades to a warning, never a crash.
+            dailyStatsSane = DrsDailyStats.isSane(drsState.dailyStats),
         )
     }
 
@@ -683,6 +688,7 @@ private fun computeDrsFullTest(
     walletHealthy: Boolean,
     eventErrorCount: Int,
     unifiedStateConsistent: Boolean,
+    dailyStatsSane: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -720,6 +726,13 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_unified,
             R.string.drs__diagnostics__hint_unified,
+        ),
+        // DRS v1.0.8: daily usage statistics buckets sanity.
+        result(
+            dailyStatsSane,
+            warn = true,
+            R.string.drs__diagnostics__check_daily_stats,
+            R.string.drs__diagnostics__hint_daily_stats,
         ),
     )
 }

@@ -403,6 +403,11 @@ private fun toolTitle(id: String): String = when (id) {
     "line_end" -> stringRes(R.string.drs__unified__tool_line_end)
     "delete_word" -> stringRes(R.string.drs__unified__tool_delete_word)
     "hide_keyboard" -> stringRes(R.string.drs__unified__tool_hide_keyboard)
+    // DRS v1.0.8
+    "theme_cycle" -> stringRes(R.string.drs__unified__tool_theme_cycle)
+    "insert_date_time" -> stringRes(R.string.drs__unified__tool_insert_date_time)
+    "text_start" -> stringRes(R.string.drs__unified__tool_text_start)
+    "text_end" -> stringRes(R.string.drs__unified__tool_text_end)
     else -> id
 }
 
@@ -430,5 +435,10 @@ private fun toolDesc(id: String): String = when (id) {
     "line_end" -> stringRes(R.string.drs__unified__tool_line_end_desc)
     "delete_word" -> stringRes(R.string.drs__unified__tool_delete_word_desc)
     "hide_keyboard" -> stringRes(R.string.drs__unified__tool_hide_keyboard_desc)
+    // DRS v1.0.8
+    "theme_cycle" -> stringRes(R.string.drs__unified__tool_theme_cycle_desc)
+    "insert_date_time" -> stringRes(R.string.drs__unified__tool_insert_date_time_desc)
+    "text_start" -> stringRes(R.string.drs__unified__tool_text_start_desc)
+    "text_end" -> stringRes(R.string.drs__unified__tool_text_end_desc)
     else -> ""
 }

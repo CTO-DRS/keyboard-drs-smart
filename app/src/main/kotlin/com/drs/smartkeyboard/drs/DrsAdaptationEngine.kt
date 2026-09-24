@@ -115,10 +115,25 @@ object DrsAdaptationEngine {
     private fun maybeFlush(counter: AtomicLong) {
         if (counter.get() % FLUSH_INTERVAL != 0L) return
         if (!flushing.compareAndSet(false, true)) return
-        DrsStore.update { state ->
-            state.copy(usage = state.usage.merge(drain()))
-        }
+        flushPending()
         flushing.set(false)
+    }
+
+    /**
+     * DRS v1.0.8: drains the pending counters ONCE and merges them into
+     * both the lifetime usage stats and (when enabled) today's daily
+     * bucket. Single drain point keeps the two views consistent.
+     */
+    private fun flushPending() {
+        val delta = drain()
+        DrsStore.update { state ->
+            val merged = state.copy(usage = state.usage.merge(delta))
+            if (merged.dailyStatsEnabled) {
+                merged.copy(dailyStats = DrsDailyStats.mergeInto(merged.dailyStats, delta))
+            } else {
+                merged
+            }
+        }
     }
 
     private fun drain(): DrsUsageStats {
@@ -144,7 +159,7 @@ object DrsAdaptationEngine {
 
     /** Flush whatever is pending (called from diagnostics/control center). */
     fun flushNow() {
-        DrsStore.update { state -> state.copy(usage = state.usage.merge(drain())) }
+        flushPending()
     }
 
     private fun DrsUsageStats.merge(delta: DrsUsageStats): DrsUsageStats {

@@ -68,6 +68,7 @@ import com.drs.smartkeyboard.lib.uppercase
 import com.drs.smartkeyboard.lib.util.InputMethodUtils
 import com.drs.smartkeyboard.nlpManager
 import com.drs.smartkeyboard.subtypeManager
+import com.drs.smartkeyboard.themeManager
 import java.lang.ref.WeakReference
 import java.util.concurrent.atomic.AtomicInteger
 import kotlinx.coroutines.CoroutineScope
@@ -97,6 +98,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     private val extensionManager by context.extensionManager()
     private val nlpManager by context.nlpManager()
     private val subtypeManager by context.subtypeManager()
+    // DRS v1.0.8: theme cycling from the unified strip needs the theme
+    // index + the theme prefs (see handleThemeCycle / ThemeManager.cycleTheme).
+    private val themeManager by context.themeManager()
 
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val layoutManager = LayoutManager(context)
@@ -519,6 +523,30 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     }
 
     /**
+     * DRS v1.0.8: handles a [KeyCode.INSERT_DATE_TIME] event by committing
+     * the current date & time formatted with the ACTIVE SUBTYPE's locale
+     * (system locale as fallback). The text goes through the normal
+     * commitText path, so undo/composing/clipboard integrations all apply.
+     */
+    private fun handleInsertDateTime() {
+        val locale = try {
+            subtypeManager.activeSubtype.primaryLocale.base
+        } catch (_: Throwable) {
+            java.util.Locale.getDefault()
+        }
+        val formatted = try {
+            java.text.DateFormat.getDateTimeInstance(
+                java.text.DateFormat.MEDIUM,
+                java.text.DateFormat.SHORT,
+                locale,
+            ).format(java.util.Date())
+        } catch (_: Throwable) {
+            return
+        }
+        editorInstance.commitText(formatted)
+    }
+
+    /**
      * Handles a [KeyCode.SHIFT] down event.
      */
     private fun handleShiftDown(data: KeyData) {
@@ -890,6 +918,9 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.LANGUAGE_SWITCH -> handleLanguageSwitch()
             KeyCode.REDO -> editorInstance.performRedo()
             KeyCode.SETTINGS -> DrsImeService.launchSettings()
+            // DRS v1.0.8: unified-strip tools (real engine actions).
+            KeyCode.THEME_CYCLE -> scope.launch { themeManager.cycleTheme() }
+            KeyCode.INSERT_DATE_TIME -> handleInsertDateTime()
             KeyCode.SHIFT -> handleShiftUp(data)
             KeyCode.SPACE -> handleSpace(data)
             KeyCode.SYSTEM_INPUT_METHOD_PICKER -> InputMethodUtils.showImePicker(appContext)

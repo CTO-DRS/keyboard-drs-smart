@@ -84,6 +84,7 @@ import com.drs.smartkeyboard.drs.ui.DrsUnifiedDashboardScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedToolsScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedBasicsScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedWritingScreen
+import com.drs.smartkeyboard.drs.ui.DrsUnifiedStatsScreen
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedSystemScreen
 import com.drs.smartkeyboard.app.ext.DrsRewardsScreen
 import com.drs.smartkeyboard.drs.ui.DrsDiagnosticsScreen
@@ -272,6 +273,11 @@ object Routes {
         @Serializable
         @Deeplink("settings/drs/unified-system")
         object DrsUnifiedSystem
+
+        // DRS v1.0.8: real daily usage statistics (local counts only).
+        @Serializable
+        @Deeplink("settings/drs/unified-stats")
+        object DrsUnifiedStats
     }
 
     object Devtools {
@@ -419,6 +425,7 @@ object Routes {
             composableWithDeepLink(Settings.DrsUnifiedBasics::class) { DrsUnifiedBasicsScreen() }
             composableWithDeepLink(Settings.DrsUnifiedWriting::class) { DrsUnifiedWritingScreen() }
             composableWithDeepLink(Settings.DrsUnifiedSystem::class) { DrsUnifiedSystemScreen() }
+            composableWithDeepLink(Settings.DrsUnifiedStats::class) { DrsUnifiedStatsScreen() }
 
             composableWithDeepLink(Devtools.Home::class) { DevtoolsScreen() }
             composableWithDeepLink(Devtools.AndroidLocales::class) { AndroidLocalesScreen() }
