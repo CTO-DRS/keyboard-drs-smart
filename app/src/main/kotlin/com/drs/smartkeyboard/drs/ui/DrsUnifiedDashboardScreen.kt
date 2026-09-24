@@ -28,8 +28,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -133,10 +131,14 @@ fun DrsUnifiedDashboardScreen() = DrsScreen {
     }
 
     content {
+        // DRS fix (v1.0.9): DrsScreen already wraps the content in its own
+        // vertical scroll (with the shared scrollbar) — a nested verticalScroll
+        // here was measured with infinite height constraints and crashed the
+        // screen on open ("Vertically scrollable component was measured with
+        // an infinity maximum height constraints").
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

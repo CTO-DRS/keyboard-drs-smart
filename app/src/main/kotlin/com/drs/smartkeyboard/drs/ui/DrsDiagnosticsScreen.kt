@@ -438,8 +438,13 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .verticalScroll(rememberScrollState())
-                            .height(180.dp),
+                            // DRS fix (v1.0.9): the fixed height MUST come
+                            // before the scroll modifier — the scroll node has
+                            // to receive bounded constraints, otherwise it
+                            // crashes when measured inside DrsScreen's own
+                            // vertical scroll container.
+                            .height(180.dp)
+                            .verticalScroll(rememberScrollState()),
                     ) {
                         eventEntries.forEach { entry ->
                             Text(

@@ -24,8 +24,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -94,10 +92,12 @@ fun DrsPerformanceScreen() = DrsScreen {
     val clipboardCount = remember(tick) { clipboardManager.historyFlow.value.all.size }
 
     content {
+        // DRS fix (v1.0.9): DrsScreen already scrolls — a nested verticalScroll
+        // here was measured with infinite height constraints and crashed the
+        // screen on open.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 8.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {

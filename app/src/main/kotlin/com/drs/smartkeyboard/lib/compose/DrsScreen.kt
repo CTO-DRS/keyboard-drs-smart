@@ -86,6 +86,18 @@ interface DrsScreenScope {
 
     var previewFieldVisible: Boolean
 
+    /**
+     * Whether this screen wraps the content in its own vertical scroll
+     * container (with the shared DRS scrollbar). Defaults to `true`.
+     *
+     * DRS convention: set this to `false` whenever the content provides its
+     * OWN vertically scrollable container (a LazyColumn or a
+     * `verticalScroll` Column) — nesting a vertical scrollable inside this
+     * screen's scroll container measures it with an infinite max height and
+     * crashes with "Vertically scrollable component was measured with an
+     * infinity maximum height constraints". See DrsProfilesScreen for the
+     * reference implementation of this convention.
+     */
     var scrollable: Boolean
 
     var iconSpaceReserved: Boolean
