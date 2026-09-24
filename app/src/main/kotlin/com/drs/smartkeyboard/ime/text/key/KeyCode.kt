@@ -109,6 +109,11 @@ object KeyCode {
     const val THEME_CYCLE =                 -215
     const val INSERT_DATE_TIME =            -216
 
+    // DRS v1.1.0: unified-strip tools. TOGGLE_NUMBER_ROW flips the
+    // keyboard__number_row pref; the LayoutManager recomputes the layout
+    // through the existing pref collector. Handled in KeyboardManager.
+    const val TOGGLE_NUMBER_ROW =           -217
+
     const val SYSTEM_INPUT_METHOD_PICKER =  -221
     const val SYSTEM_PREV_INPUT_METHOD =    -222
     const val SYSTEM_NEXT_INPUT_METHOD =    -223
@@ -144,6 +149,8 @@ object KeyCode {
     const val TEXT_TOOL_REMOVE_LINE_BREAKS =    -614
     const val TEXT_TOOL_SORT_LINES =            -615
     const val TEXT_TOOL_REMOVE_DUPLICATE_LINES =-616
+    const val TEXT_TOOL_NUMBER_LINES =          -617
+    const val TEXT_TOOL_REVERSE_LINES =         -618
     const val TEXT_TOOL_REMOVE_DIACRITICS =     -621
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632

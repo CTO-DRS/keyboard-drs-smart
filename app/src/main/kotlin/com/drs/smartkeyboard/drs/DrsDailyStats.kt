@@ -140,6 +140,28 @@ object DrsDailyStats {
             .mapNotNull { stamp -> stats[stamp]?.takeIf { bucket -> bucket.hasActivity() } }
     }
 
+    /**
+     * DRS v1.1.0: a continuous, ASCENDING (oldest -> today) window of the
+     * last [days] day buckets with every missing day zero-filled — the
+     * exact shape the bar chart and the CSV export need. Returns exactly
+     * [days] buckets when [today] parses (oldest first, today last).
+     */
+    fun lastDaysZeroFilled(
+        stats: Map<String, DrsDayStats>,
+        days: Int,
+        today: String = todayStamp(),
+    ): List<DrsDayStats> {
+        if (days <= 0) return emptyList()
+        val todayDate = try {
+            LocalDate.parse(today)
+        } catch (_: Throwable) {
+            return emptyList()
+        }
+        return ((days - 1) downTo 0)
+            .map { offset -> todayDate.minusDays(offset.toLong()).toString() }
+            .map { stamp -> stats[stamp] ?: DrsDayStats(day = stamp) }
+    }
+
     /** True when at least one counter of the bucket is non-zero. */
     fun DrsDayStats.hasActivity(): Boolean =
         keyPresses > 0L || toolUses > 0L || techToolUses > 0L || gestureUses > 0L ||

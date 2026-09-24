@@ -78,6 +78,10 @@ enum class DrsTextTool(
     SORT_LINES(-615),
     REMOVE_DUPLICATE_LINES(-616),
 
+    // DRS v1.1.0: line-ordering additions (same pure-transform family).
+    NUMBER_LINES(-617),
+    REVERSE_LINES(-618),
+
     // ---- Arabic-specific ----
     REMOVE_DIACRITICS(-621),
 
@@ -141,6 +145,25 @@ object DrsTextTools {
                             seen.add(key)
                         }
                         .joinToString("\n")
+                }
+                // DRS v1.1.0: prefix every line with its 1-based order, and
+                // flip the line order. Both preserve a trailing newline and
+                // keep blank lines exactly where they are.
+                DrsTextTool.NUMBER_LINES -> {
+                    val trailingNewline = text.endsWith("\n")
+                    val numbered = text.lines()
+                        .let { if (trailingNewline) it.dropLast(1) else it }
+                        .mapIndexed { index, line -> "${index + 1}. $line" }
+                        .joinToString("\n")
+                    if (trailingNewline) "$numbered\n" else numbered
+                }
+                DrsTextTool.REVERSE_LINES -> {
+                    val trailingNewline = text.endsWith("\n")
+                    val reversed = text.lines()
+                        .let { if (trailingNewline) it.dropLast(1) else it }
+                        .asReversed()
+                        .joinToString("\n")
+                    if (trailingNewline) "$reversed\n" else reversed
                 }
                 DrsTextTool.REMOVE_DIACRITICS -> text.replace(ARABIC_DIACRITICS, "")
                 DrsTextTool.NORMALIZE_PUNCTUATION -> normalizePunctuation(text)

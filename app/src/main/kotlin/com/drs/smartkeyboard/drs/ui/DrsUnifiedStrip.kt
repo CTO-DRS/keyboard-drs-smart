@@ -28,10 +28,12 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CloseFullscreen
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ContentPasteGo
+import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
@@ -124,6 +126,9 @@ private fun iconForTool(id: String) = when (id) {
     "insert_date_time" -> Icons.Default.Schedule
     "text_start" -> Icons.Default.VerticalAlignTop
     "text_end" -> Icons.Default.VerticalAlignBottom
+    // DRS v1.1.0: one-handed window toggle + number-row toggle.
+    "one_handed" -> Icons.Default.CloseFullscreen
+    "number_row" -> Icons.Default.Dialpad
     else -> Icons.Default.Build
 }
 

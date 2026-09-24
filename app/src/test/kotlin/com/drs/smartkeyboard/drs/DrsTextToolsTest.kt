@@ -76,6 +76,20 @@ class DrsTextToolsTest : FunSpec({
         DrsTextTools.apply(DrsTextTool.REMOVE_DUPLICATE_LINES, "a\nb\na\nc\nb", en) shouldBe "a\nb\nc"
     }
 
+    test("number lines prefixes each line with its 1-based order") {
+        DrsTextTools.apply(DrsTextTool.NUMBER_LINES, "a\nb\nc", en) shouldBe "1. a\n2. b\n3. c"
+        // A trailing newline is preserved through the transform.
+        DrsTextTools.apply(DrsTextTool.NUMBER_LINES, "a\nb\n", en) shouldBe "1. a\n2. b\n"
+        // Blank lines are numbered too — the transform never reorders.
+        DrsTextTools.apply(DrsTextTool.NUMBER_LINES, "x\n\ny", en) shouldBe "1. x\n2. \n3. y"
+    }
+
+    test("reverse lines flips the line order") {
+        DrsTextTools.apply(DrsTextTool.REVERSE_LINES, "a\nb\nc", en) shouldBe "c\nb\na"
+        // A trailing newline is preserved through the transform.
+        DrsTextTools.apply(DrsTextTool.REVERSE_LINES, "a\nb\n", en) shouldBe "b\na\n"
+    }
+
     test("remove diacritics strips arabic harakat") {
         // "مُحَمَّد" with diacritics -> "محمد" without.
         DrsTextTools.apply(DrsTextTool.REMOVE_DIACRITICS, "مُحَمَّد", en) shouldBe "محمد"

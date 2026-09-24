@@ -231,6 +231,31 @@ class DrsUnifiedTest : FunSpec({
     }
 
     // -----------------------------------------------------------
+    // DRS v1.1.0: the new catalogue tools
+    // -----------------------------------------------------------
+
+    test("v1.1.0 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("one_handed")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_COMPACT_LAYOUT
+        DrsUnifiedTools.byId("number_row")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_NUMBER_ROW
+    }
+
+    test("v1.1.0 tools are basic-scope and visible in both levels") {
+        val simple = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.SIMPLE, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        simple shouldContain "one_handed"
+        simple shouldContain "number_row"
+
+        val advanced = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.ADVANCED, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        advanced shouldContain "one_handed"
+        advanced shouldContain "number_row"
+    }
+
+    // -----------------------------------------------------------
     // Shortcut availability scopes
     // -----------------------------------------------------------
 
@@ -309,12 +334,15 @@ class DrsUnifiedTest : FunSpec({
         // DRS v1.0.8: daily statistics default to empty + enabled
         state.dailyStats.isEmpty() shouldBe true
         state.dailyStatsEnabled shouldBe true
+        // DRS v1.1.0: backup timestamp defaults to "never"
+        state.lastBackupAt shouldBe 0L
         // legacy shortcut keeps BOTH scope -> still expands
         DrsShortcuts.isShortcutAvailable(state, state.shortcuts.first().scope) shouldBe true
         // round-trip keeps the new fields
         val encoded = json.encodeToString(state)
         encoded.contains("hybridViewMode") shouldBe true
         encoded.contains("dailyStatsEnabled") shouldBe true
+        encoded.contains("lastBackupAt") shouldBe true
     }
 
     test("cycle order covers all three levels") {

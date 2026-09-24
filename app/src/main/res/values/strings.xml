@@ -1991,4 +1991,40 @@
     <string name="drs__unified__stats_reset_confirm">سيتم حذف جميع عدّادات الأيام المحلية نهائيًا. هل تريد المتابعة؟</string>
     <string name="drs__diagnostics__check_daily_stats">سلامة عدّادات الإحصاءات اليومية</string>
     <string name="drs__diagnostics__hint_daily_stats">بيانات الإحصاءات اليومية تحتوي يومًا غير صالح أو قيمة سالبة — استخدم «تصفير الإحصاءات» في شاشة الإحصاءات اليومية لتنظيفها</string>
+
+    <!-- DRS v1.1.0: new unified-strip tools -->
+    <string name="drs__unified__tool_one_handed">الوضع بيد واحدة</string>
+    <string name="drs__unified__tool_one_handed_desc">تصغير لوحة المفاتيح إلى جانب واحد لسهولة الكتابة بإبهام واحد — الضغط مجددًا يعيدها إلى ملء الشاشة</string>
+    <string name="drs__unified__tool_number_row">صف الأرقام</string>
+    <string name="drs__unified__tool_number_row_desc">إظهار أو إخفاء صف الأرقام فوق لوحة الحروف فورًا دون فتح الإعدادات</string>
+
+    <!-- DRS v1.1.0: quick-action tile names for the unified tools -->
+    <string name="quick_action__theme_cycle">تبديل الثيم</string>
+    <string name="quick_action__theme_cycle__tooltip">الانتقال إلى الثيم التالي المثبّت</string>
+    <string name="quick_action__insert_date_time">التاريخ والوقت</string>
+    <string name="quick_action__insert_date_time__tooltip">إدراج التاريخ والوقت الحاليين بلغة لوحتك</string>
+    <string name="quick_action__toggle_number_row">صف الأرقام</string>
+    <string name="quick_action__toggle_number_row__tooltip">إظهار أو إخفاء صف الأرقام</string>
+
+    <!-- DRS v1.1.0: new text tools -->
+    <string name="drs__text_tools__tool_number_lines">ترقيم الأسطر</string>
+    <string name="drs__text_tools__desc_number_lines">يضيف رقمًا تسلسليًا قبل كل سطر: 1. 2. 3. — مع الحفاظ على الأسطر كما هي</string>
+    <string name="drs__text_tools__tool_reverse_lines">عكس ترتيب الأسطر</string>
+    <string name="drs__text_tools__desc_reverse_lines">يقلب ترتيب الأسطر بحيث يصبح آخر سطر أولًا والعكس</string>
+
+    <!-- DRS v1.1.0: stats chart + CSV export -->
+    <string name="drs__unified__stats_chart_title">ضغطات المفاتيح — آخر 14 يومًا</string>
+    <string name="drs__unified__stats_chart_peak">أعلى يوم: {date} ({keys} ضغطة)</string>
+    <string name="drs__unified__stats_export">تصدير CSV</string>
+    <string name="drs__unified__stats_export_done">تم تصدير الإحصاءات (عدّادات فقط)</string>
+    <string name="drs__unified__stats_export_failed">تعذّر كتابة ملف CSV — حاول موضعًا آخر</string>
+    <string name="drs__unified__stats_export_empty">لا توجد أيام مسجّلة لتصديرها بعد</string>
+
+    <!-- DRS v1.1.0: diagnostics checks #20 and #21 -->
+    <string name="drs__diagnostics__check_storage">مساحة التخزين المتاحة</string>
+    <string name="drs__diagnostics__hint_storage">مساحة تخزين الجهاز شبه ممتلئة — حفظ الحالة والحافظة والنسخ الاحتياطي قد يفشل؛ احذف ملفات غير ضرورية</string>
+    <string name="drs__diagnostics__check_backup_age">حداثة النسخة الاحتياطية</string>
+    <string name="drs__diagnostics__hint_backup_age">لم تُصدِّر نسخة احتياطية لحالة DRS خلال 30 يومًا (أو أبدًا) — استخدم زر التصدير في هذه الشاشة لحماية ملفاتك وسماتك واختصاراتك</string>
+    <string name="drs__diagnostics__backup_last">آخر نسخة احتياطية: {when}</string>
+    <string name="drs__diagnostics__backup_never">لم تُصدَّر أي نسخة احتياطية بعد</string>
 </resources>

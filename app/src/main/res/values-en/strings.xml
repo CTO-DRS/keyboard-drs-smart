@@ -2075,4 +2075,40 @@
     <string name="drs__unified__stats_reset_confirm">All local day counters will be permanently deleted. Continue?</string>
     <string name="drs__diagnostics__check_daily_stats">Daily statistics counters sanity</string>
     <string name="drs__diagnostics__hint_daily_stats">Daily statistics data contains an invalid day or a negative value — use "Reset statistics" in the Daily Statistics screen to clean it up</string>
+
+    <!-- DRS v1.1.0: new unified-strip tools -->
+    <string name="drs__unified__tool_one_handed">One-handed mode</string>
+    <string name="drs__unified__tool_one_handed_desc">Shrink the keyboard to one side for easier thumb typing — press again to restore full width</string>
+    <string name="drs__unified__tool_number_row">Number row</string>
+    <string name="drs__unified__tool_number_row_desc">Show or hide the number row above the letters instantly, without opening settings</string>
+
+    <!-- DRS v1.1.0: quick-action tile names for the unified tools -->
+    <string name="quick_action__theme_cycle">Cycle theme</string>
+    <string name="quick_action__theme_cycle__tooltip">Switch to the next installed theme</string>
+    <string name="quick_action__insert_date_time">Date &amp; time</string>
+    <string name="quick_action__insert_date_time__tooltip">Insert the current date and time in your keyboard language</string>
+    <string name="quick_action__toggle_number_row">Number row</string>
+    <string name="quick_action__toggle_number_row__tooltip">Show or hide the number row</string>
+
+    <!-- DRS v1.1.0: new text tools -->
+    <string name="drs__text_tools__tool_number_lines">Number lines</string>
+    <string name="drs__text_tools__desc_number_lines">Prefixes every line with its order: 1. 2. 3. — keeping the lines themselves untouched</string>
+    <string name="drs__text_tools__tool_reverse_lines">Reverse line order</string>
+    <string name="drs__text_tools__desc_reverse_lines">Flips the line order so the last line becomes the first and vice versa</string>
+
+    <!-- DRS v1.1.0: stats chart + CSV export -->
+    <string name="drs__unified__stats_chart_title">Key presses — last 14 days</string>
+    <string name="drs__unified__stats_chart_peak">Busiest day: {date} ({keys} keys)</string>
+    <string name="drs__unified__stats_export">Export CSV</string>
+    <string name="drs__unified__stats_export_done">Statistics exported (counts only)</string>
+    <string name="drs__unified__stats_export_failed">Could not write the CSV file — try another location</string>
+    <string name="drs__unified__stats_export_empty">No recorded days to export yet</string>
+
+    <!-- DRS v1.1.0: diagnostics checks #20 and #21 -->
+    <string name="drs__diagnostics__check_storage">Available storage space</string>
+    <string name="drs__diagnostics__hint_storage">The device storage is nearly full — state saves, clipboard media and backups may fail; remove unneeded files</string>
+    <string name="drs__diagnostics__check_backup_age">Backup freshness</string>
+    <string name="drs__diagnostics__hint_backup_age">No DRS-state backup was exported in the last 30 days (or ever) — use the export button on this screen to protect your profiles, themes and shortcuts</string>
+    <string name="drs__diagnostics__backup_last">Last backup: {when}</string>
+    <string name="drs__diagnostics__backup_never">No backup has been exported yet</string>
 </resources>

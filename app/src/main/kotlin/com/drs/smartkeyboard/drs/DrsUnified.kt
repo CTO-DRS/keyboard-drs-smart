@@ -374,6 +374,34 @@ object DrsUnifiedTools {
         group = DrsToolGroup.CURSOR,
     )
 
+    /**
+     * DRS v1.1.0: toggles the compact one-handed window mode through the
+     * real window-controller action (same path as the existing on-panel
+     * one-handed controls and its KeyCode dispatch).
+     */
+    val ONE_HANDED = DrsUnifiedTool(
+        id = "one_handed",
+        code = KeyCode.TOGGLE_COMPACT_LAYOUT,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.1.0: toggles the top number row on the character layout —
+     * a real pref write; the LayoutManager recomputes the layout through
+     * the existing pref collector.
+     */
+    val NUMBER_ROW = DrsUnifiedTool(
+        id = "number_row",
+        code = KeyCode.TOGGLE_NUMBER_ROW,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -383,6 +411,8 @@ object DrsUnifiedTools {
         // DRS v1.0.8: appended at the tail so every existing persisted
         // order/pin arrangement keeps its exact meaning.
         THEME_CYCLE, INSERT_DATE_TIME, TEXT_START, TEXT_END,
+        // DRS v1.1.0: same tail-append contract for the new tools.
+        ONE_HANDED, NUMBER_ROW,
     )
 
     private val BY_ID = ALL.associateBy { it.id }
@@ -598,5 +628,13 @@ object DrsUnified {
     /** DRS v1.0.8: wipes all recorded daily usage buckets (local privacy action). */
     fun resetDailyStats() {
         DrsStore.update { it.copy(dailyStats = emptyMap()) }
+    }
+
+    /**
+     * DRS v1.1.0: stamps the moment of the last successful DRS-state backup
+     * export (epoch millis). Consumed by the diagnostics backup-age check.
+     */
+    fun markBackupExported() {
+        DrsStore.update { it.copy(lastBackupAt = System.currentTimeMillis()) }
     }
 }

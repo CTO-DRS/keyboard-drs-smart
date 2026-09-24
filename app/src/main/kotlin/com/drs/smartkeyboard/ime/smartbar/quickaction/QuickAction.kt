@@ -134,6 +134,10 @@ val SmartToolCodes = setOf(
     // DRS v1.0.8: the new unified-strip tools count as tool presses too.
     KeyCode.THEME_CYCLE,
     KeyCode.INSERT_DATE_TIME,
+    // DRS v1.1.0: new catalogue tools + line text ops count as well.
+    KeyCode.TOGGLE_NUMBER_ROW,
+    KeyCode.TEXT_TOOL_NUMBER_LINES,
+    KeyCode.TEXT_TOOL_REVERSE_LINES,
 )
 
 @Composable
@@ -169,6 +173,10 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             // TODO: In the future this will be merged into the resize keyboard panel, for now it is a separate action
             KeyCode.TOGGLE_COMPACT_LAYOUT -> R.string.quick_action__one_handed_mode
             KeyCode.TOGGLE_RESIZE_MODE -> R.string.quick_action__resize_mode
+            // DRS v1.1.0: unified-strip tools that can surface as most-used tiles.
+            KeyCode.THEME_CYCLE -> R.string.quick_action__theme_cycle
+            KeyCode.INSERT_DATE_TIME -> R.string.quick_action__insert_date_time
+            KeyCode.TOGGLE_NUMBER_ROW -> R.string.quick_action__toggle_number_row
             KeyCode.DRAG_MARKER -> if (evaluator.state.debugShowDragAndDropHelpers) {
                 R.string.quick_action__drag_marker
             } else {
@@ -213,6 +221,10 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             // TODO: In the future this will be merged into the resize keyboard panel, for now it is a separate action
             KeyCode.TOGGLE_COMPACT_LAYOUT -> R.string.quick_action__one_handed_mode__tooltip
             KeyCode.TOGGLE_RESIZE_MODE -> R.string.quick_action__resize_mode__tooltip
+            // DRS v1.1.0: unified-strip tools that can surface as most-used tiles.
+            KeyCode.THEME_CYCLE -> R.string.quick_action__theme_cycle__tooltip
+            KeyCode.INSERT_DATE_TIME -> R.string.quick_action__insert_date_time__tooltip
+            KeyCode.TOGGLE_NUMBER_ROW -> R.string.quick_action__toggle_number_row__tooltip
             KeyCode.DRAG_MARKER -> if (evaluator.state.debugShowDragAndDropHelpers) {
                 R.string.quick_action__drag_marker__tooltip
             } else {

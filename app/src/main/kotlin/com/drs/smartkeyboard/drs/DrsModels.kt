@@ -233,6 +233,12 @@ data class DrsState(
     val dailyStats: Map<String, DrsDayStats> = emptyMap(),
     /** DRS v1.0.8: master switch of the daily usage statistics recording. */
     val dailyStatsEnabled: Boolean = true,
+    /**
+     * DRS v1.1.0: epoch millis of the last successful DRS-state backup
+     * export (0 = never). Consumed by the diagnostics backup-age check.
+     * Local only, never synced; old states/backups decode to 0 safely.
+     */
+    val lastBackupAt: Long = 0L,
 )
 
 /** Suggestion ids produced by the local adaptation engine. */

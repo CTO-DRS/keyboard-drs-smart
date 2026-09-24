@@ -8,7 +8,7 @@
 
 A free and open-source keyboard for Android — Arabic-first, fully private, deeply customizable.
 
-[![Version](https://img.shields.io/badge/version-1.0.9-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.1.0-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android.com)
 [![License](https://img.shields.io/badge/License-Apache--2.0-1B2A6B?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/CTO-DRS/keyboard-drs-smart?style=flat-square&display_name=release)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
@@ -112,13 +112,13 @@ A free and open-source keyboard for Android — Arabic-first, fully private, dee
 | المصدر | الرابط |
 |---|---|
 | 🚀 أحدث إصدار (مستقر دائمًا) | **[github.com/CTO-DRS/keyboard-drs-smart/releases/latest](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)** |
-| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.0.9.apk` من صفحة الإصدار |
+| 📱 APK الحالي | `DRS-Smart-Keyboard-v1.1.0.apk` من صفحة الإصدار |
 | 🔄 من داخل التطبيق | مركز تحديثات DRS — تحقق وتنزيل وتثبيت بلا خروج من التطبيق |
 
 > ⚠️ **ثبّت ملف `.apk` فقط**: ملف `.aab` في صفحة الإصدار حزمة نشر لـ Google Play
 > ولا يمكن تثبيته مباشرة على الأجهزة (تظهر رسالة «الحزمة تبدو غير صالحة»).
-> للتحقق من سلامة التنزيل: الحجم الصحيح 30,247,017 بايت وبصمة
-> **SHA-256: `4710719d4287db6236d9a0a3f99fb19ee4e6408ac5245c06e4c2ea37b804a3e8`** —
+> للتحقق من سلامة التنزيل: الحجم الصحيح يظهر في ملف `SHA256SUMS.txt` المرفق
+> بالإصدار، وبصمة SHA-256 تطابق ما فيه —
 > إن اختلف أي منهما فالتنزيل غير مكتمل؛ أعِد تنزيل الملف من جديد.
 
 جميع الملفات موقّعة بنفس مفتاح الإصدار، ومرفق ملف `SHA256SUMS.txt` للتحقق اليدوي.

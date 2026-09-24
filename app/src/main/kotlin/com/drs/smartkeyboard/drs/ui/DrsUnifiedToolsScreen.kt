@@ -408,6 +408,9 @@ private fun toolTitle(id: String): String = when (id) {
     "insert_date_time" -> stringRes(R.string.drs__unified__tool_insert_date_time)
     "text_start" -> stringRes(R.string.drs__unified__tool_text_start)
     "text_end" -> stringRes(R.string.drs__unified__tool_text_end)
+    // DRS v1.1.0
+    "one_handed" -> stringRes(R.string.drs__unified__tool_one_handed)
+    "number_row" -> stringRes(R.string.drs__unified__tool_number_row)
     else -> id
 }
 
@@ -440,5 +443,8 @@ private fun toolDesc(id: String): String = when (id) {
     "insert_date_time" -> stringRes(R.string.drs__unified__tool_insert_date_time_desc)
     "text_start" -> stringRes(R.string.drs__unified__tool_text_start_desc)
     "text_end" -> stringRes(R.string.drs__unified__tool_text_end_desc)
+    // DRS v1.1.0
+    "one_handed" -> stringRes(R.string.drs__unified__tool_one_handed_desc)
+    "number_row" -> stringRes(R.string.drs__unified__tool_number_row_desc)
     else -> ""
 }

@@ -69,6 +69,7 @@ import com.drs.smartkeyboard.drs.DrsRewardCatalog
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.DrsSystems
 import com.drs.smartkeyboard.drs.DrsToolView
+import com.drs.smartkeyboard.drs.DrsUnified
 import com.drs.smartkeyboard.drs.DrsUnifiedTools
 import com.drs.smartkeyboard.ime.input.DrsSoundStyle
 import com.drs.smartkeyboard.lib.compose.DrsScreen
@@ -142,6 +143,16 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             false
         }
     }
+    // DRS v1.1.0: real free-space probe of the storage volume that holds
+    // the DRS state file, clipboard media and the exported backups. A
+    // failing probe never raises a false alarm.
+    val storageAvailableBytes = remember {
+        try {
+            android.os.StatFs(appContext.filesDir.path).availableBytes
+        } catch (_: Throwable) {
+            Long.MAX_VALUE
+        }
+    }
 
     // ---------------- DRS v1.0.6: full technical test runner ----------------
     var testResults by remember { mutableStateOf<List<DrsTestResult>?>(null) }
@@ -191,6 +202,9 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             // by valid ISO days and non-negative — a corrupted state file
             // degrades to a warning, never a crash.
             dailyStatsSane = DrsDailyStats.isSane(drsState.dailyStats),
+            // DRS v1.1.0: real storage headroom + last-backup age.
+            storageAvailableBytes = storageAvailableBytes,
+            lastBackupAt = drsState.lastBackupAt,
         )
     }
 
@@ -483,6 +497,20 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // DRS v1.1.0: real "last backup" timestamp from the state.
+                Text(
+                    text = if (drsState.lastBackupAt > 0L) {
+                        val formatted = java.text.DateFormat.getDateTimeInstance(
+                            java.text.DateFormat.MEDIUM,
+                            java.text.DateFormat.SHORT,
+                        ).format(java.util.Date(drsState.lastBackupAt))
+                        stringRes(R.string.drs__diagnostics__backup_last, "when" to formatted)
+                    } else {
+                        stringRes(R.string.drs__diagnostics__backup_never)
+                    },
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 val exportState = remember { mutableStateOf<String?>(null) }
                 val exportLauncher = rememberLauncherForActivityResult(
                     ActivityResultContracts.CreateDocument("application/json"),
@@ -494,6 +522,9 @@ fun DrsDiagnosticsScreen() = DrsScreen {
                                 out.write(payload.toByteArray(Charsets.UTF_8))
                             } ?: throw IllegalStateException("output stream null")
                             DrsEventLog.recordInfo(DrsEventLog.Categories.STORE, "backup exported")
+                            // DRS v1.1.0: stamp the real export moment so
+                            // the backup-age check reflects this artifact.
+                            DrsUnified.markBackupExported()
                         }
                     }
                     exportState.value = null
@@ -628,6 +659,13 @@ private fun DrsCheckRow(label: String, passed: Boolean) {
 
 private enum class DrsTestSeverity { PASS, WARNING, ERROR }
 
+/** DRS v1.1.0: free-storage thresholds for check #20. */
+private const val STORAGE_PASS_BYTES = 200L * 1024 * 1024
+private const val STORAGE_ERROR_BYTES = 50L * 1024 * 1024
+
+/** DRS v1.1.0: a backup exported within 30 days keeps check #21 green. */
+private const val BACKUP_PASS_MILLIS = 30L * 24 * 60 * 60 * 1000
+
 private data class DrsTestResult(
     val labelRes: Int,
     val severity: DrsTestSeverity,
@@ -694,6 +732,8 @@ private fun computeDrsFullTest(
     eventErrorCount: Int,
     unifiedStateConsistent: Boolean,
     dailyStatsSane: Boolean,
+    storageAvailableBytes: Long,
+    lastBackupAt: Long,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -738,6 +778,22 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_daily_stats,
             R.string.drs__diagnostics__hint_daily_stats,
+        ),
+        // DRS v1.1.0: real free space of the volume holding the state file.
+        result(
+            storageAvailableBytes >= STORAGE_PASS_BYTES,
+            warn = storageAvailableBytes >= STORAGE_ERROR_BYTES,
+            R.string.drs__diagnostics__check_storage,
+            R.string.drs__diagnostics__hint_storage,
+        ),
+        // DRS v1.1.0: age of the last DRS-state backup export. This is
+        // always at most a warning (missing protection, not a broken
+        // feature): the hint points at the export button on this screen.
+        result(
+            lastBackupAt > 0L && System.currentTimeMillis() - lastBackupAt <= BACKUP_PASS_MILLIS,
+            warn = true,
+            R.string.drs__diagnostics__check_backup_age,
+            R.string.drs__diagnostics__hint_backup_age,
         ),
     )
 }

@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.FormatClear
 import androidx.compose.material.icons.filled.FormatLineSpacing
+import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Rule
@@ -50,6 +51,7 @@ import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TextIncrease
 import androidx.compose.runtime.Composable
@@ -167,6 +169,19 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_remove_duplicate_lines,
                 R.string.drs__text_tools__desc_remove_duplicate_lines,
                 Icons.Default.FilterList,
+            ),
+            // DRS v1.1.0: line-ordering additions.
+            toolItem(
+                DrsTextTool.NUMBER_LINES,
+                R.string.drs__text_tools__tool_number_lines,
+                R.string.drs__text_tools__desc_number_lines,
+                Icons.Default.FormatListNumbered,
+            ),
+            toolItem(
+                DrsTextTool.REVERSE_LINES,
+                R.string.drs__text_tools__tool_reverse_lines,
+                R.string.drs__text_tools__desc_reverse_lines,
+                Icons.Default.SwapVert,
             ),
         ),
     ),

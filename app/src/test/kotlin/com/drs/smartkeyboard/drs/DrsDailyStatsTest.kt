@@ -156,4 +156,40 @@ class DrsDailyStatsTest : FunSpec({
         total.keyPresses shouldBe 150
         total.toolUses shouldBe 5
     }
+
+    // -----------------------------------------------------------
+    // DRS v1.1.0: lastDaysZeroFilled (bar-chart / CSV window)
+    // -----------------------------------------------------------
+
+    test("lastDaysZeroFilled returns an ascending zero-filled window") {
+        val today = DrsDailyStats.todayStamp()
+        val twoAgo = LocalDate.parse(today).minusDays(2).toString()
+        val threeAgo = LocalDate.parse(today).minusDays(3).toString()
+        val fourAgo = LocalDate.parse(today).minusDays(4).toString()
+        val stats = mapOf(
+            today to bucket(today, keys = 10),
+            threeAgo to bucket(threeAgo, keys = 30),
+        )
+        val window = DrsDailyStats.lastDaysZeroFilled(stats, 5, today)
+        window.shouldHaveSize(5)
+        // ascending: oldest (today-4) first, today last
+        window.first().day shouldBe fourAgo
+        window[1].day shouldBe threeAgo
+        window[2].day shouldBe twoAgo
+        window.last().day shouldBe today
+        // missing days are zero-filled, present days keep their counters
+        window[2].keyPresses shouldBe 0
+        window[1].keyPresses shouldBe 30
+        window.last().keyPresses shouldBe 10
+    }
+
+    test("lastDaysZeroFilled handles empty stats and invalid today") {
+        val today = DrsDailyStats.todayStamp()
+        val empty = DrsDailyStats.lastDaysZeroFilled(emptyMap(), 7, today)
+        empty.shouldHaveSize(7)
+        empty.all { it.keyPresses == 0L } shouldBe true
+        empty.last().day shouldBe today
+        DrsDailyStats.lastDaysZeroFilled(emptyMap(), 5, "garbage").shouldBeEmpty()
+        DrsDailyStats.lastDaysZeroFilled(emptyMap(), 0, today).shouldBeEmpty()
+    }
 })

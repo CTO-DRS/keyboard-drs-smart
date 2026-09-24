@@ -18,6 +18,9 @@
 
 package com.drs.smartkeyboard.drs.ui
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +45,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -51,6 +58,10 @@ import com.drs.smartkeyboard.drs.DrsDayStats
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.DrsUnified
 import com.drs.smartkeyboard.lib.compose.DrsScreen
+import org.drs.lib.android.showShortToastSync
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -71,8 +82,30 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
     navigationIconVisible = true
     previewFieldVisible = false
 
+    val context = LocalContext.current
     val drsState by DrsStore.state.collectAsState()
     var showResetDialog by remember { mutableStateOf(false) }
+
+    // DRS v1.1.0: local CSV export of the recorded daily buckets through
+    // SAF (user picks the destination; nothing leaves without a choice).
+    val csvPayload = remember { mutableStateOf<String?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/csv"),
+    ) { uri ->
+        val payload = csvPayload.value
+        if (uri != null && payload != null) {
+            val ok = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { out ->
+                    out.write(payload.toByteArray(Charsets.UTF_8))
+                } ?: throw IllegalStateException("output stream null")
+            }.isSuccess
+            context.showShortToastSync(
+                if (ok) R.string.drs__unified__stats_export_done
+                else R.string.drs__unified__stats_export_failed,
+            )
+        }
+        csvPayload.value = null
+    }
 
     content {
         // ---------------- recording switch (real) ----------------
@@ -156,6 +189,39 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), last7.clipboardUses)
         }
 
+        // ---------------- 14-day bar chart (DRS v1.1.0) ----------------
+        val chartDays = DrsDailyStats.lastDaysZeroFilled(drsState.dailyStats, 14, today)
+        StatsCard(title = stringRes(R.string.drs__unified__stats_chart_title)) {
+            StatsBarChart(buckets = chartDays)
+            Spacer(Modifier.height(6.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = formatDayLabel(chartDays.first().day),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = formatDayLabel(chartDays.last().day),
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            val peak = chartDays.maxByOrNull { it.keyPresses }
+            if (peak != null && peak.keyPresses > 0) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_chart_peak,
+                        "date" to formatDayLabel(peak.day),
+                        "keys" to peak.keyPresses.toString(),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 6.dp),
+                )
+            }
+        }
+
         // ---------------- per-day list ----------------
         val recordedDays = DrsDailyStats.lastDays(drsState.dailyStats, 14, today)
         if (recordedDays.isNotEmpty()) {
@@ -186,15 +252,30 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             }
         }
 
-        // ---------------- local reset ----------------
+        // ---------------- local actions: export + reset ----------------
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             OutlinedButton(
+                onClick = {
+                    val recorded = DrsDailyStats.lastDays(drsState.dailyStats, DrsDailyStats.KEEP_DAYS, today)
+                    if (recorded.isEmpty()) {
+                        context.showShortToastSync(R.string.drs__unified__stats_export_empty)
+                    } else {
+                        csvPayload.value = buildStatsCsv(recorded.asReversed())
+                        exportLauncher.launch("drs-daily-stats-" + csvStamp() + ".csv")
+                    }
+                },
+                modifier = Modifier.weight(1f),
+            ) {
+                Text(stringRes(R.string.drs__unified__stats_export))
+            }
+            OutlinedButton(
                 onClick = { showResetDialog = true },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.weight(1f),
             ) {
                 Text(stringRes(R.string.drs__unified__stats_reset))
             }
@@ -231,6 +312,68 @@ private fun formatDayLabel(isoDay: String): String {
         date.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
     } catch (_: Throwable) {
         isoDay
+    }
+}
+
+/** File-stamp for exported CSV names (locale-independent digits). */
+private fun csvStamp(): String = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
+
+/**
+ * DRS v1.1.0: builds the CSV payload of the recorded day buckets
+ * (ascending). Counts only — the file can never contain typed text.
+ */
+private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
+    val header = "day,key_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses"
+    return header + "\n" + buckets.joinToString("\n") { b ->
+        listOf(
+            b.day,
+            b.keyPresses,
+            b.toolUses,
+            b.techToolUses,
+            b.gestureUses,
+            b.emojiUses,
+            b.clipboardUses,
+            b.shortcutUses,
+        ).joinToString(",")
+    } + "\n"
+}
+
+/**
+ * DRS v1.1.0: real bar chart of the daily key presses (ascending window).
+ * Drawn on Canvas from the local counters only; today's bar is emphasized.
+ */
+@Composable
+private fun StatsBarChart(buckets: List<DrsDayStats>) {
+    if (buckets.isEmpty()) return
+    val barColor = MaterialTheme.colorScheme.primary
+    val fadedColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
+    val baselineColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.6f)
+    val maxValue = buckets.maxOf { it.keyPresses }.coerceAtLeast(1L)
+
+    Canvas(modifier = Modifier.fillMaxWidth().height(120.dp)) {
+        val slot = size.width / buckets.size
+        val barWidth = slot * 0.62f
+        val gap = (slot - barWidth) / 2f
+        val chartHeight = size.height * 0.94f
+        // baseline
+        drawLine(
+            color = baselineColor,
+            start = Offset(0f, size.height - 1f),
+            end = Offset(size.width, size.height - 1f),
+            strokeWidth = 1f,
+        )
+        buckets.forEachIndexed { index, bucket ->
+            val value = bucket.keyPresses.coerceAtLeast(0L).toFloat()
+            val barHeight = (value / maxValue.toFloat()) * chartHeight
+            if (barHeight > 0f) {
+                drawRoundRect(
+                    color = if (index == buckets.lastIndex) barColor else fadedColor,
+                    topLeft = Offset(index * slot + gap, size.height - barHeight),
+                    size = Size(barWidth, barHeight),
+                    cornerRadius = CornerRadius(barWidth / 3f, barWidth / 3f),
+                )
+            }
+        }
     }
 }
 

@@ -158,6 +158,10 @@ data class TextKeyData(
                 TOGGLE_ACTIONS_EDITOR,
                 TOGGLE_INCOGNITO_MODE,
                 TOGGLE_AUTOCORRECT,
+                // DRS v1.1.0: the unified-strip feature tools surface in the
+                // "most used" quick-action tiles, so they must be internal.
+                THEME_CYCLE,
+                INSERT_DATE_TIME,
             )
         }
 
@@ -378,6 +382,20 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.TOGGLE_COMPACT_LAYOUT,
             label = "toggle_compact_layout",
+        )
+
+        /** DRS v1.1.0: predefined key data for [KeyCode.THEME_CYCLE] */
+        val THEME_CYCLE = TextKeyData(
+            type = KeyType.FUNCTION,
+            code = KeyCode.THEME_CYCLE,
+            label = "theme_cycle",
+        )
+
+        /** DRS v1.1.0: predefined key data for [KeyCode.INSERT_DATE_TIME] */
+        val INSERT_DATE_TIME = TextKeyData(
+            type = KeyType.FUNCTION,
+            code = KeyCode.INSERT_DATE_TIME,
+            label = "insert_date_time",
         )
         /** Predefined key data for [KeyCode.COMPACT_LAYOUT_TO_LEFT] */
         val COMPACT_LAYOUT_TO_LEFT = TextKeyData(

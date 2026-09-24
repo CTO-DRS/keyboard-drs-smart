@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.ContentPasteGo
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -44,6 +45,8 @@ import androidx.compose.material.icons.filled.KeyboardHide
 import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
@@ -227,6 +230,16 @@ fun ComputingEvaluator.computeImageVector(data: KeyData): ImageVector? {
         KeyCode.COMPACT_LAYOUT_TO_RIGHT,
         KeyCode.TOGGLE_COMPACT_LAYOUT -> {
             context()?.vectorResource(id = R.drawable.ic_accessibility_one_handed)
+        }
+        // DRS v1.1.0: unified-strip feature tools on quick-action tiles.
+        KeyCode.THEME_CYCLE -> {
+            Icons.Default.Palette
+        }
+        KeyCode.INSERT_DATE_TIME -> {
+            Icons.Default.Schedule
+        }
+        KeyCode.TOGGLE_NUMBER_ROW -> {
+            Icons.Default.Dialpad
         }
         KeyCode.TOGGLE_FLOATING_WINDOW -> {
             val enabledIcon = context()?.vectorResource(id = R.drawable.ic_floating_keyboard)

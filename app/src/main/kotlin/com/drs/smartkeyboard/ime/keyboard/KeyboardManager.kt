@@ -921,6 +921,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             // DRS v1.0.8: unified-strip tools (real engine actions).
             KeyCode.THEME_CYCLE -> scope.launch { themeManager.cycleTheme() }
             KeyCode.INSERT_DATE_TIME -> handleInsertDateTime()
+            // DRS v1.1.0: unified-strip tool — flips the number-row pref;
+            // the existing pref collector clears the layout cache and the
+            // LayoutManager recomputes the character layout, so the row
+            // appears/disappears on the very next frame.
+            KeyCode.TOGGLE_NUMBER_ROW -> scope.launch {
+                prefs.keyboard.numberRow.set(!prefs.keyboard.numberRow.get())
+            }
             KeyCode.SHIFT -> handleShiftUp(data)
             KeyCode.SPACE -> handleSpace(data)
             KeyCode.SYSTEM_INPUT_METHOD_PICKER -> InputMethodUtils.showImePicker(appContext)
