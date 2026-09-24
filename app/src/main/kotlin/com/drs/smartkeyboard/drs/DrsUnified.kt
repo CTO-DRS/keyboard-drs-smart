@@ -629,6 +629,37 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.8.0: opens the quick-actions overflow panel (most-used tiles
+     * + the user's quick actions) through the REAL engine action
+     * (KeyCode.TOGGLE_ACTIONS_OVERFLOW — handled in KeyboardManager by
+     * flipping isActionsOverflowVisible, the same path the sticky action
+     * uses). This is the fastest «كل المهام» surface for TYPICAL users.
+     */
+    val QUICK_ACTIONS = DrsUnifiedTool(
+        id = "quick_actions",
+        code = KeyCode.TOGGLE_ACTIONS_OVERFLOW,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.8.0: opens the quick-actions EDITOR through the real engine
+     * action (KeyCode.TOGGLE_ACTIONS_EDITOR — handled in KeyboardManager
+     * via isActionsEditorVisible). Everyone can now rearrange their quick
+     * actions without leaving the keyboard.
+     */
+    val ACTIONS_EDITOR = DrsUnifiedTool(
+        id = "actions_editor",
+        code = KeyCode.TOGGLE_ACTIONS_EDITOR,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -653,6 +684,8 @@ object DrsUnifiedTools {
         NEXT_KEYBOARD_APP,
         // DRS v1.7.0: same tail-append contract for the new tools.
         CLIPBOARD_PIN,
+        // DRS v1.8.0: same tail-append contract for the new tools.
+        QUICK_ACTIONS, ACTIONS_EDITOR,
     )
 
     private val BY_ID = ALL.associateBy { it.id }
@@ -751,6 +784,63 @@ object DrsUnifiedTools {
             else -> DrsHybridViewMode.fromNameSafe(hybridViewMode)
         }
     }
+
+    /**
+     * DRS v1.8.0: returns the per-tool view override name that GUARANTEES
+     * [tool] renders in [view] given its current stored [override], or
+     * null when it is already visible and the state must stay untouched.
+     * Pure and side-effect free.
+     *
+     * A tool pinned from the tools drawer while its effective view hides
+     * it on the current level (e.g. a TECHNICAL-only tool pinned from the
+     * simple level) used to disappear silently; the drawer now applies
+     * this helper so «التثبيت للجميع» really means visible for everyone.
+     */
+    fun ensureVisibleOverride(
+        tool: DrsUnifiedTool,
+        view: DrsHybridViewMode,
+        override: String?,
+    ): String? {
+        val effective = when (override) {
+            DrsToolView.NORMAL.name -> DrsToolView.NORMAL
+            DrsToolView.TECHNICAL.name -> DrsToolView.TECHNICAL
+            DrsToolView.BOTH.name -> DrsToolView.BOTH
+            else -> tool.defaultView
+        }
+        return if (isVisibleIn(tool, view, override)) {
+            null
+        } else {
+            if (effective == DrsToolView.BOTH) null else DrsToolView.BOTH.name
+        }
+    }
+
+    /**
+     * DRS v1.8.0: snapshot of the REAL on/off state of every strip toggle
+     * tool. The strip reads each value from its own engine source (IME
+     * state flags, jetpref settings, the window controller), while this
+     * pure structure keeps the mapping testable on the JVM.
+     */
+    data class ToggleStates(
+        val incognito: Boolean = false,
+        val autocorrect: Boolean = true,
+        val numberRow: Boolean = false,
+        val smartbarVisible: Boolean = true,
+        val floatingWindow: Boolean = false,
+    )
+
+    /**
+     * DRS v1.8.0: the live on/off state of a toggle tool, or null when the
+     * tool is not a toggle (it has no state to show). Drives the small
+     * active dot on the strip tiles so «مفعّل» is visible at a glance.
+     */
+    fun toggleStateOf(id: String, states: ToggleStates): Boolean? = when (id) {
+        "incognito" -> states.incognito
+        "autocorrect" -> states.autocorrect
+        "number_row" -> states.numberRow
+        "smartbar_toggle" -> states.smartbarVisible
+        "floating_mode" -> states.floatingWindow
+        else -> null
+    }
 }
 
 /**
@@ -785,6 +875,41 @@ object DrsUnified {
     /** Opts the normal system's keyboard into the unified strip. */
     fun setStripForNormal(enabled: Boolean) {
         DrsStore.update { it.copy(unifiedStripForNormal = enabled) }
+    }
+
+    /**
+     * DRS v1.8.0: master switch of the tasks bar above the suggestions
+     * strip. Applies to ALL three user systems (العادي/التقني/كلاهما) —
+     * the bar is on by default and this is the single honest way off.
+     */
+    fun setStripEnabled(enabled: Boolean) {
+        DrsStore.update { it.copy(unifiedStripEnabled = enabled) }
+    }
+
+    /**
+     * DRS v1.8.0: pins a tool AND guarantees it is actually visible in the
+     * [view] the user is currently on. Pinning a technical-only tool from
+     * the drawer while on the simple level used to swallow the pin
+     * silently (pinned but never rendered); now the same update also
+     * widens the per-tool view override so the pin really shows up.
+     */
+    fun setToolPinnedEnsureVisible(id: String, view: DrsHybridViewMode) {
+        val tool = DrsUnifiedTools.byId(id) ?: return
+        DrsStore.update { state ->
+            val newOverride = DrsUnifiedTools.ensureVisibleOverride(
+                tool = tool,
+                view = view,
+                override = state.unifiedToolViews[id],
+            )
+            state.copy(
+                pinnedUnifiedTools = (state.pinnedUnifiedTools + id).distinct(),
+                unifiedToolViews = if (newOverride != null) {
+                    state.unifiedToolViews + (id to newOverride)
+                } else {
+                    state.unifiedToolViews
+                },
+            )
+        }
     }
 
     /** Shows/hides one tool (hiding never deletes the customization). */

@@ -95,6 +95,16 @@ private val EMOJI_CHARS = Regex(
  *  Latin comma/semicolon and their Arabic counterparts (، ؛). */
 private val LIST_SEPARATORS = Regex("[,،;؛]")
 
+/** DRS v1.8.0: the boundary between a digit and a letter (either
+ *  direction). \p{N} covers 0-9 and ٠-۹ alike, \p{L} covers Arabic and
+ *  Latin letters; lookaround means insertion never consumes characters. */
+private val DIGIT_THEN_LETTER = Regex("(?<=\\p{N})(?=\\p{L})")
+private val LETTER_THEN_DIGIT = Regex("(?<=\\p{L})(?=\\p{N})")
+
+/** DRS v1.8.0: every Unicode punctuation mark (category P) — the Latin
+ *  set plus the Arabic ، ؛ ؟ and quotes, brackets, dashes and more. */
+private val PUNCTUATION_CHARS = Regex("\\p{IsPunctuation}")
+
 enum class DrsTextTool(
     val code: Int,
     /** Info-only tools show a result message instead of modifying text. */
@@ -172,6 +182,12 @@ enum class DrsTextTool(
     STRIP_EMOJI(-639),
     URL_ENCODE(-642),
     URL_DECODE(-643),
+
+    // DRS v1.8.0: mixed-script cleanup — a single space between digits and
+    // letters in both directions, and full Unicode punctuation removal
+    // (same pure families).
+    SEPARATE_DIGIT_LETTERS(-644),
+    REMOVE_PUNCTUATION(-645),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -435,6 +451,18 @@ object DrsTextTools {
                 } catch (_: Throwable) {
                     text
                 }
+                // DRS v1.8.0: one space between digits and letters in BOTH
+                // directions (12abc -> 12 abc، ٣س -> ٣ س) — the mixed-script
+                // cleanup pasted prices and codes need. The lookarounds never
+                // consume characters, so punctuation and newlines survive;
+                // the inserted space removes the boundary, so idempotent.
+                DrsTextTool.SEPARATE_DIGIT_LETTERS -> text
+                    .replace(DIGIT_THEN_LETTER, " ")
+                    .replace(LETTER_THEN_DIGIT, " ")
+                // DRS v1.8.0: removes EVERY Unicode punctuation mark (Latin
+                // and Arabic ،؛؟ alike). Letters, digits, spaces, symbols and
+                // currency survive — the search-prep sibling of CLEAN_TEXT.
+                DrsTextTool.REMOVE_PUNCTUATION -> text.replace(PUNCTUATION_CHARS, "")
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(
                         text.lines()

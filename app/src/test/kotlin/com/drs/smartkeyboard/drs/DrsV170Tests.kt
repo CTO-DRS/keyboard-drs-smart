@@ -77,7 +77,8 @@ class DrsV170Tests : FunSpec({
         SmartToolCodes shouldContain KeyCode.CLIPBOARD_PIN_ACTIVE
         TextKeyData.getCodeInfoAsTextKeyData(KeyCode.CLIPBOARD_PIN_ACTIVE)
             .shouldNotBeNull()
-        DrsUnifiedTools.ALL.last().id shouldBe "clipboard_pin"
+        // DRS v1.8.0 appended the quick-actions pair after this tail.
+        DrsUnifiedTools.ALL.dropLast(2).last().id shouldBe "clipboard_pin"
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
     }
 

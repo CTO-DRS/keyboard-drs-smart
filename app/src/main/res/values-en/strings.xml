@@ -2318,4 +2318,27 @@
     <string name="drs__context_mode__search">Search</string>
     <string name="drs__context_mode__password">Password</string>
     <string name="drs__context_mode__technical">Technical</string>
+
+    <!-- DRS v1.8.0: pinned-tools drawer (the side-pull handle) -->
+    <string name="drs__tools_drawer__title">Pinned tools</string>
+    <string name="drs__tools_drawer__count">{count} of {total}</string>
+    <string name="drs__tools_drawer__filter_all">All</string>
+    <string name="drs__tools_drawer__pinned_section">Pinned now (strip order)</string>
+    <string name="drs__tools_drawer__pinned_empty">Nothing pinned yet — pin any tool below and it floats to the strip head</string>
+    <string name="drs__tools_drawer__all_section">All tools</string>
+    <string name="drs__tools_drawer__bar_switch">Tasks bar above the suggestions strip</string>
+    <string name="drs__tools_drawer__bar_switch_summary">Shows the tasks bar for everyone above the suggestions strip, with the side-pull handle that opens this drawer</string>
+    <string name="drs__tools_drawer__reset">Reset strip customization</string>
+    <string name="drs__tools_drawer__on">On</string>
+    <string name="drs__tools_drawer__off">Off</string>
+    <!-- DRS v1.8.0: the two new catalogue tools -->
+    <string name="drs__unified__tool_quick_actions">Quick actions</string>
+    <string name="drs__unified__tool_quick_actions_desc">Opens the quick-actions panel with your most-used tool tiles — the same path the smartbar actions toggle uses</string>
+    <string name="drs__unified__tool_actions_editor">Actions editor</string>
+    <string name="drs__unified__tool_actions_editor_desc">Opens the smartbar quick-action buttons editor to rearrange and hide them</string>
+    <!-- DRS v1.8.0: the two new text operations -->
+    <string name="drs__text_tools__tool_separate_digit_letters">Separate digits from letters</string>
+    <string name="drs__text_tools__desc_separate_digit_letters">Inserts one space between every adjacent digit and letter in both directions (12abc becomes 12 abc) — Arabic and Latin alike</string>
+    <string name="drs__text_tools__tool_remove_punctuation">Remove punctuation</string>
+    <string name="drs__text_tools__desc_remove_punctuation">Deletes every punctuation mark (Arabic ،؛؟ and Latin, quotes and brackets) keeping letters, digits, spaces and symbols</string>
 </resources>

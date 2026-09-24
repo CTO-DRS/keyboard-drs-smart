@@ -99,6 +99,10 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
         // the emoji search query instead of the host editor.
         const val F_IS_MEDIA_SEARCH_ACTIVE: ULong =         0x2_0000_0000u
 
+        // DRS v1.8.0: the pinned-tools drawer (درج المهام المثبتة) is open
+        // over the text layout — the side-pull handle on the tasks bar.
+        const val F_IS_TOOLS_DRAWER_VISIBLE: ULong =        0x4_0000_0000u
+
         const val F_DEBUG_SHOW_DRAG_AND_DROP_HELPERS =      0x01_00_00_00_00_00_00_00uL
 
         const val STATE_ALL_ZERO: ULong =                   0uL
@@ -204,6 +208,11 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
     var isMediaSearchActive: Boolean
         get() = getFlag(F_IS_MEDIA_SEARCH_ACTIVE)
         set(v) { setFlag(F_IS_MEDIA_SEARCH_ACTIVE, v) }
+
+    /** DRS v1.8.0: true while the pinned-tools drawer replaces the keyboard. */
+    var isToolsDrawerVisible: Boolean
+        get() = getFlag(F_IS_TOOLS_DRAWER_VISIBLE)
+        set(v) { setFlag(F_IS_TOOLS_DRAWER_VISIBLE, v) }
 
     var isComposingEnabled: Boolean
         get() = getFlag(F_IS_COMPOSING_ENABLED)

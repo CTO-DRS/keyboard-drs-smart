@@ -2234,4 +2234,27 @@
     <string name="drs__context_mode__search">بحث</string>
     <string name="drs__context_mode__password">كلمة مرور</string>
     <string name="drs__context_mode__technical">تقني</string>
+
+    <!-- DRS v1.8.0: درج المهام المثبتة (زر السحب الجانبي) -->
+    <string name="drs__tools_drawer__title">المهام المثبتة</string>
+    <string name="drs__tools_drawer__count">{count} من {total}</string>
+    <string name="drs__tools_drawer__filter_all">الكل</string>
+    <string name="drs__tools_drawer__pinned_section">المثبتة الآن (ترتيب الشريط)</string>
+    <string name="drs__tools_drawer__pinned_empty">لا شيء مثبت بعد — ثبّت أي مهمة من القائمة أدناه وستطفو إلى رأس الشريط</string>
+    <string name="drs__tools_drawer__all_section">جميع المهام</string>
+    <string name="drs__tools_drawer__bar_switch">شريط المهام فوق شريط الاقتراحات</string>
+    <string name="drs__tools_drawer__bar_switch_summary">يظهر شريط المهام للجميع فوق شريط الاقتراحات، مع زر السحب الجانبي لفتح هذا الدرج</string>
+    <string name="drs__tools_drawer__reset">إعادة ضبط تخصيص الشريط</string>
+    <string name="drs__tools_drawer__on">ظاهر</string>
+    <string name="drs__tools_drawer__off">مخفي</string>
+    <!-- DRS v1.8.0: أداتا الكتالوج الجديدتان -->
+    <string name="drs__unified__tool_quick_actions">الإجراءات السريعة</string>
+    <string name="drs__unified__tool_quick_actions_desc">يفتح لوحة الإجراءات السريعة مع بلاطات مهامك الأكثر استخدامًا — نفس مسار زر الإجراءات في الشريط الذكي</string>
+    <string name="drs__unified__tool_actions_editor">محرر الإجراءات</string>
+    <string name="drs__unified__tool_actions_editor_desc">يفتح محرر أزرار الإجراءات السريعة في الشريط الذكي لإعادة ترتيبها وإخفائها</string>
+    <!-- DRS v1.8.0: عمليتا النصوص الجديدتان -->
+    <string name="drs__text_tools__tool_separate_digit_letters">فصل الأرقام عن الحروف</string>
+    <string name="drs__text_tools__desc_separate_digit_letters">يضع مسافة واحدة بين كل رقم وحرف متجاور في الاتجاهين (12abc تصبح 12 abc و٣س تصبح ٣ س) — عربيًا ولاتينيًا</string>
+    <string name="drs__text_tools__tool_remove_punctuation">إزالة علامات الترقيم</string>
+    <string name="drs__text_tools__desc_remove_punctuation">يحذف كل علامات الترقيم (،؛؟ العربية واللاتينية وعلامات الاقتباس والأقواس) مع إبقاء الحروف والأرقام والمسافات والرموز</string>
 </resources>

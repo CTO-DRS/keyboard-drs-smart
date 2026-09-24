@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
+import com.drs.smartkeyboard.drs.ui.DrsToolsDrawerPanel
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedStrip
 import com.drs.smartkeyboard.ime.smartbar.IncognitoDisplayMode
 import com.drs.smartkeyboard.ime.smartbar.InlineSuggestionsStyleCache
@@ -62,12 +63,17 @@ fun TextInputLayout(
         // DRS v1.0.7: unified strip for all three systems - renders the
         // right tools per active display level (بسيط/تقني/مزدوج) and
         // supersedes the former technical-only toolbar.
+        // DRS v1.8.0: the strip is now the TASKS BAR above the suggestions
+        // strip for every user system, and its side-pull handle opens the
+        // pinned-tools drawer over the keyboard area.
         DrsUnifiedStrip()
         Smartbar()
-        if (state.isActionsOverflowVisible) {
-            QuickActionsOverflowPanel()
-        } else {
-            Box {
+        when {
+            // The pinned-tools drawer has priority; the two panels never
+            // stack (opening one closes the other).
+            state.isToolsDrawerVisible -> DrsToolsDrawerPanel()
+            state.isActionsOverflowVisible -> QuickActionsOverflowPanel()
+            else -> Box {
                 val incognitoDisplayMode by prefs.keyboard.incognitoDisplayMode.collectAsState()
                 val showIncognitoIcon = evaluator.state.isIncognitoMode &&
                     incognitoDisplayMode == IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD

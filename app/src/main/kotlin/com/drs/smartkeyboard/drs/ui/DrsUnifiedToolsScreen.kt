@@ -175,12 +175,15 @@ fun DrsUnifiedToolsScreen() = DrsScreen {
                 }
             }
 
-            // ---------------- strip for normal system opt-in ----------------
+            // ---------------- tasks-bar master switch ----------------
+            // DRS v1.8.0: the bar above the suggestions strip now applies
+            // to ALL three systems; this is its single honest switch (also
+            // available inside the keyboard from the tools drawer).
             ToolSwitchCard(
-                title = stringRes(R.string.drs__unified__tools_strip_for_normal),
-                summary = stringRes(R.string.drs__unified__tools_strip_for_normal_summary),
-                checked = drsState.unifiedStripForNormal,
-                onChange = { DrsUnified.setStripForNormal(it) },
+                title = stringRes(R.string.drs__tools_drawer__bar_switch),
+                summary = stringRes(R.string.drs__tools_drawer__bar_switch_summary),
+                checked = drsState.unifiedStripEnabled,
+                onChange = { DrsUnified.setStripEnabled(it) },
             )
 
             // ---------------- catalogue by group ----------------
@@ -379,9 +382,9 @@ private fun ToolSwitchCard(
     }
 }
 
-/** Localized title per catalogue tool id. */
+/** Localized title per catalogue tool id (shared with the IME tools drawer). */
 @Composable
-private fun toolTitle(id: String): String = when (id) {
+fun toolTitle(id: String): String = when (id) {
     "emoji" -> stringRes(R.string.drs__unified__tool_emoji)
     "clipboard" -> stringRes(R.string.drs__unified__tool_clipboard)
     "text_tools" -> stringRes(R.string.drs__unified__tool_text_tools)
@@ -432,12 +435,15 @@ private fun toolTitle(id: String): String = when (id) {
     "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app)
     // DRS v1.7.0
     "clipboard_pin" -> stringRes(R.string.drs__unified__tool_clipboard_pin)
+    // DRS v1.8.0
+    "quick_actions" -> stringRes(R.string.drs__unified__tool_quick_actions)
+    "actions_editor" -> stringRes(R.string.drs__unified__tool_actions_editor)
     else -> id
 }
 
 /** Localized description per catalogue tool id (what it really does). */
 @Composable
-private fun toolDesc(id: String): String = when (id) {
+fun toolDesc(id: String): String = when (id) {
     "emoji" -> stringRes(R.string.drs__unified__tool_emoji_desc)
     "clipboard" -> stringRes(R.string.drs__unified__tool_clipboard_desc)
     "text_tools" -> stringRes(R.string.drs__unified__tool_text_tools_desc)
@@ -488,5 +494,8 @@ private fun toolDesc(id: String): String = when (id) {
     "next_keyboard_app" -> stringRes(R.string.drs__unified__tool_next_keyboard_app_desc)
     // DRS v1.7.0
     "clipboard_pin" -> stringRes(R.string.drs__unified__tool_clipboard_pin_desc)
+    // DRS v1.8.0
+    "quick_actions" -> stringRes(R.string.drs__unified__tool_quick_actions_desc)
+    "actions_editor" -> stringRes(R.string.drs__unified__tool_actions_editor_desc)
     else -> ""
 }

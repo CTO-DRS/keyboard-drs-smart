@@ -437,6 +437,8 @@ class DrsImeService : LifecycleInputMethodService() {
                 activeState.imeUiMode = ImeUiMode.TEXT
                 activeState.isActionsOverflowVisible = false
                 activeState.isActionsEditorVisible = false
+                // DRS v1.8.0: never persist a stale tools drawer across hides.
+                activeState.isToolsDrawerVisible = false
             }
         } else {
             flogWarning(LogTopic.IMS_EVENTS) { "Ignoring (is already hidden)" }

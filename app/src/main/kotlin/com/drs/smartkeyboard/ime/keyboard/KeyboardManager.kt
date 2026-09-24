@@ -992,9 +992,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 prefs.smartbar.enabled.let { it.set(!it.get()) }
             }
             KeyCode.TOGGLE_ACTIONS_OVERFLOW -> {
+                // DRS v1.8.0: the overflow panel and the tools drawer share
+                // the same keyboard area — opening one closes the other.
+                activeState.isToolsDrawerVisible = false
                 activeState.isActionsOverflowVisible = !activeState.isActionsOverflowVisible
             }
             KeyCode.TOGGLE_ACTIONS_EDITOR -> {
+                activeState.isToolsDrawerVisible = false
                 activeState.isActionsEditorVisible = !activeState.isActionsEditorVisible
             }
             KeyCode.TOGGLE_INCOGNITO_MODE -> scope.launch { handleToggleIncognitoMode() }

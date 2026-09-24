@@ -256,6 +256,14 @@ data class DrsState(
      * Local only, never synced; old states/backups decode to 0 safely.
      */
     val lastBackupAt: Long = 0L,
+    /**
+     * DRS v1.8.0: master switch of the tasks bar (شريط المهام) that now
+     * sits ABOVE the suggestions strip for ALL three user systems. Default
+     * ON — everyone gets the bar; the tools drawer's side-pull button can
+     * hide it. Old states/backups decode to true (the new default), so the
+     * upgrade path turns the bar on exactly once, losslessly.
+     */
+    val unifiedStripEnabled: Boolean = true,
 )
 
 /** Suggestion ids produced by the local adaptation engine. */

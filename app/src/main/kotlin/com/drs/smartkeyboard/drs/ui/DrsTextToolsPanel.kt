@@ -32,6 +32,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AutoFixHigh
+import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.ClearAll
 import androidx.compose.material.icons.filled.Code
@@ -188,6 +189,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 DrsTextTool.REMOVE_ALL_SPACES,
                 R.string.drs__text_tools__tool_remove_all_spaces,
                 R.string.drs__text_tools__desc_remove_all_spaces,
+                Icons.Default.SpaceBar,
+            ),
+            // DRS v1.8.0: one space between digits and letters (both ways).
+            toolItem(
+                DrsTextTool.SEPARATE_DIGIT_LETTERS,
+                R.string.drs__text_tools__tool_separate_digit_letters,
+                R.string.drs__text_tools__desc_separate_digit_letters,
                 Icons.Default.SpaceBar,
             ),
             toolItem(
@@ -372,6 +380,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_clean_text,
                 Icons.Default.AutoFixHigh,
             ),
+            // DRS v1.8.0: strips every Unicode punctuation mark.
+            toolItem(
+                DrsTextTool.REMOVE_PUNCTUATION,
+                R.string.drs__text_tools__tool_remove_punctuation,
+                R.string.drs__text_tools__desc_remove_punctuation,
+                Icons.Default.Block,
+            ),
             // DRS v1.2.0: locale-aware quote wrapping.
             toolItem(
                 DrsTextTool.WRAP_QUOTES,
@@ -504,6 +519,9 @@ fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.STRIP_EMOJI -> R.string.drs__text_tools__tool_strip_emoji
     DrsTextTool.URL_ENCODE -> R.string.drs__text_tools__tool_url_encode
     DrsTextTool.URL_DECODE -> R.string.drs__text_tools__tool_url_decode
+    // DRS v1.8.0: the mixed-script cleanup pair.
+    DrsTextTool.SEPARATE_DIGIT_LETTERS -> R.string.drs__text_tools__tool_separate_digit_letters
+    DrsTextTool.REMOVE_PUNCTUATION -> R.string.drs__text_tools__tool_remove_punctuation
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__tool_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__tool_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__tool_collapse_empty_lines
@@ -553,6 +571,9 @@ fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.STRIP_EMOJI -> R.string.drs__text_tools__desc_strip_emoji
     DrsTextTool.URL_ENCODE -> R.string.drs__text_tools__desc_url_encode
     DrsTextTool.URL_DECODE -> R.string.drs__text_tools__desc_url_decode
+    // DRS v1.8.0: the mixed-script cleanup pair.
+    DrsTextTool.SEPARATE_DIGIT_LETTERS -> R.string.drs__text_tools__desc_separate_digit_letters
+    DrsTextTool.REMOVE_PUNCTUATION -> R.string.drs__text_tools__desc_remove_punctuation
     DrsTextTool.REMOVE_ZERO_WIDTH -> R.string.drs__text_tools__desc_remove_zero_width
     DrsTextTool.REMOVE_EMPTY_LINES -> R.string.drs__text_tools__desc_remove_empty_lines
     DrsTextTool.COLLAPSE_EMPTY_LINES -> R.string.drs__text_tools__desc_collapse_empty_lines

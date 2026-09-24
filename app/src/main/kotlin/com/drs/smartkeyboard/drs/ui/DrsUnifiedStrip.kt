@@ -17,15 +17,20 @@
 
 package com.drs.smartkeyboard.drs.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Backspace
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloseFullscreen
@@ -35,10 +40,12 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ContentPasteGo
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.DragHandle
 import androidx.compose.material.icons.filled.East
 import androidx.compose.material.icons.filled.EmojiEmotions
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Spellcheck
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
@@ -69,27 +76,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.drs.DrsAdaptationEngine
 import com.drs.smartkeyboard.drs.DrsContextMode
 import com.drs.smartkeyboard.drs.DrsHybridViewMode
-import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRuntimeState
 import com.drs.smartkeyboard.drs.DrsStore
+import com.drs.smartkeyboard.drs.DrsSystems
 import com.drs.smartkeyboard.drs.DrsTechToolbarKeys
 import com.drs.smartkeyboard.drs.DrsUnified
 import com.drs.smartkeyboard.drs.DrsUnifiedTools
 import com.drs.smartkeyboard.drs.DrsUserPath
+import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import com.drs.smartkeyboard.ime.text.key.KeyType
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
+import com.drs.smartkeyboard.ime.window.ImeWindowSpec
+import com.drs.smartkeyboard.ime.window.LocalWindowController
 import com.drs.smartkeyboard.keyboardManager
 import androidx.compose.material3.Text
+import org.drs.jetpref.datastore.model.collectAsState
 import org.drs.lib.snygg.ui.SnyggIcon
 import org.drs.lib.snygg.ui.SnyggIconButton
 import org.drs.lib.snygg.ui.SnyggRow
@@ -165,6 +177,9 @@ private fun iconForTool(id: String) = when (id) {
     "next_keyboard_app" -> Icons.Default.SwapHoriz
     // DRS v1.7.0: the active-clip pin toggle.
     "clipboard_pin" -> Icons.Default.PushPin
+    // DRS v1.8.0: quick actions overflow + the actions editor.
+    "quick_actions" -> Icons.Default.Apps
+    "actions_editor" -> Icons.Default.Tune
     else -> Icons.Default.Build
 }
 
@@ -176,23 +191,45 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
     val drsState by DrsStore.state.collectAsState()
     val contextMode by DrsRuntimeState.contextMode.collectAsState()
 
-    val profile = DrsProfileManager.activeProfile(drsState)
     val isHybrid = drsState.userPath == DrsUserPath.HYBRID.name
-    val isNormal = drsState.userPath == DrsUserPath.NORMAL.name
-    val isTechnical = drsState.userPath == DrsUserPath.TECHNICAL.name
 
-    // Same auto-show rule the technical toolbar has always used: when the
-    // context detector sees a coding/technical field, technical and hybrid
-    // users get the strip even if the profile toggle is off.
-    val autoTechStrip = drsState.contextModesEnabled &&
-        (contextMode == DrsContextMode.CODING || contextMode == DrsContextMode.TECHNICAL) &&
-        (isTechnical || isHybrid)
-    val legacyVisible = ((profile?.techStripEnabled ?: false) || autoTechStrip) &&
+    // DRS v1.8.0: the tasks bar (شريط المهام) now sits ABOVE the
+    // suggestions strip for ALL three user systems — العادي والتقني
+    // وكلاهما. Exactly two gates remain: the persisted master switch
+    // (unifiedStripEnabled, on by default, toggled from the tools drawer)
+    // and the password-field guard. The former per-system gating
+    // (techStripEnabled / unifiedStripForNormal / coding-context auto
+    // show) is superseded; «الشريط للجميع» is the contract now.
+    val visible = drsState.unifiedStripEnabled &&
         contextMode != DrsContextMode.PASSWORD
-    val normalOptIn = isNormal && drsState.unifiedStripForNormal &&
-        contextMode != DrsContextMode.PASSWORD
-    val visible = if (isNormal) normalOptIn else legacyVisible
     if (!visible) return
+
+    // DRS v1.8.0: real on/off state of the toggle tools, read from the
+    // same engine sources that own them (IME flags, jetpref settings and
+    // the window controller) so the active dot never lies.
+    val windowController = LocalWindowController.current
+    val windowSpec by windowController.activeWindowSpec.collectAsState()
+    val prefs by DrsPreferenceStore
+    val suggestionEnabled by prefs.suggestion.enabled.collectAsState()
+    val numberRowEnabled by prefs.keyboard.numberRow.collectAsState()
+    val smartbarEnabled by prefs.smartbar.enabled.collectAsState()
+    val toggleStates = remember(
+        keyboardManager.activeState.isIncognitoMode,
+        suggestionEnabled, numberRowEnabled, smartbarEnabled,
+        windowSpec,
+    ) {
+        DrsUnifiedTools.ToggleStates(
+            incognito = keyboardManager.activeState.isIncognitoMode,
+            autocorrect = suggestionEnabled,
+            numberRow = numberRowEnabled,
+            smartbarVisible = smartbarEnabled,
+            floatingWindow = windowSpec.props is ImeWindowSpec.Floating,
+        )
+    }
+    // Accent for the active dot, from the active user system's palette
+    // (same identity the settings screens use).
+    val systemSpec = DrsSystems.specOfName(drsState.userPath)
+    val accentColor = if (isSystemInDarkTheme()) systemSpec.accentNight else systemSpec.accent
 
     val view = DrsUnifiedTools.viewForSystem(drsState.userPath, drsState.hybridViewMode)
     val tools = remember(
@@ -231,6 +268,25 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
             .horizontalScroll(rememberScrollState()),
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
+        // 0) DRS v1.8.0: the side-pull handle (زر السحب الجانبي). Always
+        //    the first element so the pinned-tools drawer stays reachable
+        //    for everyone even when every tool is unpinned or hidden.
+        //    Opening the drawer closes the quick-actions overflow (the two
+        //    panels replace the same keyboard area).
+        SnyggIconButton(
+            elementName = DrsImeUi.SmartbarActionKey.elementName,
+            onClick = {
+                val state = keyboardManager.activeState
+                state.isToolsDrawerVisible = !state.isToolsDrawerVisible
+                if (state.isToolsDrawerVisible) {
+                    state.isActionsOverflowVisible = false
+                }
+            },
+            modifier = Modifier.sizeIn(minWidth = 40.dp).height(stripHeight),
+        ) {
+            SnyggIcon(imageVector = Icons.Default.DragHandle)
+        }
+
         // 1) نظام كلاهما: quick display-level cycle (بسيط -> تقني -> مزدوج).
         //    Persisted in DrsState; only visibility ever changes.
         if (isHybrid) {
@@ -252,6 +308,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
         //    hiding it in the manager also really removes the button.
         tools.forEach { tool ->
             val isTextTools = tool.code == KeyCode.IME_UI_MODE_TEXT_TOOLS
+            val toggleOn = DrsUnifiedTools.toggleStateOf(tool.id, toggleStates)
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,
                 onClick = {
@@ -266,12 +323,29 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
                 },
                 modifier = Modifier.sizeIn(minWidth = 38.dp).height(stripHeight),
             ) {
-                when {
-                    isTextTools -> SnyggIcon(
-                        imageVector = if (isTextToolsOpen) Icons.Default.Close else Icons.Default.Build,
-                    )
-                    tool.id == "symbols" -> Text(text = "&#", fontSize = 14.sp, maxLines = 1)
-                    else -> SnyggIcon(imageVector = iconForTool(tool.id))
+                androidx.compose.foundation.layout.Box(
+                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                ) {
+                    when {
+                        isTextTools -> SnyggIcon(
+                            imageVector = if (isTextToolsOpen) Icons.Default.Close else Icons.Default.Build,
+                        )
+                        tool.id == "symbols" -> Text(text = "&#", fontSize = 14.sp, maxLines = 1)
+                        else -> SnyggIcon(imageVector = iconForTool(tool.id))
+                    }
+                    // DRS v1.8.0: the real on/off state of toggle tools
+                    // (incognito/autocorrect/number row/smartbar/floating)
+                    // as a small accent dot — the tile shows the truth.
+                    if (toggleOn == true) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .align(androidx.compose.ui.Alignment.TopEnd)
+                                .padding(top = 6.dp, end = 5.dp)
+                                .size(6.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(accentColor),
+                        )
+                    }
                 }
             }
         }
