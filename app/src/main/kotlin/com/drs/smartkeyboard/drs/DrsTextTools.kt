@@ -82,6 +82,9 @@ enum class DrsTextTool(
     NUMBER_LINES(-617),
     REVERSE_LINES(-618),
 
+    // DRS v1.2.0: locale-aware quote wrapping (same pure-transform family).
+    WRAP_QUOTES(-619),
+
     // ---- Arabic-specific ----
     REMOVE_DIACRITICS(-621),
 
@@ -164,6 +167,14 @@ object DrsTextTools {
                         .asReversed()
                         .joinToString("\n")
                     if (trailingNewline) "$reversed\n" else reversed
+                }
+                // DRS v1.2.0: surround the text with quotation marks that
+                // match the active locale — Arabic guillemets «» for Arabic,
+                // straight quotes for everything else.
+                DrsTextTool.WRAP_QUOTES -> {
+                    val (openQuote, closeQuote) =
+                        if (locale.language == "ar") "«" to "»" else "\"" to "\""
+                    openQuote + text + closeQuote
                 }
                 DrsTextTool.REMOVE_DIACRITICS -> text.replace(ARABIC_DIACRITICS, "")
                 DrsTextTool.NORMALIZE_PUNCTUATION -> normalizePunctuation(text)

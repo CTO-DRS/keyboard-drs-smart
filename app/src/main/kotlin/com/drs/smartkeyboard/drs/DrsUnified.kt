@@ -402,6 +402,34 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.2.0: toggles incognito typing through the real engine action
+     * (same KeyCode the existing quick actions use — handled in
+     * KeyboardManager.handleToggleIncognitoMode).
+     */
+    val INCOGNITO = DrsUnifiedTool(
+        id = "incognito",
+        code = KeyCode.TOGGLE_INCOGNITO_MODE,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.2.0: toggles auto-correction through the real engine action
+     * (same KeyCode the existing quick actions use — handled in
+     * KeyboardManager.handleToggleAutocorrect).
+     */
+    val AUTOCORRECT = DrsUnifiedTool(
+        id = "autocorrect",
+        code = KeyCode.TOGGLE_AUTOCORRECT,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -413,6 +441,8 @@ object DrsUnifiedTools {
         THEME_CYCLE, INSERT_DATE_TIME, TEXT_START, TEXT_END,
         // DRS v1.1.0: same tail-append contract for the new tools.
         ONE_HANDED, NUMBER_ROW,
+        // DRS v1.2.0: same tail-append contract for the new tools.
+        INCOGNITO, AUTOCORRECT,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

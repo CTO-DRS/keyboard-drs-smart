@@ -255,6 +255,27 @@ class DrsUnifiedTest : FunSpec({
         advanced shouldContain "number_row"
     }
 
+    test("v1.2.0 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("incognito")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_INCOGNITO_MODE
+        DrsUnifiedTools.byId("autocorrect")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_AUTOCORRECT
+    }
+
+    test("v1.2.0 tools are basic-scope and visible in both levels") {
+        val simple = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.SIMPLE, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        simple shouldContain "incognito"
+        simple shouldContain "autocorrect"
+
+        val advanced = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.ADVANCED, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        advanced shouldContain "incognito"
+        advanced shouldContain "autocorrect"
+    }
+
     // -----------------------------------------------------------
     // Shortcut availability scopes
     // -----------------------------------------------------------

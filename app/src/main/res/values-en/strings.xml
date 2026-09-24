@@ -2111,4 +2111,22 @@
     <string name="drs__diagnostics__hint_backup_age">No DRS-state backup was exported in the last 30 days (or ever) — use the export button on this screen to protect your profiles, themes and shortcuts</string>
     <string name="drs__diagnostics__backup_last">Last backup: {when}</string>
     <string name="drs__diagnostics__backup_never">No backup has been exported yet</string>
+    <!-- DRS v1.2.0: smartbar height scale -->
+    <string name="pref__keyboard__smartbar_height_scale__label">Smartbar height scale</string>
+    <string name="drs__unified__basics_smartbar_summary">Adjust the smartbar height above the letters — applied instantly to the live keyboard, suggestion chips and headers</string>
+
+    <!-- DRS v1.2.0: new unified-strip tools -->
+    <string name="drs__unified__tool_incognito">Incognito mode</string>
+    <string name="drs__unified__tool_incognito_desc">Type without learning or saving what you write — suggestions reset after each session, ideal for sensitive fields</string>
+    <string name="drs__unified__tool_autocorrect">Auto-correction</string>
+    <string name="drs__unified__tool_autocorrect_desc">Toggle automatic word correction while typing — switch instantly from the strip without opening settings</string>
+
+    <!-- DRS v1.2.0: quote wrapping text tool -->
+    <string name="drs__text_tools__tool_wrap_quotes">Wrap in quotes</string>
+    <string name="drs__text_tools__desc_wrap_quotes">Surrounds the selection (or the whole text) with «» for Arabic text or \"\" for everything else</string>
+
+    <!-- DRS v1.2.0: all-time totals card -->
+    <string name="drs__unified__stats_totals_title">All-time totals — every recorded day</string>
+    <string name="drs__unified__stats_streak">Activity streak: {count} day(s)</string>
+    <string name="drs__unified__stats_best_day">Best day ever: {date} ({keys} presses)</string>
 </resources>

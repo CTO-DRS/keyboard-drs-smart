@@ -90,6 +90,14 @@ class DrsTextToolsTest : FunSpec({
         DrsTextTools.apply(DrsTextTool.REVERSE_LINES, "a\nb\n", en) shouldBe "b\na\n"
     }
 
+    test("wrap quotes surrounds text with locale-aware marks") {
+        val ar = Locale("ar")
+        DrsTextTools.apply(DrsTextTool.WRAP_QUOTES, "مرحبا", ar) shouldBe "«مرحبا»"
+        DrsTextTools.apply(DrsTextTool.WRAP_QUOTES, "hello", en) shouldBe "\"hello\""
+        // Multiline text is wrapped as one block, not per line.
+        DrsTextTools.apply(DrsTextTool.WRAP_QUOTES, "a\nb", en) shouldBe "\"a\nb\""
+    }
+
     test("remove diacritics strips arabic harakat") {
         // "مُحَمَّد" with diacritics -> "محمد" without.
         DrsTextTools.apply(DrsTextTool.REMOVE_DIACRITICS, "مُحَمَّد", en) shouldBe "محمد"

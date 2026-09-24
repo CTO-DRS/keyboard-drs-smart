@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.FormatClear
 import androidx.compose.material.icons.filled.FormatLineSpacing
 import androidx.compose.material.icons.filled.FormatListNumbered
+import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.FormatSize
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Rule
@@ -210,6 +211,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_clean_text,
                 R.string.drs__text_tools__desc_clean_text,
                 Icons.Default.AutoFixHigh,
+            ),
+            // DRS v1.2.0: locale-aware quote wrapping.
+            toolItem(
+                DrsTextTool.WRAP_QUOTES,
+                R.string.drs__text_tools__tool_wrap_quotes,
+                R.string.drs__text_tools__desc_wrap_quotes,
+                Icons.Default.FormatQuote,
             ),
         ),
     ),

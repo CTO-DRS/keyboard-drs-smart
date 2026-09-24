@@ -2027,4 +2027,22 @@
     <string name="drs__diagnostics__hint_backup_age">لم تُصدِّر نسخة احتياطية لحالة DRS خلال 30 يومًا (أو أبدًا) — استخدم زر التصدير في هذه الشاشة لحماية ملفاتك وسماتك واختصاراتك</string>
     <string name="drs__diagnostics__backup_last">آخر نسخة احتياطية: {when}</string>
     <string name="drs__diagnostics__backup_never">لم تُصدَّر أي نسخة احتياطية بعد</string>
+    <!-- DRS v1.2.0: smartbar height scale -->
+    <string name="pref__keyboard__smartbar_height_scale__label">مقياس ارتفاع الشريط الذكي</string>
+    <string name="drs__unified__basics_smartbar_summary">اضبط ارتفاع الشريط الذكي فوق الحروف — يُطبَّق التغيير فورًا على اللوحة الحية وملفات الاقتراحات والرؤوس</string>
+
+    <!-- DRS v1.2.0: new unified-strip tools -->
+    <string name="drs__unified__tool_incognito">الوضع الخفي</string>
+    <string name="drs__unified__tool_incognito_desc">كتابة دون تعلم أو حفظ لما تكتبه — يُعاد ضبط الاقتراحات بعد كل جلسة، بديل مثالي للحقول الحساسة</string>
+    <string name="drs__unified__tool_autocorrect">التصحيح التلقائي</string>
+    <string name="drs__unified__tool_autocorrect_desc">تشغيل أو إيقاف تصحيح الكلمات تلقائيًا أثناء الكتابة — تبديل فوري من الشريط دون فتح الإعدادات</string>
+
+    <!-- DRS v1.2.0: quote wrapping text tool -->
+    <string name="drs__text_tools__tool_wrap_quotes">إحاطة بعلامات اقتباس</string>
+    <string name="drs__text_tools__desc_wrap_quotes">يحيط النص المحدد (أو النص كاملًا) بعلامتي «» للنصوص العربية أو \"\" لغيرها</string>
+
+    <!-- DRS v1.2.0: all-time totals card -->
+    <string name="drs__unified__stats_totals_title">الإجماليات الكلية — كل الأيام المسجلة</string>
+    <string name="drs__unified__stats_streak">سلسلة النشاط المتتالي: {count} يوم</string>
+    <string name="drs__unified__stats_best_day">أعلى يوم على الإطلاق: {date} ({keys} ضغطة)</string>
 </resources>

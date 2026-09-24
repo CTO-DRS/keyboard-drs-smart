@@ -36,6 +36,7 @@ import com.drs.smartkeyboard.ime.smartbar.ExtendedActionsPlacement
 import com.drs.smartkeyboard.ime.smartbar.InlineSuggestionsChipMargin
 import com.drs.smartkeyboard.ime.smartbar.SmartbarLayout
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyboard
+import com.drs.smartkeyboard.ime.window.ImeWindowSpec
 import com.drs.smartkeyboard.ime.window.LocalWindowController
 import com.drs.smartkeyboard.keyboardManager
 import org.drs.jetpref.datastore.model.collectAsState
@@ -118,8 +119,16 @@ object DrsImeSizing {
 fun ProvideKeyboardRowBaseHeight(content: @Composable () -> Unit) {
     val windowController = LocalWindowController.current
     val density = LocalDensity.current
+    val prefs by DrsPreferenceStore
 
     val windowSpec by windowController.activeWindowSpec.collectAsState()
+    // DRS v1.2.0: the Smartbar height scale multiplies the provided
+    // Smartbar row height, so the live Smartbar — and every consumer of
+    // DrsImeSizing.smartbarHeight (Smartbar rows, clipboard/emoji headers,
+    // autofill chip height) — really follows the preference. The window
+    // resize math (ImeWindowSpec) stays untouched by design.
+    val smartbarScalePercent by prefs.keyboard.smartbarHeightScalePercent.collectAsState()
+    val smartbarScale = ImeWindowSpec.sanitizeSmartbarHeightScale(smartbarScalePercent)
 
     val heights by remember {
         derivedStateOf {
@@ -129,18 +138,19 @@ fun ProvideKeyboardRowBaseHeight(content: @Composable () -> Unit) {
         }
     }
     val (rowHeight, smartbarRowHeight) = heights
+    val effectiveSmartbarRowHeight = smartbarRowHeight * smartbarScale
 
     SideEffect {
         val marginV = InlineSuggestionsChipMargin.calculateTopPadding() +
             InlineSuggestionsChipMargin.calculateBottomPadding()
         NlpInlineAutofill.suggestionsChipHeightPx = with(density) {
-            (smartbarRowHeight - marginV).roundToPx()
+            (effectiveSmartbarRowHeight - marginV).roundToPx()
         }
     }
 
     CompositionLocalProvider(
         LocalKeyboardRowBaseHeight provides rowHeight,
-        LocalSmartbarHeight provides smartbarRowHeight,
+        LocalSmartbarHeight provides effectiveSmartbarRowHeight,
     ) {
         content()
     }

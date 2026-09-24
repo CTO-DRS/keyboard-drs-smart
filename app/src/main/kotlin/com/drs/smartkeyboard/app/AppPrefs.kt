@@ -615,6 +615,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "keyboard__height_scale_percent",
             default = ImeWindowSpec.HEIGHT_SCALE_DEFAULT_PERCENT,
         )
+        // DRS v1.2.0: Smartbar HEIGHT scale as a percentage of the baseline
+        // Smartbar row height. 100 = default. Real behavior change: the
+        // sizing layer multiplies the provided Smartbar row height by this
+        // factor, so the live Smartbar (and every consumer of
+        // DrsImeSizing.smartbarHeight) really follows the slider.
+        val smartbarHeightScalePercent = int(
+            key = "keyboard__smartbar_height_scale_percent",
+            default = ImeWindowSpec.SMARTBAR_HEIGHT_SCALE_DEFAULT_PERCENT,
+        )
         val spaceBarSwitchesToCharacters = boolean(
             key = "keyboard__space_bar_switches_to_characters",
             default = true,

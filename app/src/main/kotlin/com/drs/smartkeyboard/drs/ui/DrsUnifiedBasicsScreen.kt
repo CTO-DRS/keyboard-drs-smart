@@ -97,6 +97,17 @@ fun DrsUnifiedBasicsScreen() = DrsScreen {
                 max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.HEIGHT_SCALE_MAX_PERCENT,
                 stepIncrement = 5,
             )
+            // DRS v1.2.0: Smartbar height scale — the live Smartbar follows
+            // it through the sizing layer (ProvideKeyboardRowBaseHeight).
+            DialogSliderPreference(
+                prefs.keyboard.smartbarHeightScalePercent,
+                title = stringRes(R.string.pref__keyboard__smartbar_height_scale__label),
+                summary = { _ -> stringRes(R.string.drs__unified__basics_smartbar_summary) },
+                valueLabel = { stringRes(R.string.unit__percent__symbol, "v" to it) },
+                min = com.drs.smartkeyboard.ime.window.ImeWindowSpec.SMARTBAR_HEIGHT_SCALE_MIN_PERCENT,
+                max = com.drs.smartkeyboard.ime.window.ImeWindowSpec.SMARTBAR_HEIGHT_SCALE_MAX_PERCENT,
+                stepIncrement = 5,
+            )
             SwitchPreference(
                 prefs.keyboard.popupEnabled,
                 title = stringRes(R.string.pref__keyboard__popup_enabled__label),

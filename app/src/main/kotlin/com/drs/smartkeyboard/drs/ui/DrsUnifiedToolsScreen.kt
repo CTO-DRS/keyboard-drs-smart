@@ -411,6 +411,9 @@ private fun toolTitle(id: String): String = when (id) {
     // DRS v1.1.0
     "one_handed" -> stringRes(R.string.drs__unified__tool_one_handed)
     "number_row" -> stringRes(R.string.drs__unified__tool_number_row)
+    // DRS v1.2.0
+    "incognito" -> stringRes(R.string.drs__unified__tool_incognito)
+    "autocorrect" -> stringRes(R.string.drs__unified__tool_autocorrect)
     else -> id
 }
 
@@ -446,5 +449,8 @@ private fun toolDesc(id: String): String = when (id) {
     // DRS v1.1.0
     "one_handed" -> stringRes(R.string.drs__unified__tool_one_handed_desc)
     "number_row" -> stringRes(R.string.drs__unified__tool_number_row_desc)
+    // DRS v1.2.0
+    "incognito" -> stringRes(R.string.drs__unified__tool_incognito_desc)
+    "autocorrect" -> stringRes(R.string.drs__unified__tool_autocorrect_desc)
     else -> ""
 }

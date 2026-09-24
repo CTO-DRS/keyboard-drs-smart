@@ -183,6 +183,46 @@ class DrsDailyStatsTest : FunSpec({
         window.last().keyPresses shouldBe 10
     }
 
+    test("bestDay picks the most active day, ties resolve to the later day") {
+        val today = DrsDailyStats.todayStamp()
+        val d1 = LocalDate.parse(today).minusDays(3).toString()
+        val d2 = LocalDate.parse(today).minusDays(2).toString()
+        val d3 = LocalDate.parse(today).minusDays(1).toString()
+        val stats = mapOf(
+            d1 to bucket(d1, keys = 40),
+            d2 to bucket(d2, keys = 90),
+            d3 to bucket(d3, keys = 90),
+            today to bucket(today), // recorded but inactive — never "best"
+        )
+        val best = DrsDailyStats.bestDay(stats)
+        best?.day shouldBe d3
+        best?.keyPresses shouldBe 90L
+        // no activity at all -> null
+        DrsDailyStats.bestDay(emptyMap()) shouldBe null
+    }
+
+    test("currentStreak counts consecutive active days ending today or yesterday") {
+        val today = DrsDailyStats.todayStamp()
+        fun day(offset: Long) = LocalDate.parse(today).minusDays(offset).toString()
+        // today active: 3-day chain (today, -1, -2), gap at -3
+        val stats = mapOf(
+            day(0) to bucket(day(0), keys = 5),
+            day(1) to bucket(day(1), keys = 5),
+            day(2) to bucket(day(2), keys = 5),
+            day(4) to bucket(day(4), keys = 99), // older, must not extend
+        )
+        DrsDailyStats.currentStreak(stats, today) shouldBe 3
+        // today inactive but yesterday active -> live streak still counts
+        DrsDailyStats.currentStreak(
+            mapOf(day(1) to bucket(day(1), keys = 5), day(2) to bucket(day(2), keys = 5)),
+            today,
+        ) shouldBe 2
+        // nothing active -> 0
+        DrsDailyStats.currentStreak(emptyMap(), today) shouldBe 0
+        // malformed today -> 0
+        DrsDailyStats.currentStreak(stats, "garbage") shouldBe 0
+    }
+
     test("lastDaysZeroFilled handles empty stats and invalid today") {
         val today = DrsDailyStats.todayStamp()
         val empty = DrsDailyStats.lastDaysZeroFilled(emptyMap(), 7, today)

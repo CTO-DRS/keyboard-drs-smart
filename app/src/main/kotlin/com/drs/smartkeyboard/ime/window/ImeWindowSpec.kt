@@ -312,9 +312,27 @@ sealed class ImeWindowSpec {
         const val HEIGHT_SCALE_MAX_PERCENT = 130
         const val HEIGHT_SCALE_DEFAULT_PERCENT = 100
 
+        /**
+         * DRS v1.2.0: bounds of the Smartbar height scale preference, in
+         * percent. Kept beside the keyboard height scale so the slider,
+         * the sizing layer and the unit tests share one source of truth.
+         * The scale is applied at the presentation layer
+         * (ProvideKeyboardRowBaseHeight) so every Smartbar consumer
+         * (Smartbar rows, clipboard/emoji headers, autofill chip height)
+         * follows it, while the window resize math stays untouched.
+         */
+        const val SMARTBAR_HEIGHT_SCALE_MIN_PERCENT = 70
+        const val SMARTBAR_HEIGHT_SCALE_MAX_PERCENT = 140
+        const val SMARTBAR_HEIGHT_SCALE_DEFAULT_PERCENT = 100
+
         /** Clamps a raw percent value into the valid scale range and converts it to a multiplier. */
         fun sanitizeHeightScale(percent: Int): Float {
             return percent.coerceIn(HEIGHT_SCALE_MIN_PERCENT, HEIGHT_SCALE_MAX_PERCENT) / 100f
+        }
+
+        /** DRS v1.2.0: same clamp-and-convert contract for the Smartbar scale. */
+        fun sanitizeSmartbarHeightScale(percent: Int): Float {
+            return percent.coerceIn(SMARTBAR_HEIGHT_SCALE_MIN_PERCENT, SMARTBAR_HEIGHT_SCALE_MAX_PERCENT) / 100f
         }
 
         /**

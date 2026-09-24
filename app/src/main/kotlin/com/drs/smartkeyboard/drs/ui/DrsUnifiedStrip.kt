@@ -35,6 +35,8 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ContentPasteGo
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.Spellcheck
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.FirstPage
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
@@ -129,6 +131,9 @@ private fun iconForTool(id: String) = when (id) {
     // DRS v1.1.0: one-handed window toggle + number-row toggle.
     "one_handed" -> Icons.Default.CloseFullscreen
     "number_row" -> Icons.Default.Dialpad
+    // DRS v1.2.0: incognito + autocorrect toggles.
+    "incognito" -> Icons.Default.VisibilityOff
+    "autocorrect" -> Icons.Default.Spellcheck
     else -> Icons.Default.Build
 }
 

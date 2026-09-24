@@ -151,6 +151,9 @@ object KeyCode {
     const val TEXT_TOOL_REMOVE_DUPLICATE_LINES =-616
     const val TEXT_TOOL_NUMBER_LINES =          -617
     const val TEXT_TOOL_REVERSE_LINES =         -618
+    // DRS v1.2.0: locale-aware quote wrapping (inside CODE_RANGE, so the
+    // existing text-tool dispatch path handles it with no extra wiring).
+    const val TEXT_TOOL_WRAP_QUOTES =           -619
     const val TEXT_TOOL_REMOVE_DIACRITICS =     -621
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632

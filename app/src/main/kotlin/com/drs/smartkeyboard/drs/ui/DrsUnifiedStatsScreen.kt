@@ -189,6 +189,43 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), last7.clipboardUses)
         }
 
+        // ---------------- all-time totals (DRS v1.2.0) ----------------
+        // Every number is a pure aggregation of the local day buckets —
+        // the same counters the rest of this screen renders.
+        val totalAll = DrsDailyStats.sum(drsState.dailyStats.values)
+        val best = DrsDailyStats.bestDay(drsState.dailyStats)
+        val streak = DrsDailyStats.currentStreak(drsState.dailyStats, today)
+        StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
+            StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
+            StatsRow(stringRes(R.string.drs__unified__stats_tools), totalAll.toolUses)
+            StatsRow(stringRes(R.string.drs__unified__stats_tech_tools), totalAll.techToolUses)
+            StatsRow(stringRes(R.string.drs__unified__stats_gestures), totalAll.gestureUses)
+            StatsRow(stringRes(R.string.drs__unified__stats_emoji), totalAll.emojiUses)
+            StatsRow(stringRes(R.string.drs__unified__stats_clipboard), totalAll.clipboardUses)
+            StatsRow(stringRes(R.string.drs__unified__stats_shortcuts), totalAll.shortcutUses)
+            Text(
+                text = stringRes(
+                    R.string.drs__unified__stats_streak,
+                    "count" to streak.toString(),
+                ),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            if (best != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_best_day,
+                        "date" to formatDayLabel(best.day),
+                        "keys" to best.keyPresses.toString(),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
         // ---------------- 14-day bar chart (DRS v1.1.0) ----------------
         val chartDays = DrsDailyStats.lastDaysZeroFilled(drsState.dailyStats, 14, today)
         StatsCard(title = stringRes(R.string.drs__unified__stats_chart_title)) {

@@ -162,6 +162,43 @@ object DrsDailyStats {
             .map { stamp -> stats[stamp] ?: DrsDayStats(day = stamp) }
     }
 
+    /**
+     * DRS v1.2.0: the single most active recorded day by key presses.
+     * Ties resolve to the LATER day so the result is deterministic.
+     * Null when no recorded day has any activity at all.
+     */
+    fun bestDay(stats: Map<String, DrsDayStats>): DrsDayStats? =
+        stats.values
+            .filter { it.hasActivity() }
+            .maxWithOrNull(compareBy({ it.keyPresses }, { it.day }))
+
+    /**
+     * DRS v1.2.0: consecutive active days ending today — or ending
+     * yesterday when today has no activity yet (a live streak is not
+     * broken while the current day is still ongoing). Pure and
+     * JVM-testable; a malformed [today] degrades to 0.
+     */
+    fun currentStreak(
+        stats: Map<String, DrsDayStats>,
+        today: String = todayStamp(),
+    ): Int {
+        val todayDate = try {
+            LocalDate.parse(today)
+        } catch (_: Throwable) {
+            return 0
+        }
+        var cursor = todayDate
+        if (stats[cursor.toString()]?.hasActivity() != true) {
+            cursor = cursor.minusDays(1)
+        }
+        var streak = 0
+        while (stats[cursor.toString()]?.hasActivity() == true) {
+            streak++
+            cursor = cursor.minusDays(1)
+        }
+        return streak
+    }
+
     /** True when at least one counter of the bucket is non-zero. */
     fun DrsDayStats.hasActivity(): Boolean =
         keyPresses > 0L || toolUses > 0L || techToolUses > 0L || gestureUses > 0L ||
