@@ -2045,4 +2045,37 @@
     <string name="drs__unified__stats_totals_title">الإجماليات الكلية — كل الأيام المسجلة</string>
     <string name="drs__unified__stats_streak">سلسلة النشاط المتتالي: {count} يوم</string>
     <string name="drs__unified__stats_best_day">أعلى يوم على الإطلاق: {date} ({keys} ضغطة)</string>
+
+    <!-- DRS v1.3.0: real autocorrect toggle toasts -->
+    <string name="drs__autocorrect__toast_enabled">التصحيح التلقائي ممكن الآن — ستظهر اقتراحات وتصحيحات الكلمات مجددًا</string>
+    <string name="drs__autocorrect__toast_disabled">التصحيح التلقائي متوقف الآن — ستُكتب الكلمات كما هي دون اقتراحات</string>
+
+    <!-- DRS v1.3.0: text tools — digit conversion, tatweel, blank lines -->
+    <string name="drs__text_tools__tool_to_arabic_digits">تحويل الأرقام إلى عربية</string>
+    <string name="drs__text_tools__desc_to_arabic_digits">يحوّل كل الأرقام الغربية 123 في النص المحدد (أو النص كاملًا) إلى أرقام عربية-هندية ١٢٣ دون مساس بالحروف أو علامات الترقيم</string>
+    <string name="drs__text_tools__tool_to_western_digits">تحويل الأرقام إلى غربية</string>
+    <string name="drs__text_tools__desc_to_western_digits">يحوّل كل الأرقام العربية-الهندية ١٢٣ والفارسية-الأردية ۱۲۳ إلى أرقام غربية 123 دون مساس بالحروف أو علامات الترقيم</string>
+    <string name="drs__text_tools__tool_remove_tatweel">إزالة التطويل (الكشيدة)</string>
+    <string name="drs__text_tools__desc_remove_tatweel">يحذف محارف التطويل (ـ) من النص المحدد (أو النص كاملًا) فيعود الكلام إلى طبيعته دون مدّ اصطناعي</string>
+    <string name="drs__text_tools__tool_collapse_empty_lines">تكثيف الأسطر الفارغة</string>
+    <string name="drs__text_tools__desc_collapse_empty_lines">يحوّل كل مجموعة أسطر فارغة متتالية إلى سطر فارغ واحد — مسافات أنظف دون حذف الفواصل أو السطر الختامي</string>
+
+    <!-- DRS v1.3.0: unified catalogue tools -->
+    <string name="drs__unified__tool_clipboard_clear">إفراغ الحافظة الحالية</string>
+    <string name="drs__unified__tool_clipboard_clear_desc">يمسح ما هو مثبّت الآن في الحافظة الأساسية فورًا — مفيد عند نسخ بيانات حساسة، والعناصر المثبتة في السجل تبقى كما هي حسب إعدادك</string>
+    <string name="drs__unified__tool_voice_input">الإدخال الصوتي</string>
+    <string name="drs__unified__tool_voice_input_desc">ينتقل فورًا إلى مُدخل الصوت في النظام لإملاء النص بدل الكتابة — يعود بك إلى اللوحة عند الانتهاء</string>
+
+    <!-- DRS v1.3.0: diagnostics checks #22-#24 -->
+    <string name="drs__diagnostics__check_battery">حالة الطاقة والبطارية</string>
+    <string name="drs__diagnostics__hint_battery">البطارية منخفضة أو وضع توفير الطاقة مفعّل — قد يُبطئ النظام عمل لوحة المفاتيح في الخلفية (الاقتراحات والتكيّف)؛ اشحن الجهاز أو أوقف توفير الطاقة لهذا التطبيق</string>
+    <string name="drs__diagnostics__check_amplitude">تحكم الاهتزاز بالشدة</string>
+    <string name="drs__diagnostics__hint_amplitude">جهازك لا يدعم التحكم الدقيق بشدة الاهتزاز — ستُطبَّق شدة النظام الافتراضية بدل المستوى المضبوط في إعدادات اللمس</string>
+    <string name="drs__diagnostics__check_active_theme">سلامة تحميل الثيم النشط</string>
+    <string name="drs__diagnostics__hint_active_theme">تعذّر تحميل الثيم النشط وعادت اللوحة إلى الثيم الأساسي — جرّب اختيار الثيم من جديد أو أعد تثبيت حزمة سماته</string>
+
+    <!-- DRS v1.3.0: stats — numbers/symbols counters + week-over-week -->
+    <string name="drs__unified__stats_numbers">ضغطات الأرقام</string>
+    <string name="drs__unified__stats_symbols">ضغطات الرموز</string>
+    <string name="drs__unified__stats_week_over_week">مقارنة أسبوع بأسبوع: {delta} مقارنة بالأسبوع السابق (ضغطات المفاتيح)</string>
 </resources>

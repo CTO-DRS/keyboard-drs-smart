@@ -138,6 +138,14 @@ val SmartToolCodes = setOf(
     KeyCode.TOGGLE_NUMBER_ROW,
     KeyCode.TEXT_TOOL_NUMBER_LINES,
     KeyCode.TEXT_TOOL_REVERSE_LINES,
+    // DRS v1.2.0 integration fix: WRAP_QUOTES was missing here, so its
+    // usage never surfaced in the most-used tools stats.
+    KeyCode.TEXT_TOOL_WRAP_QUOTES,
+    // DRS v1.3.0: digit conversion, blank-line collapsing, tatweel removal.
+    KeyCode.TEXT_TOOL_TO_ARABIC_DIGITS,
+    KeyCode.TEXT_TOOL_TO_WESTERN_DIGITS,
+    KeyCode.TEXT_TOOL_COLLAPSE_EMPTY_LINES,
+    KeyCode.TEXT_TOOL_REMOVE_TATWEEL,
 )
 
 @Composable

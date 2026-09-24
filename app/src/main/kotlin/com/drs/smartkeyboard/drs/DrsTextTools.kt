@@ -44,6 +44,15 @@ private val HORIZONTAL_SPACES = Regex("[ \\t\\u00A0\\u2007\\u202F]+")
 /** Arabic diacritics (harakat), small quranic marks and superscript alef. */
 private val ARABIC_DIACRITICS = Regex("[\\u064B-\\u065F\\u0670\\u06D6-\\u06ED]")
 
+/** Arabic tatweel (kashida) character — pure elongation, carries no meaning. */
+private const val TATWEEL = '\u0640'
+
+/** First Arabic-Indic digit (٠). Digits 0-9 map to U+0660-U+0669. */
+private const val ARABIC_INDIC_ZERO = '\u0660'
+
+/** First EXTENDED Arabic-Indic digit (۰, Persian/Urdu). U+06F0-U+06F9. */
+private const val EXTENDED_ARABIC_INDIC_ZERO = '\u06F0'
+
 /** Punctuation that must never keep a space BEFORE it (Latin + Arabic). */
 private val SPACE_BEFORE_PUNCT = Regex("[ \\t\\u00A0]+([,;:.!?،؛…؟)\\]\\}»])")
 
@@ -85,8 +94,16 @@ enum class DrsTextTool(
     // DRS v1.2.0: locale-aware quote wrapping (same pure-transform family).
     WRAP_QUOTES(-619),
 
+    // DRS v1.3.0: collapse runs of blank lines into one (same family).
+    COLLAPSE_EMPTY_LINES(-620),
+
     // ---- Arabic-specific ----
     REMOVE_DIACRITICS(-621),
+
+    // DRS v1.3.0: Arabic digit conversions + tatweel removal.
+    REMOVE_TATWEEL(-622),
+    TO_ARABIC_DIGITS(-605),
+    TO_WESTERN_DIGITS(-606),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -176,7 +193,34 @@ object DrsTextTools {
                         if (locale.language == "ar") "«" to "»" else "\"" to "\""
                     openQuote + text + closeQuote
                 }
+                // DRS v1.3.0: turn every run of consecutive blank lines
+                // into exactly one blank line. Leading and trailing runs
+                // are collapsed to one blank line as well (this tool's
+                // purpose IS removal — of the extra blanks only; single
+                // blank separators and the trailing newline are kept).
+                DrsTextTool.COLLAPSE_EMPTY_LINES -> collapseEmptyLines(text)
                 DrsTextTool.REMOVE_DIACRITICS -> text.replace(ARABIC_DIACRITICS, "")
+                // DRS v1.3.0: strip tatweel (kashida) elongation and
+                // convert digits between Western and Arabic-Indic forms.
+                // Both are per-character, lossless-for-everything-else
+                // conversions that never touch letters or punctuation.
+                DrsTextTool.REMOVE_TATWEEL -> text.replace(TATWEEL.toString(), "")
+                DrsTextTool.TO_ARABIC_DIGITS -> mapChars(text) { ch ->
+                    if (ch in '0'..'9') {
+                        (ch.code - '0'.code + ARABIC_INDIC_ZERO.code).toChar()
+                    } else {
+                        ch
+                    }
+                }
+                DrsTextTool.TO_WESTERN_DIGITS -> mapChars(text) { ch ->
+                    when (ch.code) {
+                        in ARABIC_INDIC_ZERO.code..ARABIC_INDIC_ZERO.code + 9 ->
+                            (ch.code - ARABIC_INDIC_ZERO.code + '0'.code).toChar()
+                        in EXTENDED_ARABIC_INDIC_ZERO.code..EXTENDED_ARABIC_INDIC_ZERO.code + 9 ->
+                            (ch.code - EXTENDED_ARABIC_INDIC_ZERO.code + '0'.code).toChar()
+                        else -> ch
+                    }
+                }
                 DrsTextTool.NORMALIZE_PUNCTUATION -> normalizePunctuation(text)
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(
@@ -259,6 +303,44 @@ object DrsTextTools {
 
     private fun collapseHorizontalSpaces(text: String): String =
         text.replace(HORIZONTAL_SPACES, " ")
+
+    /** DRS v1.3.0: maps every character through [transform] (pure, per-char). */
+    private inline fun mapChars(text: String, transform: (Char) -> Char): String {
+        var changed = false
+        for (ch in text) {
+            if (transform(ch) != ch) {
+                changed = true
+                break
+            }
+        }
+        if (!changed) return text
+        val sb = StringBuilder(text.length)
+        for (ch in text) sb.append(transform(ch))
+        return sb.toString()
+    }
+
+    /**
+     * DRS v1.3.0: collapses every run of consecutive blank lines into a
+     * single blank line. The line's own content (spacing included) is kept
+     * for non-blank lines, and a trailing newline survives as-is.
+     */
+    private fun collapseEmptyLines(text: String): String {
+        val trailingNewline = text.endsWith("\n")
+        val lines = text.lines().let { if (trailingNewline) it.dropLast(1) else it }
+        val out = StringBuilder(text.length)
+        var previousWasBlank = false
+        var first = true
+        for (line in lines) {
+            val blank = line.isBlank()
+            if (blank && previousWasBlank) continue
+            if (!first) out.append('\n')
+            out.append(line)
+            previousWasBlank = blank
+            first = false
+        }
+        if (trailingNewline) out.append('\n')
+        return out.toString()
+    }
 
     /**
      * Fixes spacing around punctuation in both directions:

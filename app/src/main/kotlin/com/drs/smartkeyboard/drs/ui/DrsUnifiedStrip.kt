@@ -34,7 +34,9 @@ import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.ContentPasteGo
 import androidx.compose.material.icons.filled.Dialpad
+import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.EmojiEmotions
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.FirstPage
@@ -134,6 +136,9 @@ private fun iconForTool(id: String) = when (id) {
     // DRS v1.2.0: incognito + autocorrect toggles.
     "incognito" -> Icons.Default.VisibilityOff
     "autocorrect" -> Icons.Default.Spellcheck
+    // DRS v1.3.0: clipboard clear + voice input.
+    "clipboard_clear" -> Icons.Default.DeleteSweep
+    "voice_input" -> Icons.Default.Mic
     else -> Icons.Default.Build
 }
 

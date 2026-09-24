@@ -430,6 +430,34 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.3.0: clears the primary clipboard through the real engine
+     * action (KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP — handled in
+     * KeyboardManager with the existing history-aware path + toast).
+     */
+    val CLIPBOARD_CLEAR = DrsUnifiedTool(
+        id = "clipboard_clear",
+        code = KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.EDITING,
+    )
+
+    /**
+     * DRS v1.3.0: switches to the voice input method through the real
+     * engine action (KeyCode.VOICE_INPUT — handled in KeyboardManager via
+     * DrsImeService.switchToVoiceInputMethod).
+     */
+    val VOICE_INPUT = DrsUnifiedTool(
+        id = "voice_input",
+        code = KeyCode.VOICE_INPUT,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -443,6 +471,8 @@ object DrsUnifiedTools {
         ONE_HANDED, NUMBER_ROW,
         // DRS v1.2.0: same tail-append contract for the new tools.
         INCOGNITO, AUTOCORRECT,
+        // DRS v1.3.0: same tail-append contract for the new tools.
+        CLIPBOARD_CLEAR, VOICE_INPUT,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

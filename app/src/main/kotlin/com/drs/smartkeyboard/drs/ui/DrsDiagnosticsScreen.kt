@@ -76,9 +76,11 @@ import com.drs.smartkeyboard.lib.compose.DrsScreen
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
 import com.drs.smartkeyboard.lib.util.InputMethodUtils
 import com.drs.smartkeyboard.appContext
+import com.drs.smartkeyboard.themeManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.drs.lib.android.systemVibratorOrNull
 import org.drs.lib.compose.stringRes
 
 /**
@@ -154,6 +156,52 @@ fun DrsDiagnosticsScreen() = DrsScreen {
         }
     }
 
+    // DRS v1.3.0: real battery / power-save state of the device. A power-
+    // saving system may throttle background work of the IME (suggestions,
+    // adaptation flush) — that is degraded-but-usable, so it is a warning.
+    // An unreadable battery level is unknown, never a false alarm.
+    val batteryPercent = remember {
+        try {
+            val bm = appContext.getSystemService(android.content.Context.BATTERY_SERVICE)
+                as android.os.BatteryManager
+            bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        } catch (_: Throwable) {
+            -1
+        }
+    }
+    val powerSaveMode = remember {
+        try {
+            val pm = appContext.getSystemService(android.content.Context.POWER_SERVICE)
+                as android.os.PowerManager
+            pm.isPowerSaveMode
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
+    // DRS v1.3.0: whether the device supports per-step vibration amplitude
+    // control. When absent, the configured haptic strength silently falls
+    // back to the system default amplitude (the settings key still works,
+    // just without fine-grained steps) — degraded, so a warning. Null =
+    // unknown (no vibrator / failed probe) and must not false-alarm.
+    val amplitudeControlAvailable = remember {
+        try {
+            appContext.systemVibratorOrNull()?.hasAmplitudeControl()
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    // DRS v1.3.0: whether the ACTIVE theme loaded cleanly. A load failure
+    // means the keyboard falls back to the base theme — degraded, warning.
+    val activeThemeLoadFailure = remember {
+        try {
+            appContext.themeManager().value.activeThemeInfo.value.loadFailure != null
+        } catch (_: Throwable) {
+            false
+        }
+    }
+
     // ---------------- DRS v1.0.6: full technical test runner ----------------
     var testResults by remember { mutableStateOf<List<DrsTestResult>?>(null) }
     fun runFullTest() {
@@ -205,6 +253,12 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             // DRS v1.1.0: real storage headroom + last-backup age.
             storageAvailableBytes = storageAvailableBytes,
             lastBackupAt = drsState.lastBackupAt,
+            // DRS v1.3.0: device power state + hardware capability + theme health.
+            // A capacity <= 0 means "unknown" (BatteryManager returns 0 or
+            // MIN_VALUE when the property is unavailable) — never a false alarm.
+            batteryHealthy = batteryPercent <= 0 || (!powerSaveMode && batteryPercent > BATTERY_WARN_PERCENT),
+            amplitudeControlAvailable = amplitudeControlAvailable,
+            activeThemeLoadFailure = activeThemeLoadFailure,
         )
     }
 
@@ -666,6 +720,10 @@ private const val STORAGE_ERROR_BYTES = 50L * 1024 * 1024
 /** DRS v1.1.0: a backup exported within 30 days keeps check #21 green. */
 private const val BACKUP_PASS_MILLIS = 30L * 24 * 60 * 60 * 1000
 
+/** DRS v1.3.0: below this battery percentage (or in power-save mode) the
+ * power checks warn that the system may throttle the IME. */
+private const val BATTERY_WARN_PERCENT = 20
+
 private data class DrsTestResult(
     val labelRes: Int,
     val severity: DrsTestSeverity,
@@ -734,6 +792,9 @@ private fun computeDrsFullTest(
     dailyStatsSane: Boolean,
     storageAvailableBytes: Long,
     lastBackupAt: Long,
+    batteryHealthy: Boolean,
+    amplitudeControlAvailable: Boolean?,
+    activeThemeLoadFailure: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -794,6 +855,34 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_backup_age,
             R.string.drs__diagnostics__hint_backup_age,
+        ),
+        // DRS v1.3.0: battery level / power-save mode. The system may
+        // throttle IME background work in power-save or at very low
+        // charge — degraded-but-usable, so a warning at most. An unknown
+        // battery level (failed read) passes to avoid false alarms.
+        result(
+            batteryHealthy,
+            warn = true,
+            R.string.drs__diagnostics__check_battery,
+            R.string.drs__diagnostics__hint_battery,
+        ),
+        // DRS v1.3.0: vibration amplitude control capability. Without it
+        // the configured haptic strength silently falls back to the
+        // system's default amplitude. Unknown (no vibrator or failed
+        // probe) passes so devices without a vibrator are not flagged.
+        result(
+            amplitudeControlAvailable != false,
+            warn = true,
+            R.string.drs__diagnostics__check_amplitude,
+            R.string.drs__diagnostics__hint_amplitude,
+        ),
+        // DRS v1.3.0: the active theme loaded cleanly (no fallback to the
+        // base theme).
+        result(
+            !activeThemeLoadFailure,
+            warn = true,
+            R.string.drs__diagnostics__check_active_theme,
+            R.string.drs__diagnostics__hint_active_theme,
         ),
     )
 }

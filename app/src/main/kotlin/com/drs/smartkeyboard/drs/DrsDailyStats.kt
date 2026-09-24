@@ -47,7 +47,8 @@ object DrsDailyStats {
 
     /** True when the delta adds nothing (avoids rewriting the state file for no reason). */
     private fun DrsUsageStats.isZero(): Boolean =
-        keyPresses == 0L && emojiUses == 0L && clipboardUses == 0L &&
+        keyPresses == 0L && numberPresses == 0L && symbolPresses == 0L &&
+            emojiUses == 0L && clipboardUses == 0L &&
             shortcutUses == 0L && techToolUses == 0L && gestureUses == 0L &&
             toolUses.isEmpty()
 
@@ -64,6 +65,10 @@ object DrsDailyStats {
         val existing = current[today] ?: DrsDayStats(day = today)
         val merged = existing.copy(
             keyPresses = existing.keyPresses + delta.keyPresses,
+            // DRS v1.3.0: the digit/symbol counters were recorded by the
+            // adaptation engine but silently dropped here — now they persist.
+            numberPresses = existing.numberPresses + delta.numberPresses,
+            symbolPresses = existing.symbolPresses + delta.symbolPresses,
             toolUses = existing.toolUses + delta.toolUses.values.sum(),
             techToolUses = existing.techToolUses + delta.techToolUses,
             gestureUses = existing.gestureUses + delta.gestureUses,
@@ -99,6 +104,8 @@ object DrsDailyStats {
             isValidDay(day) &&
                 bucket.day == day &&
                 bucket.keyPresses >= 0 &&
+                bucket.numberPresses >= 0 &&
+                bucket.symbolPresses >= 0 &&
                 bucket.toolUses >= 0 &&
                 bucket.techToolUses >= 0 &&
                 bucket.gestureUses >= 0 &&
@@ -113,6 +120,8 @@ object DrsDailyStats {
         return buckets.fold(DrsDayStats()) { acc, bucket ->
             acc.copy(
                 keyPresses = acc.keyPresses + bucket.keyPresses,
+                numberPresses = acc.numberPresses + bucket.numberPresses,
+                symbolPresses = acc.symbolPresses + bucket.symbolPresses,
                 toolUses = acc.toolUses + bucket.toolUses,
                 techToolUses = acc.techToolUses + bucket.techToolUses,
                 gestureUses = acc.gestureUses + bucket.gestureUses,
@@ -199,8 +208,27 @@ object DrsDailyStats {
         return streak
     }
 
+    /**
+     * DRS v1.3.0: week-over-week growth of key presses, computed from two
+     * real zero-filled 7-day windows ending today. Null when the previous
+     * week had no activity at all (a percentage would be meaningless).
+     * Pure and JVM-testable.
+     */
+    fun lastWeeksGrowthPercent(
+        stats: Map<String, DrsDayStats>,
+        today: String = todayStamp(),
+    ): Double? {
+        val window = lastDaysZeroFilled(stats, 14, today)
+        if (window.size != 14) return null
+        val prev7 = window.take(7).sumOf { it.keyPresses }
+        val last7 = window.takeLast(7).sumOf { it.keyPresses }
+        if (prev7 <= 0L) return null
+        return (last7 - prev7) * 100.0 / prev7
+    }
+
     /** True when at least one counter of the bucket is non-zero. */
     fun DrsDayStats.hasActivity(): Boolean =
-        keyPresses > 0L || toolUses > 0L || techToolUses > 0L || gestureUses > 0L ||
+        keyPresses > 0L || numberPresses > 0L || symbolPresses > 0L || toolUses > 0L ||
+            techToolUses > 0L || gestureUses > 0L ||
             emojiUses > 0L || clipboardUses > 0L || shortcutUses > 0L
 }

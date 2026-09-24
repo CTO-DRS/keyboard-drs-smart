@@ -276,6 +276,27 @@ class DrsUnifiedTest : FunSpec({
         advanced shouldContain "autocorrect"
     }
 
+    test("v1.3.0 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("clipboard_clear")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.CLIPBOARD_CLEAR_PRIMARY_CLIP
+        DrsUnifiedTools.byId("voice_input")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.VOICE_INPUT
+    }
+
+    test("v1.3.0 tools are basic-scope and visible in both levels") {
+        val simple = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.SIMPLE, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        simple shouldContain "clipboard_clear"
+        simple shouldContain "voice_input"
+
+        val advanced = DrsUnifiedTools.resolveFor(
+            DrsHybridViewMode.ADVANCED, emptyList(), emptyList(), emptyList(), emptyMap(),
+        ).map { it.id }
+        advanced shouldContain "clipboard_clear"
+        advanced shouldContain "voice_input"
+    }
+
     // -----------------------------------------------------------
     // Shortcut availability scopes
     // -----------------------------------------------------------

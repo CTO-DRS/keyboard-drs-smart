@@ -126,6 +126,10 @@ data class DrsDayStats(
     /** ISO day stamp this bucket belongs to, e.g. "2026-09-24". */
     val day: String = "",
     val keyPresses: Long = 0,
+    /** DRS v1.3.0: digit-key presses (numbers row / numeric layouts). */
+    val numberPresses: Long = 0,
+    /** DRS v1.3.0: symbol presses (non-digit, non-letter characters). */
+    val symbolPresses: Long = 0,
     /** Unified strip / smartbar tool presses (any catalogue tool). */
     val toolUses: Long = 0,
     /** Technical text-tool presses (the technical toolbar actions). */

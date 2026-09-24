@@ -34,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.Calculate
 import androidx.compose.material.icons.filled.ClearAll
+import androidx.compose.material.icons.filled.Compress
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
 import androidx.compose.material.icons.filled.ContentPaste
@@ -45,6 +46,7 @@ import androidx.compose.material.icons.filled.FormatLineSpacing
 import androidx.compose.material.icons.filled.FormatListNumbered
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material.icons.filled.FormatSize
+import androidx.compose.material.icons.filled.HighlightOff
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.SelectAll
@@ -52,9 +54,11 @@ import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.SwapVert
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.TextIncrease
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -153,6 +157,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_remove_empty_lines,
                 Icons.Default.FormatLineSpacing,
             ),
+            // DRS v1.3.0: collapse runs of blank lines into one.
+            toolItem(
+                DrsTextTool.COLLAPSE_EMPTY_LINES,
+                R.string.drs__text_tools__tool_collapse_empty_lines,
+                R.string.drs__text_tools__desc_collapse_empty_lines,
+                Icons.Default.Compress,
+            ),
             toolItem(
                 DrsTextTool.REMOVE_LINE_BREAKS,
                 R.string.drs__text_tools__tool_remove_line_breaks,
@@ -194,6 +205,25 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_remove_diacritics,
                 R.string.drs__text_tools__desc_remove_diacritics,
                 Icons.Default.FormatClear,
+            ),
+            // DRS v1.3.0: tatweel removal + digit conversions.
+            toolItem(
+                DrsTextTool.REMOVE_TATWEEL,
+                R.string.drs__text_tools__tool_remove_tatweel,
+                R.string.drs__text_tools__desc_remove_tatweel,
+                Icons.Default.HighlightOff,
+            ),
+            toolItem(
+                DrsTextTool.TO_ARABIC_DIGITS,
+                R.string.drs__text_tools__tool_to_arabic_digits,
+                R.string.drs__text_tools__desc_to_arabic_digits,
+                Icons.Default.Translate,
+            ),
+            toolItem(
+                DrsTextTool.TO_WESTERN_DIGITS,
+                R.string.drs__text_tools__tool_to_western_digits,
+                R.string.drs__text_tools__desc_to_western_digits,
+                Icons.Default.SwapHoriz,
             ),
         ),
     ),

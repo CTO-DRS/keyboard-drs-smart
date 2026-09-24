@@ -131,6 +131,54 @@ class DrsTextToolsTest : FunSpec({
         lines shouldBe 2
     }
 
+    // DRS v1.3.0: digit conversion, tatweel removal, blank-line collapsing.
+
+    test("to arabic digits converts only western digits") {
+        DrsTextTools.apply(DrsTextTool.TO_ARABIC_DIGITS, "سنة 2026", en) shouldBe "سنة ٢٠٢٦"
+        // Mixed content: letters, punctuation and spacing are untouched.
+        DrsTextTools.apply(DrsTextTool.TO_ARABIC_DIGITS, "a1.b/c-2", en) shouldBe "a١.b/c-٢"
+        // No digits -> unchanged.
+        DrsTextTools.apply(DrsTextTool.TO_ARABIC_DIGITS, "hello", en) shouldBe "hello"
+    }
+
+    test("to western digits converts arabic-indic and persian digits") {
+        DrsTextTools.apply(DrsTextTool.TO_WESTERN_DIGITS, "سنة ٢٠٢٦", en) shouldBe "سنة 2026"
+        // Extended Arabic-Indic (Persian/Urdu) ۴۵۶.
+        DrsTextTools.apply(DrsTextTool.TO_WESTERN_DIGITS, "\u06F4\u06F5\u06F6", en) shouldBe "456"
+        // Letters and punctuation are untouched.
+        DrsTextTools.apply(DrsTextTool.TO_WESTERN_DIGITS, "ابجد، x", en) shouldBe "ابجد، x"
+    }
+
+    test("digit conversions are inverse operations") {
+        val original = "السطر 1 والأرقام 234 و5678"
+        val roundTrip = DrsTextTools.apply(
+            DrsTextTool.TO_WESTERN_DIGITS,
+            DrsTextTools.apply(DrsTextTool.TO_ARABIC_DIGITS, original, en),
+            en,
+        )
+        roundTrip shouldBe original
+    }
+
+    test("remove tatweel strips kashida only") {
+        DrsTextTools.apply(DrsTextTool.REMOVE_TATWEEL, "مرحـــبــا", en) shouldBe "مرحبا"
+        // Other characters survive untouched.
+        DrsTextTools.apply(DrsTextTool.REMOVE_TATWEEL, "aـbـ1", en) shouldBe "ab1"
+        // No tatweel -> unchanged.
+        DrsTextTools.apply(DrsTextTool.REMOVE_TATWEEL, "بلا تطويل", en) shouldBe "بلا تطويل"
+    }
+
+    test("collapse empty lines merges consecutive blank runs into one") {
+        DrsTextTools.apply(DrsTextTool.COLLAPSE_EMPTY_LINES, "a\n\n\n\nb\n\nc", en) shouldBe "a\n\nb\n\nc"
+        // A single blank separator is preserved as-is.
+        DrsTextTools.apply(DrsTextTool.COLLAPSE_EMPTY_LINES, "a\n\nb", en) shouldBe "a\n\nb"
+        // Leading blank runs collapse to one leading blank line.
+        DrsTextTools.apply(DrsTextTool.COLLAPSE_EMPTY_LINES, "\n\n\na", en) shouldBe "\na"
+        // The trailing newline survives.
+        DrsTextTools.apply(DrsTextTool.COLLAPSE_EMPTY_LINES, "a\n\n", en) shouldBe "a\n\n"
+        // No blank runs -> unchanged.
+        DrsTextTools.apply(DrsTextTool.COLLAPSE_EMPTY_LINES, "a\nb", en) shouldBe "a\nb"
+    }
+
     test("tools never throw on hostile input") {
         val hostile = "\uD83C\uDF0E \u0000 \t\n\r$ { } %s %d ٍَّ most"
         for (tool in DrsTextTool.entries) {

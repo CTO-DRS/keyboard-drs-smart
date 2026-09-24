@@ -29,8 +29,14 @@ import java.time.LocalDate
  */
 class DrsDailyStatsTest : FunSpec({
 
-    fun bucket(day: String, keys: Long = 0, tools: Long = 0): DrsDayStats =
-        DrsDayStats(day = day, keyPresses = keys, toolUses = tools)
+    fun bucket(
+        day: String,
+        keys: Long = 0,
+        tools: Long = 0,
+        numbers: Long = 0,
+        symbols: Long = 0,
+    ): DrsDayStats =
+        DrsDayStats(day = day, keyPresses = keys, numberPresses = numbers, symbolPresses = symbols, toolUses = tools)
 
     // -----------------------------------------------------------
     // mergeInto
@@ -231,5 +237,80 @@ class DrsDailyStatsTest : FunSpec({
         empty.last().day shouldBe today
         DrsDailyStats.lastDaysZeroFilled(emptyMap(), 5, "garbage").shouldBeEmpty()
         DrsDailyStats.lastDaysZeroFilled(emptyMap(), 0, today).shouldBeEmpty()
+    }
+
+    // -----------------------------------------------------------
+    // DRS v1.3.0: number/symbol counters + week-over-week growth
+    // -----------------------------------------------------------
+
+    test("mergeInto persists the number and symbol counters of the delta") {
+        val today = DrsDailyStats.todayStamp()
+        val merged = DrsDailyStats.mergeInto(
+            emptyMap(),
+            DrsUsageStats(keyPresses = 20, numberPresses = 6, symbolPresses = 3),
+        )
+        merged[today] shouldBe DrsDayStats(
+            day = today, keyPresses = 20, numberPresses = 6, symbolPresses = 3,
+        )
+    }
+
+    test("a purely numeric delta is not treated as zero") {
+        val today = DrsDailyStats.todayStamp()
+        val merged = DrsDailyStats.mergeInto(emptyMap(), DrsUsageStats(numberPresses = 4))
+        merged[today]?.numberPresses shouldBe 4
+    }
+
+    test("sum aggregates number and symbol counters") {
+        val total = DrsDailyStats.sum(
+            listOf(
+                bucket("2026-09-22", keys = 100, numbers = 12, symbols = 5),
+                bucket("2026-09-23", keys = 50, numbers = 8, symbols = 7),
+            ),
+        )
+        total.numberPresses shouldBe 20
+        total.symbolPresses shouldBe 12
+    }
+
+    test("sanity rejects negative number or symbol counters") {
+        DrsDailyStats.isSane(mapOf("2026-09-24" to bucket("2026-09-24", numbers = -1))) shouldBe false
+        DrsDailyStats.isSane(mapOf("2026-09-24" to bucket("2026-09-24", symbols = -1))) shouldBe false
+        DrsDailyStats.isSane(mapOf("2026-09-24" to bucket("2026-09-24", numbers = 3, symbols = 4))) shouldBe true
+    }
+
+    test("number or symbol activity alone makes a day active") {
+        val today = DrsDailyStats.todayStamp()
+        val numericOnly = mapOf(today to bucket(today, numbers = 10))
+        DrsDailyStats.bestDay(numericOnly)?.day shouldBe today
+        DrsDailyStats.currentStreak(numericOnly, today) shouldBe 1
+        // ...and lastDays keeps it (activity-only window).
+        DrsDailyStats.lastDays(numericOnly, 7, today).shouldHaveSize(1)
+    }
+
+    test("lastWeeksGrowthPercent compares the last 7 days with the previous 7") {
+        val today = LocalDate.of(2026, 9, 24)
+        val stats = buildMap {
+            // previous 7-day window = offsets 13..7 from today: 100 presses/day
+            (13 downTo 7).forEach { offset ->
+                val day = today.minusDays(offset.toLong()).toString()
+                put(day, bucket(day, keys = 100))
+            }
+            // last 7-day window = offsets 6..0 from today: 150 presses/day
+            (6 downTo 0).forEach { offset ->
+                val day = today.minusDays(offset.toLong()).toString()
+                put(day, bucket(day, keys = 150))
+            }
+        }
+        val growth = DrsDailyStats.lastWeeksGrowthPercent(stats, today.toString())
+        // (150-100)*7 * 100 / (100*7) = exactly 50.0
+        growth shouldBe 50.0
+    }
+
+    test("lastWeeksGrowthPercent returns null when the previous week is empty") {
+        val today = LocalDate.of(2026, 9, 24)
+        val day = today.minusDays(1).toString()
+        val stats = mapOf(day to bucket(day, keys = 10))
+        DrsDailyStats.lastWeeksGrowthPercent(stats, today.toString()) shouldBe null
+        DrsDailyStats.lastWeeksGrowthPercent(emptyMap(), today.toString()) shouldBe null
+        DrsDailyStats.lastWeeksGrowthPercent(emptyMap(), "garbage") shouldBe null
     }
 })

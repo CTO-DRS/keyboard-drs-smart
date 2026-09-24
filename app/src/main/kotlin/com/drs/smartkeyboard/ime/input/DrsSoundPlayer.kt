@@ -77,14 +77,18 @@ object DrsSoundPlayer {
     private fun Iterable<DrsSoundStyle>.filterNotNullRes(): List<Int> =
         mapNotNull { it.resId }
 
-    /** Plays one bundled sample at the given volume (0..1). Silently no-ops when not ready. */
-    fun play(resId: Int, volume: Float) {
+    /**
+     * Plays one bundled sample at the given volume (0..1). [rate] shifts
+     * the playback pitch (SoundPool rate 0.5..2.0; 1.0 = original) so key
+     * categories can sound distinct. Silently no-ops when not ready.
+     */
+    fun play(resId: Int, volume: Float, rate: Float = 1f) {
         val pool = soundPool ?: return
         val soundId = soundIds[resId] ?: return
         if (soundId !in readyIds) return
         try {
             val v = volume.coerceIn(0f, 1f)
-            pool.play(soundId, v, v, 1, 0, 1f)
+            pool.play(soundId, v, v, 1, 0, rate.coerceIn(0.5f, 2f))
         } catch (_: Throwable) {
             // Never break typing because of a sound glitch.
         }

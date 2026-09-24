@@ -702,11 +702,23 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
 
     /**
      * Handles a [KeyCode.TOGGLE_AUTOCORRECT] event.
+     *
+     * DRS v1.3.0: REAL toggle — flips the suggestion engine pref
+     * (suggestion__enabled), the same preference the settings screen and
+     * the profile suggestion switch drive, so the change takes effect on
+     * the very next keystroke (candidates/corrections stop or resume),
+     * with a toast confirming the new state.
      */
-    private fun handleToggleAutocorrect() {
+    private suspend fun handleToggleAutocorrect() {
+        prefs.suggestion.enabled.set(!prefs.suggestion.enabled.get())
+        val newState = prefs.suggestion.enabled.get()
         lastToastReference.get()?.cancel()
         lastToastReference = WeakReference(
-            appContext.showLongToastSync("Autocorrect toggle is a placeholder and not yet implemented")
+            if (newState) {
+                appContext.showLongToast(R.string.drs__autocorrect__toast_enabled)
+            } else {
+                appContext.showLongToast(R.string.drs__autocorrect__toast_disabled)
+            }
         )
     }
 
@@ -946,7 +958,7 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 activeState.isActionsEditorVisible = !activeState.isActionsEditorVisible
             }
             KeyCode.TOGGLE_INCOGNITO_MODE -> scope.launch { handleToggleIncognitoMode() }
-            KeyCode.TOGGLE_AUTOCORRECT -> handleToggleAutocorrect()
+            KeyCode.TOGGLE_AUTOCORRECT -> scope.launch { handleToggleAutocorrect() }
             KeyCode.UNDO -> editorInstance.performUndo()
             KeyCode.VIEW_CHARACTERS -> activeState.keyboardMode = KeyboardMode.CHARACTERS
             KeyCode.VIEW_NUMERIC -> activeState.keyboardMode = KeyboardMode.NUMERIC

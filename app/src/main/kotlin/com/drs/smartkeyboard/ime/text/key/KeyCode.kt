@@ -155,6 +155,12 @@ object KeyCode {
     // existing text-tool dispatch path handles it with no extra wiring).
     const val TEXT_TOOL_WRAP_QUOTES =           -619
     const val TEXT_TOOL_REMOVE_DIACRITICS =     -621
+    // DRS v1.3.0: digit conversion, blank-line collapsing and tatweel
+    // removal (same pure-transform dispatch path).
+    const val TEXT_TOOL_TO_ARABIC_DIGITS =      -605
+    const val TEXT_TOOL_TO_WESTERN_DIGITS =     -606
+    const val TEXT_TOOL_COLLAPSE_EMPTY_LINES =  -620
+    const val TEXT_TOOL_REMOVE_TATWEEL =        -622
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632
     const val TEXT_TOOL_COUNT =                 -641

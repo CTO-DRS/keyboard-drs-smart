@@ -2129,4 +2129,37 @@
     <string name="drs__unified__stats_totals_title">All-time totals — every recorded day</string>
     <string name="drs__unified__stats_streak">Activity streak: {count} day(s)</string>
     <string name="drs__unified__stats_best_day">Best day ever: {date} ({keys} presses)</string>
+
+    <!-- DRS v1.3.0: real autocorrect toggle toasts -->
+    <string name="drs__autocorrect__toast_enabled">Auto-correction is now ON — word suggestions and corrections will appear again</string>
+    <string name="drs__autocorrect__toast_disabled">Auto-correction is now OFF — words will be typed as-is without suggestions</string>
+
+    <!-- DRS v1.3.0: text tools — digit conversion, tatweel, blank lines -->
+    <string name="drs__text_tools__tool_to_arabic_digits">Convert digits to Arabic</string>
+    <string name="drs__text_tools__desc_to_arabic_digits">Converts every Western digit 123 in the selection (or the whole text) to Arabic-Indic digits ١٢٣ — letters and punctuation are untouched</string>
+    <string name="drs__text_tools__tool_to_western_digits">Convert digits to Western</string>
+    <string name="drs__text_tools__desc_to_western_digits">Converts every Arabic-Indic digit ١٢٣ and Persian/Urdu digit ۱۲۳ to Western digits 123 — letters and punctuation are untouched</string>
+    <string name="drs__text_tools__tool_remove_tatweel">Remove tatweel (kashida)</string>
+    <string name="drs__text_tools__desc_remove_tatweel">Deletes tatweel (kashida) elongation characters (ـ) from the selection (or the whole text) so words return to their natural shape</string>
+    <string name="drs__text_tools__tool_collapse_empty_lines">Collapse empty lines</string>
+    <string name="drs__text_tools__desc_collapse_empty_lines">Turns every run of consecutive empty lines into a single empty line — cleaner spacing without removing separators or the trailing line</string>
+
+    <!-- DRS v1.3.0: unified catalogue tools -->
+    <string name="drs__unified__tool_clipboard_clear">Clear current clipboard</string>
+    <string name="drs__unified__tool_clipboard_clear_desc">Instantly clears the current primary clipboard — useful after copying sensitive data; pinned history items stay according to your setting</string>
+    <string name="drs__unified__tool_voice_input">Voice input</string>
+    <string name="drs__unified__tool_voice_input_desc">Switches straight to the system voice input to dictate text instead of typing — you return to the keyboard when done</string>
+
+    <!-- DRS v1.3.0: diagnostics checks #22-#24 -->
+    <string name="drs__diagnostics__check_battery">Battery and power state</string>
+    <string name="drs__diagnostics__hint_battery">The battery is low or power-save mode is on — the system may slow down keyboard background work (suggestions and adaptation); charge the device or exempt this app from power saving</string>
+    <string name="drs__diagnostics__check_amplitude">Vibration amplitude control</string>
+    <string name="drs__diagnostics__hint_amplitude">Your device does not support fine-grained vibration amplitude control — the system default strength applies instead of the level set in touch settings</string>
+    <string name="drs__diagnostics__check_active_theme">Active theme loads cleanly</string>
+    <string name="drs__diagnostics__hint_active_theme">The active theme failed to load and the keyboard fell back to the base theme — try selecting the theme again or reinstall its theme package</string>
+
+    <!-- DRS v1.3.0: stats — numbers/symbols counters + week-over-week -->
+    <string name="drs__unified__stats_numbers">Number presses</string>
+    <string name="drs__unified__stats_symbols">Symbol presses</string>
+    <string name="drs__unified__stats_week_over_week">Week over week: {delta} vs the previous week (key presses)</string>
 </resources>

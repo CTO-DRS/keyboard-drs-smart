@@ -162,6 +162,10 @@ data class TextKeyData(
                 // "most used" quick-action tiles, so they must be internal.
                 THEME_CYCLE,
                 INSERT_DATE_TIME,
+                // DRS v1.3.0 integration fix: TOGGLE_NUMBER_ROW was missing
+                // here since v1.1.0 (its stats counted, but the tile never
+                // rendered because getCodeInfoAsTextKeyData(-217) was null).
+                TOGGLE_NUMBER_ROW,
             )
         }
 
@@ -396,6 +400,15 @@ data class TextKeyData(
             type = KeyType.FUNCTION,
             code = KeyCode.INSERT_DATE_TIME,
             label = "insert_date_time",
+        )
+
+        /** DRS v1.3.0: predefined key data for [KeyCode.TOGGLE_NUMBER_ROW] —
+        was missing since v1.1.0, so the number-row toggle never surfaced
+        as a "most used" quick-action tile. */
+        val TOGGLE_NUMBER_ROW = TextKeyData(
+            type = KeyType.FUNCTION,
+            code = KeyCode.TOGGLE_NUMBER_ROW,
+            label = "toggle_number_row",
         )
         /** Predefined key data for [KeyCode.COMPACT_LAYOUT_TO_LEFT] */
         val COMPACT_LAYOUT_TO_LEFT = TextKeyData(

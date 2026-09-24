@@ -116,9 +116,20 @@ class InputFeedbackController private constructor(private val ims: InputMethodSe
             }
             val customRes = style.resId
             if (customRes != null) {
-                // DRS custom sound pack: play the bundled sample.
-                flogDebug { "Perform DRS sound style=$style volume=$volume" }
-                DrsSoundPlayer.play(customRes, volume.toFloat())
+                // DRS custom sound pack: play the bundled sample. DRS
+                // v1.3.0: the playback rate shifts the pitch per key
+                // category, so space/enter/delete sound distinct instead
+                // of one identical tone for everything.
+                val rate = when (data.code) {
+                    KeyCode.SPACE -> 0.92f
+                    KeyCode.ENTER -> 0.86f
+                    KeyCode.DELETE, KeyCode.FORWARD_DELETE,
+                    KeyCode.DELETE_WORD, KeyCode.FORWARD_DELETE_WORD,
+                    -> 1.12f
+                    else -> 1f
+                }
+                flogDebug { "Perform DRS sound style=$style volume=$volume rate=$rate" }
+                DrsSoundPlayer.play(customRes, volume.toFloat(), rate)
             } else {
                 // Upstream behavior: system sound effects.
                 val effect = when (data.code) {

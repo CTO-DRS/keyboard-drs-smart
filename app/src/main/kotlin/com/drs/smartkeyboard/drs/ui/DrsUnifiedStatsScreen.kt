@@ -164,6 +164,8 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         // ---------------- today ----------------
         StatsCard(title = stringRes(R.string.drs__unified__stats_today)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), todayStats.keyPresses)
+            StatsRow(stringRes(R.string.drs__unified__stats_numbers), todayStats.numberPresses)
+            StatsRow(stringRes(R.string.drs__unified__stats_symbols), todayStats.symbolPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_tools), todayStats.toolUses)
             StatsRow(stringRes(R.string.drs__unified__stats_tech_tools), todayStats.techToolUses)
             StatsRow(stringRes(R.string.drs__unified__stats_gestures), todayStats.gestureUses)
@@ -195,14 +197,29 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         val totalAll = DrsDailyStats.sum(drsState.dailyStats.values)
         val best = DrsDailyStats.bestDay(drsState.dailyStats)
         val streak = DrsDailyStats.currentStreak(drsState.dailyStats, today)
+        // DRS v1.3.0: week-over-week growth from two real 7-day windows.
+        val wowPercent = DrsDailyStats.lastWeeksGrowthPercent(drsState.dailyStats, today)
         StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
+            StatsRow(stringRes(R.string.drs__unified__stats_numbers), totalAll.numberPresses)
+            StatsRow(stringRes(R.string.drs__unified__stats_symbols), totalAll.symbolPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_tools), totalAll.toolUses)
             StatsRow(stringRes(R.string.drs__unified__stats_tech_tools), totalAll.techToolUses)
             StatsRow(stringRes(R.string.drs__unified__stats_gestures), totalAll.gestureUses)
             StatsRow(stringRes(R.string.drs__unified__stats_emoji), totalAll.emojiUses)
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), totalAll.clipboardUses)
             StatsRow(stringRes(R.string.drs__unified__stats_shortcuts), totalAll.shortcutUses)
+            if (wowPercent != null) {
+                Text(
+                    text = stringRes(
+                        R.string.drs__unified__stats_week_over_week,
+                        "delta" to formatGrowth(wowPercent),
+                    ),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 8.dp),
+                )
+            }
             Text(
                 text = stringRes(
                     R.string.drs__unified__stats_streak,
@@ -356,15 +373,27 @@ private fun formatDayLabel(isoDay: String): String {
 private fun csvStamp(): String = SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(Date())
 
 /**
+ * DRS v1.3.0: renders the week-over-week growth with a real sign and
+ * locale-independent digits (e.g. "+12.5%" / "-4.0%").
+ */
+private fun formatGrowth(percent: Double): String {
+    val rounded = (percent * 10).toLong() / 10.0
+    val sign = if (rounded >= 0) "+" else "-"
+    return sign + kotlin.math.abs(rounded) + "%"
+}
+
+/**
  * DRS v1.1.0: builds the CSV payload of the recorded day buckets
  * (ascending). Counts only — the file can never contain typed text.
  */
 private fun buildStatsCsv(buckets: List<DrsDayStats>): String {
-    val header = "day,key_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses"
+    val header = "day,key_presses,number_presses,symbol_presses,tool_uses,tech_tool_uses,gesture_uses,emoji_uses,clipboard_uses,shortcut_uses"
     return header + "\n" + buckets.joinToString("\n") { b ->
         listOf(
             b.day,
             b.keyPresses,
+            b.numberPresses,
+            b.symbolPresses,
             b.toolUses,
             b.techToolUses,
             b.gestureUses,
