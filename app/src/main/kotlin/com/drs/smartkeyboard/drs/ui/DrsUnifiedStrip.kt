@@ -47,6 +47,7 @@ import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.LastPage
 import androidx.compose.material.icons.filled.Numbers
 import androidx.compose.material.icons.filled.Palette
+import androidx.compose.material.icons.filled.PictureInPictureAlt
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
@@ -54,6 +55,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VerticalAlignBottom
 import androidx.compose.material.icons.filled.VerticalAlignTop
+import androidx.compose.material.icons.filled.ViewAgenda
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -139,6 +141,9 @@ private fun iconForTool(id: String) = when (id) {
     // DRS v1.3.0: clipboard clear + voice input.
     "clipboard_clear" -> Icons.Default.DeleteSweep
     "voice_input" -> Icons.Default.Mic
+    // DRS v1.4.0: floating window + smartbar visibility toggles.
+    "floating_mode" -> Icons.Default.PictureInPictureAlt
+    "smartbar_toggle" -> Icons.Default.ViewAgenda
     else -> Icons.Default.Build
 }
 

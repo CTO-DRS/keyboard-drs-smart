@@ -283,6 +283,23 @@ class DrsUnifiedTest : FunSpec({
             com.drs.smartkeyboard.ime.text.key.KeyCode.VOICE_INPUT
     }
 
+    test("v1.4.0 tools exist and dispatch real engine codes") {
+        DrsUnifiedTools.byId("floating_mode")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_FLOATING_WINDOW
+        DrsUnifiedTools.byId("smartbar_toggle")?.code shouldBe
+            com.drs.smartkeyboard.ime.text.key.KeyCode.TOGGLE_SMARTBAR_VISIBILITY
+    }
+
+    test("v1.4.0 tools keep the tail-append order contract of the catalogue") {
+        // The two new tools sit at the tail so every persisted order/pin
+        // arrangement keeps its exact meaning.
+        DrsUnifiedTools.ALL.takeLast(2).map { it.id } shouldBe
+            listOf("floating_mode", "smartbar_toggle")
+        // The head and the previous tail are untouched.
+        DrsUnifiedTools.ALL.first().id shouldBe "emoji"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 3].id shouldBe "voice_input"
+    }
+
     test("v1.3.0 tools are basic-scope and visible in both levels") {
         val simple = DrsUnifiedTools.resolveFor(
             DrsHybridViewMode.SIMPLE, emptyList(), emptyList(), emptyList(), emptyMap(),

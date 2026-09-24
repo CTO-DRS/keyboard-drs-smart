@@ -458,6 +458,35 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.4.0: toggles the floating-window mode through the real engine
+     * action (KeyCode.TOGGLE_FLOATING_WINDOW — handled in KeyboardManager
+     * via windowController.actions.toggleFloatingWindow, the same path the
+     * existing quick action uses).
+     */
+    val FLOATING_MODE = DrsUnifiedTool(
+        id = "floating_mode",
+        code = KeyCode.TOGGLE_FLOATING_WINDOW,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.4.0: shows/hides the smart bar through the real engine action
+     * (KeyCode.TOGGLE_SMARTBAR_VISIBILITY — handled in KeyboardManager on
+     * the same path the swipe action uses).
+     */
+    val SMARTBAR_TOGGLE = DrsUnifiedTool(
+        id = "smartbar_toggle",
+        code = KeyCode.TOGGLE_SMARTBAR_VISIBILITY,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -473,6 +502,8 @@ object DrsUnifiedTools {
         INCOGNITO, AUTOCORRECT,
         // DRS v1.3.0: same tail-append contract for the new tools.
         CLIPBOARD_CLEAR, VOICE_INPUT,
+        // DRS v1.4.0: same tail-append contract for the new tools.
+        FLOATING_MODE, SMARTBAR_TOGGLE,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

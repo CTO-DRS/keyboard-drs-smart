@@ -161,6 +161,11 @@ object KeyCode {
     const val TEXT_TOOL_TO_WESTERN_DIGITS =     -606
     const val TEXT_TOOL_COLLAPSE_EMPTY_LINES =  -620
     const val TEXT_TOOL_REMOVE_TATWEEL =        -622
+    // DRS v1.4.0: descending line sort (the real counterpart of
+    // TEXT_TOOL_SORT_LINES) and Arabic letter normalization (same
+    // pure-transform dispatch path via DrsTextTool.CODE_RANGE).
+    const val TEXT_TOOL_SORT_LINES_DESC =       -624
+    const val TEXT_TOOL_NORMALIZE_ARABIC =      -623
     const val TEXT_TOOL_NORMALIZE_PUNCTUATION = -631
     const val TEXT_TOOL_CLEAN_TEXT =            -632
     const val TEXT_TOOL_COUNT =                 -641

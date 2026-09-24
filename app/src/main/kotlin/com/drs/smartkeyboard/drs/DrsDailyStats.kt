@@ -226,6 +226,24 @@ object DrsDailyStats {
         return (last7 - prev7) * 100.0 / prev7
     }
 
+    /**
+     * DRS v1.4.0: number of recorded days with at least one non-zero
+     * counter. Pure and JVM-testable.
+     */
+    fun activeDaysCount(stats: Map<String, DrsDayStats>): Int =
+        stats.values.count { it.hasActivity() }
+
+    /**
+     * DRS v1.4.0: mean key presses per ACTIVE day — days without any
+     * activity are excluded so idle days never dilute the average.
+     * 0 when no recorded day has activity. Pure and JVM-testable.
+     */
+    fun dailyAveragePresses(stats: Map<String, DrsDayStats>): Long {
+        val active = stats.values.filter { it.hasActivity() }
+        if (active.isEmpty()) return 0L
+        return active.sumOf { it.keyPresses } / active.size
+    }
+
     /** True when at least one counter of the bucket is non-zero. */
     fun DrsDayStats.hasActivity(): Boolean =
         keyPresses > 0L || numberPresses > 0L || symbolPresses > 0L || toolUses > 0L ||

@@ -199,6 +199,9 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
         val streak = DrsDailyStats.currentStreak(drsState.dailyStats, today)
         // DRS v1.3.0: week-over-week growth from two real 7-day windows.
         val wowPercent = DrsDailyStats.lastWeeksGrowthPercent(drsState.dailyStats, today)
+        // DRS v1.4.0: real active-day count + per-active-day average.
+        val activeDays = DrsDailyStats.activeDaysCount(drsState.dailyStats)
+        val dailyAvg = DrsDailyStats.dailyAveragePresses(drsState.dailyStats)
         StatsCard(title = stringRes(R.string.drs__unified__stats_totals_title)) {
             StatsRow(stringRes(R.string.drs__unified__stats_keys), totalAll.keyPresses)
             StatsRow(stringRes(R.string.drs__unified__stats_numbers), totalAll.numberPresses)
@@ -209,6 +212,10 @@ fun DrsUnifiedStatsScreen() = DrsScreen {
             StatsRow(stringRes(R.string.drs__unified__stats_emoji), totalAll.emojiUses)
             StatsRow(stringRes(R.string.drs__unified__stats_clipboard), totalAll.clipboardUses)
             StatsRow(stringRes(R.string.drs__unified__stats_shortcuts), totalAll.shortcutUses)
+            // DRS v1.4.0: recorded active days and the mean presses of
+            // those days — both pure aggregations of the same buckets.
+            StatsRow(stringRes(R.string.drs__unified__stats_active_days), activeDays.toLong())
+            StatsRow(stringRes(R.string.drs__unified__stats_daily_average), dailyAvg)
             if (wowPercent != null) {
                 Text(
                     text = stringRes(

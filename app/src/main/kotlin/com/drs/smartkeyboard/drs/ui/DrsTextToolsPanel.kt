@@ -52,6 +52,7 @@ import androidx.compose.material.icons.filled.Rule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.ShortText
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.SpaceBar
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material.icons.filled.SwapHoriz
@@ -195,6 +196,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__desc_reverse_lines,
                 Icons.Default.SwapVert,
             ),
+            // DRS v1.4.0: descending counterpart of SORT_LINES.
+            toolItem(
+                DrsTextTool.SORT_LINES_DESC,
+                R.string.drs__text_tools__tool_sort_lines_desc,
+                R.string.drs__text_tools__desc_sort_lines_desc,
+                Icons.Default.SortByAlpha,
+            ),
         ),
     ),
     DrsTextToolsPanelSection(
@@ -224,6 +232,13 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
                 R.string.drs__text_tools__tool_to_western_digits,
                 R.string.drs__text_tools__desc_to_western_digits,
                 Icons.Default.SwapHoriz,
+            ),
+            // DRS v1.4.0: unify Arabic letter variants for copy/search.
+            toolItem(
+                DrsTextTool.NORMALIZE_ARABIC,
+                R.string.drs__text_tools__tool_normalize_arabic,
+                R.string.drs__text_tools__desc_normalize_arabic,
+                Icons.Default.TextFields,
             ),
         ),
     ),

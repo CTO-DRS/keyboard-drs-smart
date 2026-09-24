@@ -146,6 +146,11 @@ val SmartToolCodes = setOf(
     KeyCode.TEXT_TOOL_TO_WESTERN_DIGITS,
     KeyCode.TEXT_TOOL_COLLAPSE_EMPTY_LINES,
     KeyCode.TEXT_TOOL_REMOVE_TATWEEL,
+    // DRS v1.4.0: descending sort + Arabic letter normalization, plus the
+    // smartbar-visibility toggle whose usage never surfaced before.
+    KeyCode.TEXT_TOOL_SORT_LINES_DESC,
+    KeyCode.TEXT_TOOL_NORMALIZE_ARABIC,
+    KeyCode.TOGGLE_SMARTBAR_VISIBILITY,
 )
 
 @Composable

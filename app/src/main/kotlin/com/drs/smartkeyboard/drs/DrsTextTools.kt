@@ -97,6 +97,9 @@ enum class DrsTextTool(
     // DRS v1.3.0: collapse runs of blank lines into one (same family).
     COLLAPSE_EMPTY_LINES(-620),
 
+    // DRS v1.4.0: descending line sort (the counterpart of SORT_LINES).
+    SORT_LINES_DESC(-624),
+
     // ---- Arabic-specific ----
     REMOVE_DIACRITICS(-621),
 
@@ -104,6 +107,10 @@ enum class DrsTextTool(
     REMOVE_TATWEEL(-622),
     TO_ARABIC_DIGITS(-605),
     TO_WESTERN_DIGITS(-606),
+
+    // DRS v1.4.0: unifies Arabic letter variants (hamza-carriers,
+    // ta-marbuta, alef maqsura) — same letter-normalization family.
+    NORMALIZE_ARABIC(-623),
 
     // ---- Punctuation and full clean-up ----
     NORMALIZE_PUNCTUATION(-631),
@@ -221,6 +228,21 @@ object DrsTextTools {
                         else -> ch
                     }
                 }
+                // DRS v1.4.0: sort lines in DESCENDING order with the same
+                // locale collator (deterministic counterpart of SORT_LINES).
+                DrsTextTool.SORT_LINES_DESC -> {
+                    val trailingNewline = text.endsWith("\n")
+                    val collator = Collator.getInstance(locale)
+                    val sorted = text.lines()
+                        .let { if (trailingNewline) it.dropLast(1) else it }
+                        .sortedWith(compareByDescending(collator) { it })
+                        .joinToString("\n")
+                    if (trailingNewline) "$sorted\n" else sorted
+                }
+                // DRS v1.4.0: unify Arabic letter variants that carry no
+                // meaning once the text is copied elsewhere — per-character,
+                // lossless for everything else (see [normalizeArabicLetters]).
+                DrsTextTool.NORMALIZE_ARABIC -> normalizeArabicLetters(text)
                 DrsTextTool.NORMALIZE_PUNCTUATION -> normalizePunctuation(text)
                 DrsTextTool.CLEAN_TEXT -> normalizePunctuation(
                     collapseHorizontalSpaces(
@@ -340,6 +362,22 @@ object DrsTextTools {
         }
         if (trailingNewline) out.append('\n')
         return out.toString()
+    }
+
+    /**
+     * DRS v1.4.0: unifies Arabic letter variants commonly interchanged in
+     * search and copy contexts: hamza-carried alefs (أ إ آ ٱ) become a bare
+     * alef (ا), ta-marbuta (ة) becomes ha (ه) and alef maqsura (ى) becomes
+     * ya (ي). Pure per-character mapping — diacritics, digits, punctuation
+     * and every non-Arabic character pass through untouched.
+     */
+    private fun normalizeArabicLetters(text: String): String = mapChars(text) { ch ->
+        when (ch) {
+            '\u0623', '\u0625', '\u0622', '\u0671' -> '\u0627' // أ إ آ ٱ -> ا
+            '\u0629' -> '\u0647'                              // ة -> ه
+            '\u0649' -> '\u064A'                              // ى -> ي
+            else -> ch
+        }
     }
 
     /**

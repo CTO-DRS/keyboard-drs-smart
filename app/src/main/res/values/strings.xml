@@ -2069,6 +2069,20 @@
     <!-- DRS v1.3.0: diagnostics checks #22-#24 -->
     <string name="drs__diagnostics__check_battery">حالة الطاقة والبطارية</string>
     <string name="drs__diagnostics__hint_battery">البطارية منخفضة أو وضع توفير الطاقة مفعّل — قد يُبطئ النظام عمل لوحة المفاتيح في الخلفية (الاقتراحات والتكيّف)؛ اشحن الجهاز أو أوقف توفير الطاقة لهذا التطبيق</string>
+    <string name="drs__text_tools__tool_sort_lines_desc">ترتيب الأسطر تنازليًا</string>
+    <string name="drs__text_tools__desc_sort_lines_desc">يرتب الأسطر ترتيبًا تنازليًا وفق قواعد لغتك — يحفظ السطر الختامي كما هو</string>
+    <string name="drs__text_tools__tool_normalize_arabic">توحيد الحروف العربية</string>
+    <string name="drs__text_tools__desc_normalize_arabic">يوحّد الهمزات (أ إ آ → ا) والتاء المربوطة (ة → ه) والألف المقصورة (ى → ي) — مفيد قبل النسخ أو البحث</string>
+    <string name="drs__unified__tool_floating_mode">النافذة العائمة</string>
+    <string name="drs__unified__tool_floating_mode_desc">يبدّل وضع النافذة العائمة لتكتب في نافذة صغيرة قابلة للسحب فوق أي تطبيق</string>
+    <string name="drs__unified__tool_smartbar_toggle">إظهار الشريط الذكي</string>
+    <string name="drs__unified__tool_smartbar_toggle_desc">يُظهر الشريط الذكي فوق اللوحة أو يخفيه لمساحة كتابة أوسع</string>
+    <string name="drs__diagnostics__check_latency">زمن استجابة المفاتيح</string>
+    <string name="drs__diagnostics__hint_latency">زمن الاستجابة المرجّح (p95) أعلى من ٥٠ ملّي ثانية — الكتابة تعمل لكن أبطأ من المعتاد؛ أعد تشغيل الجهاز أو راجع شاشة الأداء</string>
+    <string name="drs__diagnostics__check_memory">ضغط الذاكرة</string>
+    <string name="drs__diagnostics__hint_memory">استخدام الكومة مرتفع — قد يُبطئ النظام لوحة المفاتيح؛ أغلق التطبيقات الأخرى أو أعد تشغيل الجهاز</string>
+    <string name="drs__unified__stats_active_days">الأيام النشطة المسجلة</string>
+    <string name="drs__unified__stats_daily_average">متوسط الضغطات لكل يوم نشط</string>
     <string name="drs__diagnostics__check_amplitude">تحكم الاهتزاز بالشدة</string>
     <string name="drs__diagnostics__hint_amplitude">جهازك لا يدعم التحكم الدقيق بشدة الاهتزاز — ستُطبَّق شدة النظام الافتراضية بدل المستوى المضبوط في إعدادات اللمس</string>
     <string name="drs__diagnostics__check_active_theme">سلامة تحميل الثيم النشط</string>

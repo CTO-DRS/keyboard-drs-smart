@@ -63,6 +63,7 @@ import com.drs.smartkeyboard.drs.DrsBackup
 import com.drs.smartkeyboard.drs.DrsDailyStats
 import com.drs.smartkeyboard.drs.DrsEventLog
 import com.drs.smartkeyboard.drs.DrsEconomy
+import com.drs.smartkeyboard.drs.DrsPerformance
 import com.drs.smartkeyboard.drs.DrsHybridViewMode
 import com.drs.smartkeyboard.drs.DrsProfileManager
 import com.drs.smartkeyboard.drs.DrsRewardCatalog
@@ -202,6 +203,31 @@ fun DrsDiagnosticsScreen() = DrsScreen {
         }
     }
 
+    // DRS v1.4.0: real p95 key latency from the in-process performance
+    // window. A verdict is meaningful only once enough samples exist —
+    // with fewer, the state is unknown and must not false-alarm.
+    val typingLatencyHealthy = remember {
+        try {
+            !DrsPerformance.hasSamples(10) ||
+                DrsPerformance.percentileMicros(95) <= LATENCY_PASS_MICROS
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
+    // DRS v1.4.0: Java-heap pressure of this process, straight from the
+    // runtime. An unreadable maximum (0) passes — degraded-but-usable at
+    // worst, so this check warns and never errors.
+    val memoryPressureHealthy = remember {
+        try {
+            val snap = DrsPerformance.memorySnapshot()
+            snap.javaHeapMaxBytes <= 0L ||
+                snap.javaHeapUsedBytes * 100L / snap.javaHeapMaxBytes < MEMORY_WARN_PERCENT
+        } catch (_: Throwable) {
+            true
+        }
+    }
+
     // ---------------- DRS v1.0.6: full technical test runner ----------------
     var testResults by remember { mutableStateOf<List<DrsTestResult>?>(null) }
     fun runFullTest() {
@@ -259,6 +285,9 @@ fun DrsDiagnosticsScreen() = DrsScreen {
             batteryHealthy = batteryPercent <= 0 || (!powerSaveMode && batteryPercent > BATTERY_WARN_PERCENT),
             amplitudeControlAvailable = amplitudeControlAvailable,
             activeThemeLoadFailure = activeThemeLoadFailure,
+            // DRS v1.4.0: real latency/memory verdicts from this process.
+            typingLatencyHealthy = typingLatencyHealthy,
+            memoryPressureHealthy = memoryPressureHealthy,
         )
     }
 
@@ -724,6 +753,14 @@ private const val BACKUP_PASS_MILLIS = 30L * 24 * 60 * 60 * 1000
  * power checks warn that the system may throttle the IME. */
 private const val BATTERY_WARN_PERCENT = 20
 
+/** DRS v1.4.0: at or below this p95 key latency (50 ms) the latency check
+ * passes; above it the keyboard still works, just measurably slower. */
+private const val LATENCY_PASS_MICROS = 50_000L
+
+/** DRS v1.4.0: the memory check warns once the Java heap is at or above
+ * this share of its maximum — degraded-but-usable, so a warning at most. */
+private const val MEMORY_WARN_PERCENT = 80L
+
 private data class DrsTestResult(
     val labelRes: Int,
     val severity: DrsTestSeverity,
@@ -795,6 +832,8 @@ private fun computeDrsFullTest(
     batteryHealthy: Boolean,
     amplitudeControlAvailable: Boolean?,
     activeThemeLoadFailure: Boolean,
+    typingLatencyHealthy: Boolean,
+    memoryPressureHealthy: Boolean,
 ): List<DrsTestResult> {
     fun result(pass: Boolean, warn: Boolean, label: Int, hint: Int): DrsTestResult =
         DrsTestResult(
@@ -883,6 +922,24 @@ private fun computeDrsFullTest(
             warn = true,
             R.string.drs__diagnostics__check_active_theme,
             R.string.drs__diagnostics__hint_active_theme,
+        ),
+        // DRS v1.4.0: real p95 key latency from the in-process window.
+        // Unknown (too few samples) passes so a fresh process never
+        // false-alarms; above the threshold it is degraded-but-usable.
+        result(
+            typingLatencyHealthy,
+            warn = true,
+            R.string.drs__diagnostics__check_latency,
+            R.string.drs__diagnostics__hint_latency,
+        ),
+        // DRS v1.4.0: Java-heap pressure of this process. An unreadable
+        // maximum passes; high pressure means the system may slow the
+        // keyboard down — degraded-but-usable, so a warning at most.
+        result(
+            memoryPressureHealthy,
+            warn = true,
+            R.string.drs__diagnostics__check_memory,
+            R.string.drs__diagnostics__hint_memory,
         ),
     )
 }

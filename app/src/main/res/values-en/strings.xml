@@ -2153,6 +2153,20 @@
     <!-- DRS v1.3.0: diagnostics checks #22-#24 -->
     <string name="drs__diagnostics__check_battery">Battery and power state</string>
     <string name="drs__diagnostics__hint_battery">The battery is low or power-save mode is on — the system may slow down keyboard background work (suggestions and adaptation); charge the device or exempt this app from power saving</string>
+    <string name="drs__text_tools__tool_sort_lines_desc">Sort lines descending</string>
+    <string name="drs__text_tools__desc_sort_lines_desc">Sorts lines in descending order by your language\'s collation rules — the trailing line is kept as is</string>
+    <string name="drs__text_tools__tool_normalize_arabic">Normalize Arabic letters</string>
+    <string name="drs__text_tools__desc_normalize_arabic">Unifies hamza variants, ta-marbuta and alef maqsura — useful before copying or searching</string>
+    <string name="drs__unified__tool_floating_mode">Floating window</string>
+    <string name="drs__unified__tool_floating_mode_desc">Toggles floating-window mode so you can type in a small draggable window above any app</string>
+    <string name="drs__unified__tool_smartbar_toggle">Toggle smart bar</string>
+    <string name="drs__unified__tool_smartbar_toggle_desc">Shows the smart bar above the keyboard or hides it for a wider typing area</string>
+    <string name="drs__diagnostics__check_latency">Key response latency</string>
+    <string name="drs__diagnostics__hint_latency">The p95 key latency is above 50 ms — typing works but is slower than usual; restart the device or check the performance screen</string>
+    <string name="drs__diagnostics__check_memory">Memory pressure</string>
+    <string name="drs__diagnostics__hint_memory">Heap usage is high — the system may slow the keyboard down; close other apps or restart the device</string>
+    <string name="drs__unified__stats_active_days">Recorded active days</string>
+    <string name="drs__unified__stats_daily_average">Average presses per active day</string>
     <string name="drs__diagnostics__check_amplitude">Vibration amplitude control</string>
     <string name="drs__diagnostics__hint_amplitude">Your device does not support fine-grained vibration amplitude control — the system default strength applies instead of the level set in touch settings</string>
     <string name="drs__diagnostics__check_active_theme">Active theme loads cleanly</string>

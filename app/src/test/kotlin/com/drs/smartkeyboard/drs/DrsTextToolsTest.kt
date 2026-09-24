@@ -200,4 +200,43 @@ class DrsTextToolsTest : FunSpec({
             DrsTextTool.fromCode(tool.code) shouldBe tool
         }
     }
+
+    // -----------------------------------------------------------
+    // DRS v1.4.0: SORT_LINES_DESC
+    // -----------------------------------------------------------
+
+    test("sort lines descending orders lines with the locale collator") {
+        DrsTextTools.apply(DrsTextTool.SORT_LINES_DESC, "banana\napple\ncherry", en) shouldBe
+            "cherry\nbanana\napple"
+        // The ascending counterpart is the exact inverse on distinct lines.
+        DrsTextTools.apply(
+            DrsTextTool.SORT_LINES,
+            DrsTextTools.apply(DrsTextTool.SORT_LINES_DESC, "b\na\nc", en),
+            en,
+        ) shouldBe "a\nb\nc"
+    }
+
+    test("sort lines descending keeps blank lines and the trailing newline") {
+        DrsTextTools.apply(DrsTextTool.SORT_LINES_DESC, "b\n\na\n", en) shouldBe "b\na\n\n"
+    }
+
+    // -----------------------------------------------------------
+    // DRS v1.4.0: NORMALIZE_ARABIC
+    // -----------------------------------------------------------
+
+    test("normalize arabic unifies hamza carriers, ta-marbuta and alef maqsura") {
+        // الأعلى: hamza-carrier alef AND final alef maqsura both unify.
+        DrsTextTools.apply(DrsTextTool.NORMALIZE_ARABIC, "أحمد في الأعلى", en) shouldBe
+            "احمد في الاعلي"
+        // آية: hamza-carrier alef AND final ta-marbuta both unify.
+        DrsTextTools.apply(DrsTextTool.NORMALIZE_ARABIC, "مدرسة وشاطىء وآية وإسلام", en) shouldBe
+            "مدرسه وشاطيء وايه واسلام"
+    }
+
+    test("normalize arabic leaves other characters untouched") {
+        // Latin, digits, punctuation, diacritics and tatweel all pass
+        // through unchanged — the tool unifies LETTERS only.
+        DrsTextTools.apply(DrsTextTool.NORMALIZE_ARABIC, "Hello 123! مُحَمَّـد", en) shouldBe
+            "Hello 123! مُحَمَّـد"
+    }
 })

@@ -313,4 +313,28 @@ class DrsDailyStatsTest : FunSpec({
         DrsDailyStats.lastWeeksGrowthPercent(emptyMap(), today.toString()) shouldBe null
         DrsDailyStats.lastWeeksGrowthPercent(emptyMap(), "garbage") shouldBe null
     }
+
+    // -----------------------------------------------------------
+    // DRS v1.4.0: activeDaysCount + dailyAveragePresses
+    // -----------------------------------------------------------
+
+    test("activeDaysCount counts only days with real activity") {
+        val stats = mapOf(
+            "2026-09-22" to bucket("2026-09-22", keys = 120),
+            "2026-09-23" to bucket("2026-09-23"), // recorded but idle
+            "2026-09-24" to bucket("2026-09-24", tools = 3), // activity without presses
+        )
+        DrsDailyStats.activeDaysCount(stats) shouldBe 2
+        DrsDailyStats.activeDaysCount(emptyMap()) shouldBe 0
+    }
+
+    test("dailyAveragePresses averages over active days only") {
+        val stats = mapOf(
+            "2026-09-22" to bucket("2026-09-22", keys = 100),
+            "2026-09-23" to bucket("2026-09-23"), // idle day must not dilute
+            "2026-09-24" to bucket("2026-09-24", keys = 50),
+        )
+        DrsDailyStats.dailyAveragePresses(stats) shouldBe 75L
+        DrsDailyStats.dailyAveragePresses(emptyMap()) shouldBe 0L
+    }
 })
