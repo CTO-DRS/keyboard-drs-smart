@@ -835,6 +835,55 @@ object DrsUnifiedTools {
     }
 
     /**
+     * DRS v1.16.0: «شريط المهام الثابت» — the FIXED slots list of the
+     * tasks bar. The bar always renders exactly ten tasks: the user's
+     * explicit pins lead in pin order, the default pins fill the next
+     * slots, and the visible catalogue order pads the tail so the bar
+     * never shows a hole. Pure and deterministic: same inputs, same ten.
+     */
+    fun fixedSlots(
+        userPinned: List<String>,
+        defaultPinnedIds: List<String>,
+        visibleCatalogueOrder: List<String>,
+    ): List<String> {
+        val slots = ArrayList<String>(MAX_PINNED_TOOLS)
+        for (id in userPinned) {
+            if (slots.size >= MAX_PINNED_TOOLS) break
+            if (id !in slots) slots += id
+        }
+        for (id in defaultPinnedIds) {
+            if (slots.size >= MAX_PINNED_TOOLS) break
+            if (id !in slots) slots += id
+        }
+        for (id in visibleCatalogueOrder) {
+            if (slots.size >= MAX_PINNED_TOOLS) break
+            if (id !in slots) slots += id
+        }
+        return slots
+    }
+
+    /**
+     * DRS v1.16.0: the pure core of «إمكانية تغيير المهام» — replacing
+     * the tool at slot [index] with [newId] in the CURRENT slots list.
+     * The result is the materialized pinned list (every slot becomes an
+     * explicit pin, so the replacement stays exactly where the user put
+     * it), deduplicated and capped at [MAX_PINNED_TOOLS]. An out-of-range
+     * index or an unknown id returns the input unchanged.
+     */
+    fun materializeSlotReplace(
+        currentSlots: List<String>,
+        index: Int,
+        newId: String,
+    ): List<String> {
+        if (index < 0 || index >= currentSlots.size) return currentSlots
+        if (newId !in DrsUnifiedTools.ALL.map { it.id }) return currentSlots
+        val replaced = currentSlots.toMutableList()
+        replaced[index] = newId
+        val deduped = replaced.distinct()
+        return deduped.take(MAX_PINNED_TOOLS)
+    }
+
+    /**
      * Full resolution of the unified strip content for one display level:
      * filters by visibility + hidden list, then applies order and pins.
      * Tools marked [DrsUnifiedTool.defaultPinned] float to the head unless
@@ -1065,6 +1114,56 @@ object DrsUnified {
         DrsStore.update { state ->
             state.copy(unifiedToolViews = state.unifiedToolViews + (id to view.name))
         }
+    }
+
+    /**
+     * DRS v1.16.0: «إمكانية تغيير المهام» — replaces the tool rendered at
+     * bar slot [index] with [newId]. The replacement materializes the
+     * current ten slots into explicit pins (so the swapped-in tool stays
+     * exactly at that slot), and the swapped-in tool is guaranteed
+     * visible on [view] the same way a drawer pin is. Honest return:
+     * false for an unknown id or an out-of-range slot — nothing silently
+     * swallowed.
+     */
+    fun replaceStripSlot(index: Int, newId: String, view: DrsHybridViewMode): Boolean {
+        if (DrsUnifiedTools.byId(newId) == null) return false
+        var applied = false
+        DrsStore.update { state ->
+            val hiddenSet = state.hiddenUnifiedTools.toHashSet()
+            val visiblePins = state.pinnedUnifiedTools.filter { it !in hiddenSet }
+            val visibleDefaults = DrsUnifiedTools.ALL
+                .filter { it.defaultPinned && it.id !in hiddenSet }
+                .filter { DrsUnifiedTools.isVisibleIn(it, view, state.unifiedToolViews[it.id]) }
+                .map { it.id }
+            val resolved = DrsUnifiedTools.resolveFor(
+                view = view,
+                hidden = state.hiddenUnifiedTools,
+                pinned = state.pinnedUnifiedTools,
+                order = state.unifiedToolOrder,
+                viewOverrides = state.unifiedToolViews,
+            )
+            val slots = DrsUnifiedTools.fixedSlots(
+                visiblePins, visibleDefaults, resolved.map { it.id },
+            )
+            if (index < 0 || index >= slots.size) return@update state
+            applied = true
+            val newPins = DrsUnifiedTools.materializeSlotReplace(slots, index, newId)
+            val tool = DrsUnifiedTools.byId(newId)!!
+            val newOverride = DrsUnifiedTools.ensureVisibleOverride(
+                tool = tool,
+                view = view,
+                override = state.unifiedToolViews[newId],
+            )
+            state.copy(
+                pinnedUnifiedTools = newPins,
+                unifiedToolViews = if (newOverride != null) {
+                    state.unifiedToolViews + (newId to newOverride)
+                } else {
+                    state.unifiedToolViews
+                },
+            )
+        }
+        return applied
     }
 
     /** Moves a tool one slot up (towards the strip head) in the order. */

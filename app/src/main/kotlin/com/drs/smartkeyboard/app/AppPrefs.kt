@@ -901,6 +901,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "panels__recents_enabled",
             default = true,
         )
+        /**
+         * DRS v1.16.0: the smart ordering of the panels' switcher chips —
+         * the current panel leads, the rest follow the local open counts.
+         * Off = the fixed catalogue order.
+         */
+        val panelSmartOrder = boolean(
+            key = "panels__smart_order",
+            default = true,
+        )
     }
 
     val spelling = Spelling()

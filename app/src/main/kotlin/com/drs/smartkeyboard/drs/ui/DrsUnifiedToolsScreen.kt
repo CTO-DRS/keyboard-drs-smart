@@ -128,6 +128,14 @@ fun DrsUnifiedToolsScreen() = DrsScreen {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Spacer(Modifier.height(8.dp))
+                    // DRS v1.16.0: the bar is now the FIXED ten-slot strip.
+                    Text(
+                        text = stringRes(R.string.drs__unified__bar_slots_hint),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accent,
+                    )
+                    Spacer(Modifier.height(8.dp))
                     Text(
                         text = stringRes(
                             R.string.drs__unified__tools_live_count,

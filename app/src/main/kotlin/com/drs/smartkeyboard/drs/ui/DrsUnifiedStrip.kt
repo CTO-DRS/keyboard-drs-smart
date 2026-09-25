@@ -129,8 +129,8 @@ import org.drs.lib.snygg.ui.SnyggRow
  * / per-level visibility) is persisted in DrsState.
  */
 
-/** Resolves the icon for a catalogue tool (all ids covered). */
-private fun iconForTool(id: String) = when (id) {
+/** Resolves the icon for a catalogue tool (all ids covered, shared with the slot editor). */
+internal fun iconForTool(id: String) = when (id) {
     "emoji" -> Icons.Default.EmojiEmotions
     "clipboard" -> Icons.Default.ContentPaste
     "paste" -> Icons.Default.ContentPasteGo
@@ -200,13 +200,11 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
 
     val isHybrid = drsState.userPath == DrsUserPath.HYBRID.name
 
-    // DRS v1.8.0: the tasks bar (شريط المهام) now sits ABOVE the
-    // suggestions strip for ALL three user systems — العادي والتقني
-    // وكلاهما. Exactly two gates remain: the persisted master switch
-    // (unifiedStripEnabled, on by default, toggled from the tools drawer)
-    // and the password-field guard. The former per-system gating
-    // (techStripEnabled / unifiedStripForNormal / coding-context auto
-    // show) is superseded; «الشريط للجميع» is the contract now.
+    // DRS v1.8.0: the tasks bar (شريط المهام) sits ABOVE the suggestions
+    // strip for ALL three user systems — العادي والتقني وكلاهما. Exactly
+    // two gates: the persisted master switch (unifiedStripEnabled, on by
+    // default, toggled from the tools drawer) and the password-field
+    // guard.
     val visible = drsState.unifiedStripEnabled &&
         contextMode != DrsContextMode.PASSWORD
     if (!visible) return
@@ -252,8 +250,28 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
         )
     }
 
+    // DRS v1.16.0: «شريط المهام ثابت يعرض 10 مهام فقط» — the FIXED
+    // slots. The user's pins lead in pin order, the visible defaults
+    // fill the next slots, and the resolved visible catalogue pads the
+    // tail so the bar always renders exactly ten tasks (or less only
+    // when the whole catalogue is smaller). Hidden tools never occupy a
+    // slot, honoring the manager's show/hide switches.
+    val hiddenSet = remember(drsState.hiddenUnifiedTools) {
+        drsState.hiddenUnifiedTools.toHashSet()
+    }
+    val visiblePins = drsState.pinnedUnifiedTools.filter { it !in hiddenSet }
+    val visibleDefaults = DrsUnifiedTools.ALL
+        .filter { it.defaultPinned && it.id !in hiddenSet }
+        .filter { DrsUnifiedTools.isVisibleIn(it, view, drsState.unifiedToolViews[it.id]) }
+        .map { it.id }
+    val slots = remember(view, visiblePins, visibleDefaults, tools) {
+        DrsUnifiedTools.fixedSlots(visiblePins, visibleDefaults, tools.map { it.id })
+    }
+
     // Advanced technical keys ride along in the advanced and dual levels,
     // preserving the user's persisted arrangement from the toolbar editor.
+    // They are KEYS, not tasks — the ten task slots stay ten either way;
+    // the bar only scrolls when this tail exists.
     val techKeys = if (view != DrsHybridViewMode.SIMPLE) {
         remember(drsState.techToolbarKeys) {
             DrsTechToolbarKeys.resolve(drsState.techToolbarKeys)
@@ -267,55 +285,49 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
     // the keyboard height scale) instead of a hardcoded 40.dp, so growing
     // the keyboard grows the strip consistently.
     val stripHeight = DrsImeSizing.smartbarHeight
-    SnyggRow(
-        DrsImeUi.Smartbar.elementName,
-        modifier = modifier
+    val barModifier = if (techKeys.isEmpty()) {
+        modifier
             .fillMaxWidth()
             .height(stripHeight)
-            .horizontalScroll(rememberScrollState()),
+    } else {
+        modifier
+            .fillMaxWidth()
+            .height(stripHeight)
+            .horizontalScroll(rememberScrollState())
+    }
+    SnyggRow(
+        DrsImeUi.Smartbar.elementName,
+        modifier = barModifier,
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
     ) {
-        // 0) DRS v1.8.0: the side-pull handle (زر السحب الجانبي). Always
-        //    the first element so the pinned-tools drawer stays reachable
-        //    for everyone even when every tool is unpinned or hidden.
-        //    Opening the drawer closes the quick-actions overflow (the two
-        //    panels replace the same keyboard area).
+        // 0) the side-pull handle (زر السحب الجانبي). Always first so the
+        //    pinned-tools drawer stays reachable — the drawer is where
+        //    tasks are reordered (up/down), pinned and unpinned.
         SnyggIconButton(
             elementName = DrsImeUi.SmartbarActionKey.elementName,
             onClick = {
                 val state = keyboardManager.activeState
+                DrsRuntimeState.closeStripSlotEditor()
+                state.isActionsOverflowVisible = false
                 state.isToolsDrawerVisible = !state.isToolsDrawerVisible
-                if (state.isToolsDrawerVisible) {
-                    state.isActionsOverflowVisible = false
-                }
             },
             modifier = Modifier.sizeIn(minWidth = 40.dp).height(stripHeight),
         ) {
             SnyggIcon(imageVector = Icons.Default.DragHandle)
         }
 
-        // 1) نظام كلاهما: quick display-level cycle (بسيط -> تقني -> مزدوج).
-        //    Persisted in DrsState; only visibility ever changes.
-        if (isHybrid) {
-            SnyggIconButton(
-                elementName = DrsImeUi.SmartbarActionKey.elementName,
-                onClick = { DrsUnified.cycleViewMode() },
-                modifier = Modifier.sizeIn(minWidth = 44.dp).height(stripHeight),
-            ) {
-                Text(
-                    text = viewModeLabel(view),
-                    fontSize = 13.sp,
-                    maxLines = 1,
-                )
-            }
-        }
-
-        // 2) the unified catalogue tools for the active level. The text
-        //    tools entry toggles its panel (Close icon while open), so
-        //    hiding it in the manager also really removes the button.
-        tools.forEach { tool ->
+        // 1) the ten FIXED task slots — every slot dispatches its real
+        //    KeyCode, and a LONG-PRESS opens the slot editor (change the
+        //    task occupying that slot, «إمكانية تغييرها»).
+        slots.forEachIndexed { index, toolId ->
+            val tool = DrsUnifiedTools.byId(toolId) ?: return@forEachIndexed
             val isTextTools = tool.code == KeyCode.IME_UI_MODE_TEXT_TOOLS
             val toggleOn = DrsUnifiedTools.toggleStateOf(tool.id, toggleStates)
+            val slotModifier = if (techKeys.isEmpty()) {
+                Modifier.weight(1f).height(stripHeight)
+            } else {
+                Modifier.sizeIn(minWidth = 38.dp).height(stripHeight)
+            }
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,
                 onClick = {
@@ -328,7 +340,12 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
                         DrsAdaptationEngine.recordToolUse(tool.code)
                     }
                 },
-                modifier = Modifier.sizeIn(minWidth = 38.dp).height(stripHeight),
+                onLongClick = {
+                    keyboardManager.activeState.isToolsDrawerVisible = false
+                    keyboardManager.activeState.isActionsOverflowVisible = false
+                    DrsRuntimeState.openStripSlotEditor(index)
+                },
+                modifier = slotModifier,
             ) {
                 androidx.compose.foundation.layout.Box(
                     contentAlignment = androidx.compose.ui.Alignment.Center,
@@ -357,7 +374,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
             }
         }
 
-        // 3) the user's technical keys (advanced/dual levels only).
+        // 2) the user's technical keys (advanced/dual levels only).
         techKeys.forEach { key ->
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,

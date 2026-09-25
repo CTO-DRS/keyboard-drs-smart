@@ -35,6 +35,25 @@ object DrsRuntimeState {
     private val _contextMode = MutableStateFlow(DrsContextMode.NORMAL)
     val contextMode: StateFlow<DrsContextMode> = _contextMode.asStateFlow()
 
+    /**
+     * DRS v1.16.0: the open slot editor of the fixed tasks bar — null
+     * when closed, otherwise the index of the slot being changed
+     * («إمكانية تغيير المهام»). Runtime-only state like the drawer flag;
+     * the panel itself reads [DrsStore] for everything persisted.
+     */
+    private val _stripSlotEditor = MutableStateFlow<Int?>(null)
+    val stripSlotEditor: StateFlow<Int?> = _stripSlotEditor.asStateFlow()
+
+    /** Opens the slot editor for bar slot [index]. */
+    fun openStripSlotEditor(index: Int) {
+        _stripSlotEditor.value = index
+    }
+
+    /** Closes the slot editor (no-op when already closed). */
+    fun closeStripSlotEditor() {
+        _stripSlotEditor.value = null
+    }
+
     /** Packages whose names hint at technical/coding usage. */
     private val codingPackageHints = listOf(
         "termux", "code", "coder", "ide", "terminal", "kotlin", "studio",

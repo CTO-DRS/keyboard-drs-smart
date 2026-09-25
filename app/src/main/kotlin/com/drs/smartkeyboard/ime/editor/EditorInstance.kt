@@ -80,6 +80,8 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         activeState.isActionsEditorVisible = false
         // DRS v1.8.0: a fresh input view never opens behind the tools drawer.
         activeState.isToolsDrawerVisible = false
+        // DRS v1.16.0: ...nor behind an open strip slot editor.
+        DrsRuntimeState.closeStripSlotEditor()
         super.handleStartInputView(editorInfo, isRestart)
         val keyboardMode = when (editorInfo.inputAttributes.type) {
             InputAttributes.Type.NUMBER -> {

@@ -118,6 +118,13 @@ fun SmartbarScreen() = DrsScreen {
                 title = stringRes(R.string.pref__panels__recents__label),
                 summary = stringRes(R.string.pref__panels__recents__summary),
             )
+            // DRS v1.16.0: the smart panel ordering (أعد ترتيب الوحات بنظام
+            // مرتب وذكي) — the switcher reorders from local open counts.
+            SwitchPreference(
+                prefs.panels.panelSmartOrder,
+                title = stringRes(R.string.pref__panels__smart_order__label),
+                summary = stringRes(R.string.pref__panels__smart_order__summary),
+            )
         }
     }
 }

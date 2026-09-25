@@ -2444,4 +2444,12 @@
     <string name="pref__panels__symbol_suggestions__summary">صف رموز يقترح ما يناسب النص قبل المؤشر تلقائيًا</string>
     <string name="pref__panels__recents__label">الأكثر استخدامًا في اللوحات</string>
     <string name="pref__panels__recents__summary">تذكر أكثر ما تستخدمه في لوحات الحركات والرموز والحروف محليًا فقط</string>
+    <!-- DRS v1.16.0: شريط المهام الثابت (10 خانات) + محرر الخانة + لوحة الحركات كلوحة مفاتيح + الترتيب الذكي للوحات -->
+    <string name="drs__strip_slot__title">تغيير المهمة — الخانة {slot}</string>
+    <string name="drs__strip_slot__hint">اختر مهمة من الكتالوج لتشغل هذه الخانة في الشريط الثابت. لفتح هذا المحرر اضغط مطولًا على أي خانة في شريط المهام.</string>
+    <string name="drs__strip_slot__pick">استبدال</string>
+    <string name="drs__tools_drawer__level_section">المستوى:</string>
+    <string name="drs__unified__bar_slots_hint">شريط المهام ثابت الآن: يعرض 10 مهام فقط فوق شريط الاقتراحات — تثبياتك أولًا ثم يُستكمل من الكتالوج. اضغط مطولًا على أي مهمة لتغييرها، وافتح الدرج (السحب الجانبي) لترتيبها وتثبيت غيرها.</string>
+    <string name="pref__panels__smart_order__label">الترتيب الذكي للوحات</string>
+    <string name="pref__panels__smart_order__summary">رقاقات مبدّل اللوحات تُرتَّب تلقائيًا: اللوحة الحالية أولًا ثم الأكثر فتحًا — محليًا فقط</string>
 </resources>

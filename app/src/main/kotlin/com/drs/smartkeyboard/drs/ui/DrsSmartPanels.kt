@@ -18,12 +18,17 @@ package com.drs.smartkeyboard.drs.ui
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -38,8 +43,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.FormatClear
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -50,25 +57,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsHarakat
+import com.drs.smartkeyboard.drs.DrsKeyboardHarakat
+import com.drs.smartkeyboard.drs.DrsKeyboardHarakatKey
+import com.drs.smartkeyboard.drs.DrsPanelOrder
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.HarakaInsertMode
 import com.drs.smartkeyboard.drs.HarakatSmartInsert
 import com.drs.smartkeyboard.drs.PanelUsageTracker
 import com.drs.smartkeyboard.drs.DrsSystems
+import com.drs.smartkeyboard.drs.DrsRuntimeState
 import com.drs.smartkeyboard.drs.SymbolSmartSuggestor
 import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.editor.OperationUnit
+import com.drs.smartkeyboard.ime.input.LocalInputFeedbackController
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import com.drs.smartkeyboard.ime.text.key.KeyType
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
+import com.drs.smartkeyboard.ime.window.LocalWindowController
 import com.drs.smartkeyboard.keyboardManager
 import com.drs.smartkeyboard.editorInstance
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
@@ -81,21 +96,26 @@ import org.drs.lib.snygg.ui.SnyggIcon
 import org.drs.lib.snygg.ui.SnyggIconButton
 import org.drs.lib.snygg.ui.SnyggRow
 import org.drs.lib.snygg.ui.SnyggText
+import org.drs.lib.snygg.SnyggSelector
 
 /**
- * DRS v1.15.0 — الوحات الذكية الثلاث.
+ * DRS v1.15.0/v1.16.0 — الوحات الذكية الثلاث.
  *
- *  - لوحة الحركات (DrsDiacriticsPanel): شبكة الحركات التسع + التطويل،
- *    صف الأكثر استخدامًا، ورقاقات التشكيل المزدوج (شدّة + حركة)، مع
- *    الدمج الذكي: حركة فوق حركة تستبدلها بدل أن تتراكم.
+ *  - لوحة الحركات (DrsDiacriticsPanel): v1.16.0 أُعيد بناؤها كلوحة
+ *    مفاتيح كاملة «مشابهة تمامًا للوحة الحروف أو الأرقام» — أربعة صفوف
+ *    من مفاتيح العنصر المرئي نفسه الذي ترسم به المفاتيح الحقيقية، بارتفاع
+ *    الصف والهوامش نفسهما: التنوينات، الحركات الأساسية، الشدة والتطويل
+ *    مع مفتاحي الحذف والمسافة الحقيقيين، والتشكيل المزدوج — مع الدمج
+ *    الذكي وتكرار الحذف بالضغط المطول.
  *  - لوحة الرموز الذكية (DrsSmartSymbolsPanel): صف اقتراحات سياقية يقرأ
  *    النص قبل المؤشر، ثم فئات الرموز الكاملة، وصف الأكثر استخدامًا.
  *  - لوحة الحروف الموسعة (DrsArabicLettersPanel): همزات ومشتقات وحروف
  *    الفارسية/الأردية/الكردية مع صف الأكثر استخدامًا.
  *
- * كل لوحة تُرسل إدخالًا حقيقيًا عبر المحرر نفسه الذي ترسل إليه لوحات
- * المفاتيح، وتتذكر أكثر ما يستخدمه المستخدم محليًا فقط (الوضع الخفي لا
- * يسجّل شيئًا إطلاقًا)، ويمكن تثبيت أيٍّ منها ضمن المهام العشر.
+ * v1.16.0 — «أعد ترتيب وتطوير جميع الوحات بنظام مرتب وذكي»: رقاقات
+ * المبدّل في اللوحات الثلاث تُرتَّب ذكيًا من عدّادات فتح اللوحات المحلية
+ * (اللوحة الحالية أولًا ثم الأكثر فتحًا)، وكل لوحة تسجّل فتحها محليًا فقط
+ * (الوضع الخفي لا يسجّل شيئًا إطلاقًا).
  */
 
 /** The persisted panel-usage namespaces (per panel, local only). */
@@ -129,21 +149,6 @@ object DrsPanelUsageStore {
     }
 }
 
-/** Arabic name resource for every harakat tile (grid order). */
-private fun harakatNameRes(char: Char): Int = when (char) {
-    DrsHarakat.FATHA -> R.string.panel__harakat__name_fatha
-    DrsHarakat.DAMMA -> R.string.panel__harakat__name_damma
-    DrsHarakat.KASRA -> R.string.panel__harakat__name_kasra
-    DrsHarakat.SUKUN -> R.string.panel__harakat__name_sukun
-    DrsHarakat.SHADDA -> R.string.panel__harakat__name_shadda
-    DrsHarakat.FATHATAN -> R.string.panel__harakat__name_fathatan
-    DrsHarakat.DAMMATAN -> R.string.panel__harakat__name_dammatan
-    DrsHarakat.KASRATAN -> R.string.panel__harakat__name_kasratan
-    DrsHarakat.SUPERSCRIPT_ALEF -> R.string.panel__harakat__name_superscript_alef
-    DrsHarakat.TATWEEL -> R.string.panel__harakat__name_tatweel
-    else -> R.string.general__empty_string
-}
-
 /** The smart symbols panel catalogue (pure data, panel order). */
 object DrsSymbolsCatalog {
     val MATH: List<String> = listOf(
@@ -169,14 +174,26 @@ object DrsArabicLettersCatalog {
     )
 }
 
-/** The shared panel-switcher chips row (الحركات / الرموز / الحروف). */
+/** The shared panel-switcher chips row, smart-ordered by local open counts. */
 @Composable
 private fun PanelSwitcherChips(current: ImeUiMode, keyboardManager: com.drs.smartkeyboard.ime.keyboard.KeyboardManager, accent: androidx.compose.ui.graphics.Color) {
-    val options = listOf(
+    val context = LocalContext.current
+    val prefs by DrsPreferenceStore
+    val smartOrder by prefs.panels.panelSmartOrder.collectAsState()
+    val catalogue = listOf(
         ImeUiMode.DIACRITICS to R.string.panel__switcher_harakat,
         ImeUiMode.SMART_SYMBOLS to R.string.panel__switcher_symbols,
         ImeUiMode.ARABIC_LETTERS to R.string.panel__switcher_letters,
     )
+    val options = remember(current, smartOrder) {
+        if (!smartOrder) {
+            catalogue
+        } else {
+            val usage = DrsPanelUsageStore.load(context, DrsPanelOrder.USAGE_NAMESPACE)
+            DrsPanelOrder.smartSwitcher(current, usage, catalogue.map { it.first })
+                .map { mode -> mode to catalogue.first { it.first == mode }.second }
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -194,6 +211,22 @@ private fun PanelSwitcherChips(current: ImeUiMode, keyboardManager: com.drs.smar
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 text = stringRes(labelRes),
             )
+        }
+    }
+}
+
+/**
+ * Records one open of [mode] into the LOCAL panel-open counters (the
+ * smart ordering input). Counts only — the incognito mode records
+ * nothing at all, exactly like every other DRS usage counter.
+ */
+@Composable
+private fun RecordPanelOpen(mode: ImeUiMode) {
+    val context = LocalContext.current
+    val keyboardManager by context.keyboardManager()
+    LaunchedEffect(mode) {
+        if (!keyboardManager.activeState.isIncognitoMode) {
+            DrsPanelUsageStore.record(context, DrsPanelOrder.USAGE_NAMESPACE, mode.name)
         }
     }
 }
@@ -271,22 +304,29 @@ private fun gridSubheader(text: String) {
 }
 
 /**
- * لوحة الحركات — the smart harakat panel. Smart insert: a mark over a
- * mark replaces it (idempotent on itself, shadda+haraka appends), the
- * shadda combos commit two characters in one tap, the recents row leads
- * with what this user actually uses, and the header carries the real
- * remove-diacritics text tool.
+ * لوحة الحركات — v1.16.0: the harakat KEYBOARD panel, «مشابه تمامًا
+ * للوحة الحروف أو الأرقام»: four rows of the very same themed key
+ * element the real keys render through (DrsImeUi.Key with its pressed
+ * selector), at the real row height and margins. Smart insert (a mark
+ * over a mark replaces it, shadda+haraka appends), the shadda combos
+ * commit two characters, the real delete key repeats while held, the
+ * real space key, and the recents strip leads with what this user
+ * actually uses.
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DrsDiacriticsPanel(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val keyboardManager by context.keyboardManager()
     val editorInstance by context.editorInstance()
     val prefs by DrsPreferenceStore
+    val feedback = LocalInputFeedbackController.current
 
     val smartReplace by prefs.panels.harakatSmartReplace.collectAsState()
     val recentsEnabled by prefs.panels.panelRecents.collectAsState()
     var recents by remember { mutableStateOf(DrsPanelUsageStore.load(context, USAGE_PANEL_HARAKAT)) }
+
+    RecordPanelOpen(ImeUiMode.DIACRITICS)
 
     fun recordUse(key: String) {
         if (keyboardManager.activeState.isIncognitoMode) return
@@ -294,9 +334,9 @@ fun DrsDiacriticsPanel(modifier: Modifier = Modifier) {
         recents = DrsPanelUsageStore.load(context, USAGE_PANEL_HARAKAT)
     }
 
-    fun commitText(text: String, usageKey: String) {
+    fun commitText(text: String, usageKey: String?) {
         editorInstance.commitText(text)
-        recordUse(usageKey)
+        if (usageKey != null) recordUse(usageKey)
     }
 
     fun insertHaraka(haraka: Char) {
@@ -313,6 +353,18 @@ fun DrsDiacriticsPanel(modifier: Modifier = Modifier) {
         commitText(glyph, glyph)
     }
 
+    fun applyKey(key: DrsKeyboardHarakatKey) {
+        when (key) {
+            is DrsKeyboardHarakatKey.Haraka -> insertHaraka(key.char)
+            is DrsKeyboardHarakatKey.Combo -> commitText(key.text, key.text)
+            DrsKeyboardHarakatKey.Tatweel -> commitText("${DrsHarakat.TATWEEL}", null)
+            DrsKeyboardHarakatKey.Space ->
+                keyboardManager.inputEventDispatcher.sendDownUp(TextKeyData.SPACE)
+            DrsKeyboardHarakatKey.Delete ->
+                keyboardManager.inputEventDispatcher.sendDownUp(TextKeyData.DELETE)
+        }
+    }
+
     fun dispatchRemoveDiacritics() {
         keyboardManager.inputEventDispatcher.sendDownUp(
             TextKeyData(type = KeyType.FUNCTION, code = KeyCode.TEXT_TOOL_REMOVE_DIACRITICS, label = "drs_text_tool"),
@@ -322,13 +374,19 @@ fun DrsDiacriticsPanel(modifier: Modifier = Modifier) {
     val systemSpec = DrsSystems.specOfName(DrsStore.state.value.userPath)
     val accent = if (isSystemInDarkTheme()) systemSpec.accentNight else systemSpec.accent
     val recentsRow = remember(recents, recentsEnabled) {
-        if (recentsEnabled) PanelUsageTracker.topRecents(recents, DrsHarakat.GRID.map { it.toString() }) else emptyList()
+        if (recentsEnabled) {
+            PanelUsageTracker.topRecents(recents, DrsHarakat.GRID.map { it.toString() })
+        } else {
+            emptyList()
+        }
     }
 
+    val windowController = LocalWindowController.current
+    val windowSpec by windowController.activeWindowSpec.collectAsState()
+    val rowHeight = DrsImeSizing.keyboardRowBaseHeight
+
     SnyggColumn(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(DrsImeSizing.imeUiHeight()),
+        modifier = modifier.fillMaxWidth(),
     ) {
         SmartPanelHeader(
             titleRes = R.string.panel__harakat__title,
@@ -347,47 +405,110 @@ fun DrsDiacriticsPanel(modifier: Modifier = Modifier) {
         }
         PanelSwitcherChips(ImeUiMode.DIACRITICS, keyboardManager, accent)
 
-        SnyggBox(DrsImeUi.ClipboardContent.elementName, modifier = Modifier.fillMaxWidth()) {
-            LazyVerticalGrid(
-                modifier = Modifier.fillMaxWidth(),
-                columns = GridCells.Adaptive(DrsImeSizing.smartbarHeight * 1.35f),
+        // The recents strip — the smart layer above the keyboard rows.
+        if (recentsRow.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(DrsImeSizing.smartbarHeight)
+                    .padding(horizontal = windowSpec.keyMarginH),
+                horizontalArrangement = Arrangement.spacedBy(windowSpec.keyMarginH * 2),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (recentsRow.isNotEmpty()) {
-                    item(span = { GridItemSpan(maxLineSpan) }) {
-                        gridSubheader(stringRes(R.string.panel__recents_title))
-                    }
-                    items(recentsRow, key = { "recent_$it" }) { key ->
-                        SmartTile(
-                            glyph = key,
-                            name = "",
-                            onApply = { insertHaraka(key.first()) },
-                        )
-                    }
-                }
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    gridSubheader(stringRes(R.string.panel__harakat__combos_title))
-                }
-                items(DrsHarakat.COMBOS, key = { "combo_$it" }) { combo ->
-                    SmartTile(
-                        glyph = combo,
-                        name = stringRes(R.string.panel__harakat__combo_name),
-                        onApply = { commitText(combo, combo) },
+                recentsRow.forEach { char ->
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardSubheader.elementName,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(accent.copy(alpha = 0.10f))
+                            .rippleClickable { insertHaraka(char.first()) }
+                            .padding(horizontal = 12.dp, vertical = 4.dp),
+                        text = DrsKeyboardHarakat.label(
+                            DrsKeyboardHarakatKey.Haraka(char.first()),
+                        ),
                     )
-                }
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    gridSubheader(stringRes(R.string.panel__harakat__grid_title))
-                }
-                items(DrsHarakat.GRID, key = { "haraka_$it" }) { haraka ->
-                    SmartTile(
-                        glyph = haraka.toString(),
-                        name = stringRes(harakatNameRes(haraka)),
-                        onApply = { insertHaraka(haraka) },
-                    )
-                }
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Spacer(Modifier.height(12.dp))
                 }
             }
+        }
+
+        // The keyboard itself: four rows x four keys, the exact anatomy
+        // of the numbers panel, rendered through DrsImeUi.Key.
+        DrsKeyboardHarakat.ROWS.forEach { rowKeys ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(rowHeight)
+                    .padding(horizontal = windowSpec.keyMarginH),
+                horizontalArrangement = Arrangement.spacedBy(windowSpec.keyMarginH * 2),
+            ) {
+                rowKeys.forEach { key ->
+                    HarakatKeyboardKey(
+                        key = key,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .padding(vertical = windowSpec.keyMarginV),
+                        onPress = {
+                            feedback.keyPress()
+                            applyKey(key)
+                        },
+                        holdRepeat = key is DrsKeyboardHarakatKey.Delete,
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+    }
+}
+
+/**
+ * One keyboard key of the harakat panel — the SAME themed element the
+ * real keys render through (DrsImeUi.Key with its pressed selector), so
+ * the panel looks exactly like the letters/numbers panels. [holdRepeat]
+ * turns the key into the hold-to-repeat delete key.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun HarakatKeyboardKey(
+    key: DrsKeyboardHarakatKey,
+    modifier: Modifier = Modifier,
+    onPress: () -> Unit,
+    holdRepeat: Boolean = false,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    val pressed by interaction.collectIsPressedAsState()
+
+    LaunchedEffect(pressed, holdRepeat) {
+        if (pressed && holdRepeat) {
+            delay(400)
+            while (true) {
+                onPress()
+                delay(60)
+            }
+        }
+    }
+
+    SnyggBox(
+        elementName = DrsImeUi.Key.elementName,
+        selector = if (pressed) SnyggSelector.PRESSED else SnyggSelector.NONE,
+        modifier = modifier,
+        clickAndSemanticsModifier = Modifier.combinedClickable(
+            interactionSource = interaction,
+            indication = null,
+            onClick = { if (!holdRepeat) onPress() },
+        ),
+    ) {
+        if (key is DrsKeyboardHarakatKey.Delete) {
+            SnyggIcon(
+                modifier = Modifier.align(Alignment.Center),
+                imageVector = Icons.AutoMirrored.Outlined.Backspace,
+                contentDescription = null,
+            )
+        } else {
+            SnyggText(
+                modifier = Modifier.align(Alignment.Center),
+                text = DrsKeyboardHarakat.label(key),
+            )
         }
     }
 }
@@ -409,6 +530,8 @@ fun DrsSmartSymbolsPanel(modifier: Modifier = Modifier) {
     val recentsEnabled by prefs.panels.panelRecents.collectAsState()
     var recents by remember { mutableStateOf(DrsPanelUsageStore.load(context, USAGE_PANEL_SYMBOLS)) }
     var commitStamp by remember { mutableIntStateOf(0) }
+
+    RecordPanelOpen(ImeUiMode.SMART_SYMBOLS)
 
     fun commitText(text: String) {
         editorInstance.commitText(text)
@@ -527,6 +650,8 @@ fun DrsArabicLettersPanel(modifier: Modifier = Modifier) {
 
     val recentsEnabled by prefs.panels.panelRecents.collectAsState()
     var recents by remember { mutableStateOf(DrsPanelUsageStore.load(context, USAGE_PANEL_LETTERS)) }
+
+    RecordPanelOpen(ImeUiMode.ARABIC_LETTERS)
 
     fun commitText(text: String) {
         editorInstance.commitText(text)

@@ -16,6 +16,7 @@
 
 package com.drs.smartkeyboard
 
+import com.drs.smartkeyboard.drs.DrsRuntimeState
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -439,6 +440,8 @@ class DrsImeService : LifecycleInputMethodService() {
                 activeState.isActionsEditorVisible = false
                 // DRS v1.8.0: never persist a stale tools drawer across hides.
                 activeState.isToolsDrawerVisible = false
+                // DRS v1.16.0: ...nor a stale strip slot editor.
+                DrsRuntimeState.closeStripSlotEditor()
             }
         } else {
             flogWarning(LogTopic.IMS_EVENTS) { "Ignoring (is already hidden)" }

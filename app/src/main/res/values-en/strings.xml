@@ -2528,4 +2528,12 @@
     <string name="pref__panels__symbol_suggestions__summary">A symbols row that fits the text before the cursor automatically</string>
     <string name="pref__panels__recents__label">Panel most-used rows</string>
     <string name="pref__panels__recents__summary">Remembers your most-used tiles across the harakat, symbols and letters panels — local only</string>
+    <!-- DRS v1.16.0: the fixed tasks bar (10 slots) + the slot editor + the harakat keyboard panel + the smart panel ordering -->
+    <string name="drs__strip_slot__title">Change task — slot {slot}</string>
+    <string name="drs__strip_slot__hint">Pick a catalogue task to occupy this fixed-bar slot. Long-press any tasks-bar slot to open this editor.</string>
+    <string name="drs__strip_slot__pick">Replace</string>
+    <string name="drs__tools_drawer__level_section">Level:</string>
+    <string name="drs__unified__bar_slots_hint">The tasks bar is now FIXED: it shows 10 tasks only above the suggestions strip — your pins first, then filled from the catalogue. Long-press any task to change it, and open the drawer (side-pull handle) to reorder or pin others.</string>
+    <string name="pref__panels__smart_order__label">Smart panel ordering</string>
+    <string name="pref__panels__smart_order__summary">The panels switcher reorders itself: the current panel leads, then the most-opened ones — local only</string>
 </resources>

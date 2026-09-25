@@ -29,6 +29,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
+import com.drs.smartkeyboard.drs.DrsRuntimeState
+import com.drs.smartkeyboard.drs.ui.DrsStripSlotEditorPanel
 import com.drs.smartkeyboard.drs.ui.DrsToolsDrawerPanel
 import com.drs.smartkeyboard.drs.ui.DrsUnifiedStrip
 import com.drs.smartkeyboard.ime.smartbar.IncognitoDisplayMode
@@ -68,10 +70,14 @@ fun TextInputLayout(
         // pinned-tools drawer over the keyboard area.
         DrsUnifiedStrip()
         Smartbar()
+        // DRS v1.16.0: the strip slot editor (تغيير مهمة من العشر) swaps
+        // the keyboard area the same way the drawer and the overflow do.
+        val slotEditorOpen by DrsRuntimeState.stripSlotEditor.collectAsState()
         when {
-            // The pinned-tools drawer has priority; the two panels never
-            // stack (opening one closes the other).
+            // The pinned-tools drawer has priority; the panels never
+            // stack (opening one closes the others).
             state.isToolsDrawerVisible -> DrsToolsDrawerPanel()
+            slotEditorOpen != null -> DrsStripSlotEditorPanel()
             state.isActionsOverflowVisible -> QuickActionsOverflowPanel()
             else -> Box {
                 val incognitoDisplayMode by prefs.keyboard.incognitoDisplayMode.collectAsState()

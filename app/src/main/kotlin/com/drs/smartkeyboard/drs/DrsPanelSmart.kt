@@ -16,6 +16,8 @@
 
 package com.drs.smartkeyboard.drs
 
+import com.drs.smartkeyboard.ime.ImeUiMode
+
 /**
  * DRS v1.15.0 — الأنظمة الذكية للوحات الجديدة (لوحة الحركات، لوحة الرموز
  * الذكية، لوحة الحروف الموسعة).
@@ -160,6 +162,132 @@ object SymbolSmartSuggestor {
         if (DrsHarakat.isCombiningMark(ch)) return false
         if (ch == DrsHarakat.TATWEEL) return false
         return true
+    }
+}
+
+/**
+ * DRS v1.16.0 — لوحة الحركات كلوحة مفاتيح كاملة (the harakat KEYBOARD
+ * panel). The user asked for a panel «مشابه تمامًا للوحة الحروف أو
+ * الأرقام» — exactly like the letters/numbers panels — so the catalogue
+ * is arranged as a real keyboard: four rows of four wide keys each (the
+ * numeric panel's anatomy), rendered through the very same themed key
+ * element the real keys use. Pure data + pure labels so the arrangement
+ * and its display are pinned by unit tests.
+ */
+sealed interface DrsKeyboardHarakatKey {
+
+    /** One combining haraka, inserted through the smart engine. */
+    data class Haraka(val char: Char) : DrsKeyboardHarakatKey
+
+    /** The shadda+haraka combo, committed as two characters. */
+    data class Combo(val text: String) : DrsKeyboardHarakatKey
+
+    /** The tatweel (stretch) — not a combining mark. */
+    object Tatweel : DrsKeyboardHarakatKey
+
+    /** The real delete key (hold-to-repeat in the UI layer). */
+    object Delete : DrsKeyboardHarakatKey
+
+    /** The real space key. */
+    object Space : DrsKeyboardHarakatKey
+}
+
+object DrsKeyboardHarakat {
+
+    /** The dotted circle base the combining marks render on. */
+    const val DOTTED_CIRCLE = '◌' // U+25CC
+
+    /**
+     * The full keyboard arrangement — four rows x four keys, the exact
+     * anatomy of the numbers panel:
+     *  1. التنوينات + الألف الخنجرية
+     *  2. الحركات الأساسية
+     *  3. الشدة والتطويل + مفتاحا الحذف والمسافة
+     *  4. التشكيل المزدوج (شدة + حركة)
+     */
+    val ROWS: List<List<DrsKeyboardHarakatKey>> = listOf(
+        listOf(
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.FATHATAN),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.DAMMATAN),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.KASRATAN),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.SUPERSCRIPT_ALEF),
+        ),
+        listOf(
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.FATHA),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.DAMMA),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.KASRA),
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.SUKUN),
+        ),
+        listOf(
+            DrsKeyboardHarakatKey.Haraka(DrsHarakat.SHADDA),
+            DrsKeyboardHarakatKey.Tatweel,
+            DrsKeyboardHarakatKey.Delete,
+            DrsKeyboardHarakatKey.Space,
+        ),
+        listOf(
+            DrsKeyboardHarakatKey.Combo("${DrsHarakat.SHADDA}${DrsHarakat.FATHA}"),
+            DrsKeyboardHarakatKey.Combo("${DrsHarakat.SHADDA}${DrsHarakat.DAMMA}"),
+            DrsKeyboardHarakatKey.Combo("${DrsHarakat.SHADDA}${DrsHarakat.KASRA}"),
+            DrsKeyboardHarakatKey.Combo("${DrsHarakat.SHADDA}${DrsHarakat.SUKUN}"),
+        ),
+    )
+
+    /** All the harakat keys of the arrangement (no delete/space). */
+    val HARAKAT_KEYS: List<DrsKeyboardHarakatKey> = ROWS.flatten()
+        .filter { it !is DrsKeyboardHarakatKey.Delete && it !is DrsKeyboardHarakatKey.Space }
+
+    /**
+     * The display label of a key: combining marks render on the dotted
+     * circle (◌َ) so a lone mark is visible exactly like real Arabic
+     * keyboards show it; the tatweel, space and delete keys have their
+     * own honest glyphs.
+     */
+    fun label(key: DrsKeyboardHarakatKey): String = when (key) {
+        is DrsKeyboardHarakatKey.Haraka -> "$DOTTED_CIRCLE${key.char}"
+        is DrsKeyboardHarakatKey.Combo -> "$DOTTED_CIRCLE${key.text}"
+        DrsKeyboardHarakatKey.Tatweel -> "${DrsHarakat.TATWEEL}"
+        DrsKeyboardHarakatKey.Delete -> "\u232B"
+        DrsKeyboardHarakatKey.Space -> "\u2423"
+    }
+}
+
+/**
+ * DRS v1.16.0 — «أعد ترتيب وتطوير جميع الوحات بنظام مرتب وذكي» — the
+ * smart panel ordering. The switcher chips of the three smart panels
+ * reorder themselves from the LOCAL panel-open counters: the current
+ * panel always leads (stable anchor), the rest follow by usage with
+ * ties broken by catalogue order. Zero text ever recorded — only which
+ * PANEL was opened, local only.
+ */
+object DrsPanelOrder {
+
+    /** The persisted namespace of the panel-open counters. */
+    const val USAGE_NAMESPACE = "panels"
+
+    /**
+     * The ordered switcher: [current] first (always, even if never
+     * used), then the remaining panels by their usage counts (most
+     * used first, ties break by [catalogue] order). A panel missing
+     * from the usage map counts as zero. Pure and deterministic.
+     */
+    fun smartSwitcher(
+        current: ImeUiMode,
+        usage: Map<String, Int>,
+        catalogue: List<ImeUiMode>,
+    ): List<ImeUiMode> {
+        if (catalogue.size <= 1) return catalogue
+        val index = catalogue.withIndex().associate { (i, mode) -> mode to i }
+        val rest = catalogue.filter { it != current }
+            .sortedWith(
+                compareByDescending<ImeUiMode> { usage[it.name] ?: 0 }
+                    .thenBy { index[it]!! },
+            )
+        return listOf(current) + rest
+    }
+
+    /** Records one panel open into the local counters (pure input). */
+    fun recordOpen(counts: Map<String, Int>, mode: ImeUiMode): Map<String, Int> {
+        return PanelUsageTracker.record(counts, mode.name)
     }
 }
 

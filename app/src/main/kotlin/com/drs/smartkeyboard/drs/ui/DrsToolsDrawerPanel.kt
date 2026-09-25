@@ -52,7 +52,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.drs.DrsHybridViewMode
 import com.drs.smartkeyboard.drs.DrsSystems
+import com.drs.smartkeyboard.drs.DrsUserPath
 import com.drs.smartkeyboard.drs.DrsStore
 import com.drs.smartkeyboard.drs.DrsToolGroup
 import com.drs.smartkeyboard.drs.DrsUnified
@@ -107,6 +109,7 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
 
     val drsState by DrsStore.state.collectAsState()
     var filter by remember { mutableStateOf(DrawerFilter.ALL) }
+    val isHybrid = drsState.userPath == DrsUserPath.HYBRID.name
 
     val view = DrsUnifiedTools.viewForSystem(drsState.userPath, drsState.hybridViewMode)
     // DRS v1.15.0: «المهام المثبتة 10 فقط» — the pinned section mirrors
@@ -208,6 +211,45 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
                         .padding(horizontal = 12.dp, vertical = 6.dp),
                     text = stringRes(option.labelRes),
                 )
+            }
+        }
+
+        // DRS v1.16.0: the hybrid display-level selector moved here from
+        // the tasks bar (the bar now shows the ten fixed task slots only,
+        // «يعرض 10 مهام فقط») — the level stays switchable in-IME.
+        if (isHybrid) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                SnyggText(
+                    elementName = DrsImeUi.ClipboardSubheader.elementName,
+                    modifier = Modifier.padding(end = 4.dp),
+                    text = stringRes(R.string.drs__tools_drawer__level_section),
+                )
+                DrsHybridViewMode.entries.forEach { mode ->
+                    val selected = view == mode
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardSubheader.elementName,
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(
+                                if (selected) accent.copy(alpha = 0.22f) else accent.copy(alpha = 0.06f),
+                            )
+                            .rippleClickable { DrsUnified.setViewMode(mode) }
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        text = stringRes(
+                            when (mode) {
+                                DrsHybridViewMode.SIMPLE -> R.string.drs__unified__level_simple
+                                DrsHybridViewMode.ADVANCED -> R.string.drs__unified__level_advanced
+                                DrsHybridViewMode.DUAL -> R.string.drs__unified__level_dual
+                            },
+                        ),
+                    )
+                }
             }
         }
 

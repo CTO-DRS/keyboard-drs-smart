@@ -16,6 +16,7 @@
 
 package com.drs.smartkeyboard.ime.keyboard
 
+import com.drs.smartkeyboard.drs.DrsRuntimeState
 import android.content.Context
 import android.icu.lang.UCharacter
 import android.view.KeyEvent
@@ -940,32 +941,39 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.IME_UI_MODE_TEXT -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.TEXT
+                DrsRuntimeState.closeStripSlotEditor()
             }
             KeyCode.IME_UI_MODE_MEDIA -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.MEDIA
+                DrsRuntimeState.closeStripSlotEditor()
             }
             KeyCode.IME_UI_MODE_CLIPBOARD -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.CLIPBOARD
+                DrsRuntimeState.closeStripSlotEditor()
             }
             KeyCode.IME_UI_MODE_TEXT_TOOLS -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.TEXT_TOOLS
+                DrsRuntimeState.closeStripSlotEditor()
             }
             // DRS v1.15.0: the three smart panels (الحركات/الرموز/الحروف)
             // open through the same path as every other UI mode.
             KeyCode.IME_UI_MODE_DIACRITICS -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.DIACRITICS
+                DrsRuntimeState.closeStripSlotEditor()
             }
             KeyCode.IME_UI_MODE_SMART_SYMBOLS -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.SMART_SYMBOLS
+                DrsRuntimeState.closeStripSlotEditor()
             }
             KeyCode.IME_UI_MODE_ARABIC_LETTERS -> {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.ARABIC_LETTERS
+                DrsRuntimeState.closeStripSlotEditor()
             }
             in DrsTextTool.CODE_RANGE -> {
                 DrsTextTool.fromCode(data.code)?.let { editorInstance.performTextTool(it) }
