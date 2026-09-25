@@ -149,6 +149,19 @@
             </intent-filter>
         </activity>
 
+        <!-- DRS v1.11.0: Popup Clipboard Editor Window — a dialog-styled
+             translucent activity that floats above the whole screen (the
+             app behind stays visible through the scrim). Serves the smart
+             clipboard text editor outside the keyboard panel, as requested. -->
+        <activity
+            android:name="com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupActivity"
+            android:theme="@style/DrsAppTheme.ClipEditorPopup"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:taskAffinity=""
+            android:configChanges="orientation|screenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|smallestScreenSize"
+            android:windowSoftInputMode="adjustResize"/>
+
         <!-- Clipboard Media File Provider -->
         <provider
             android:name="com.drs.smartkeyboard.ime.clipboard.provider.ClipboardMediaProvider"

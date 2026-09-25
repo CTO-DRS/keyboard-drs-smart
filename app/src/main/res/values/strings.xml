@@ -2302,4 +2302,6 @@
     <string name="clip__font_serif">سريف</string>
     <string name="clip__font_mono">أحادي المسافة</string>
     <string name="clip__font_cursive">مخطوط</string>
+    <string name="clip__editor_saved_toast">تم حفظ التعديلات</string>
+    <string name="clip__popup_window_hint">نافذة منبثقة مستقلة — تعدل خارج اللوحة وتطفو فوق الشاشة</string>
 </resources>

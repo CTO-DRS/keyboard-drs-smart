@@ -2386,4 +2386,6 @@
     <string name="clip__font_serif">Serif</string>
     <string name="clip__font_mono">Mono</string>
     <string name="clip__font_cursive">Cursive</string>
+    <string name="clip__editor_saved_toast">Edits saved</string>
+    <string name="clip__popup_window_hint">Independent popup window — edit outside the panel, floating above the screen</string>
 </resources>

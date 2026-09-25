@@ -708,17 +708,26 @@ fun ClipboardInputLayout(
                                     icon = Icons.Default.Edit,
                                     text = stringRes(R.string.clip__edit_item),
                                 ) {
-                                    editingItem = popupItem!!
-                                    editingText = popupItem!!.text.orEmpty()
-                                    // DRS v1.10.0: a fresh editor session.
-                                    editorHistory.clear()
-                                    editorFont = ClipFontOption.DEFAULT
-                                    editorFontSize = ClipFontSizeOption.NORMAL
-                                    findQuery = ""
-                                    replaceQuery = ""
-                                    matchCase = false
-                                    activeMatch = 0
+                                    val target = popupItem!!
                                     popupItem = null
+                                    // DRS v1.11.0: the edit request now opens
+                                    // the floating popup window above the whole
+                                    // screen (outside the panel). The in-panel
+                                    // editor stays as the honest fallback when
+                                    // the launch is blocked by the system.
+                                    if (ClipEditorPopupLauncher.launch(context, target) ==
+                                        ClipEditorRoute.IN_PANEL
+                                    ) {
+                                        editingItem = target
+                                        editingText = target.text.orEmpty()
+                                        editorHistory.clear()
+                                        editorFont = ClipFontOption.DEFAULT
+                                        editorFontSize = ClipFontSizeOption.NORMAL
+                                        findQuery = ""
+                                        replaceQuery = ""
+                                        matchCase = false
+                                        activeMatch = 0
+                                    }
                                 }
                                 PopupAction(
                                     icon = Icons.Default.SaveAlt,

@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.10.0
+# DRS Smart Keyboard V 1.11.0
 
-## الجولة الشاملة العاشرة — محرر الحافظة المنبثق الذكي: شاشة كاملة، بحث واستبدال، خوارزميات ذكية، خطوط، ومشاركة
+## الجولة الشاملة الحادية عشرة — نافذة التعديل المنبثقة فوق الشاشة: خارج اللوحة، تعتيم، التطبيق الخلفي مرئي، ولوحة النظام تعمل داخلها
 
-**Tenth Comprehensive Round — The Popup Smart Clipboard Editor: a Full Screen, Find & Replace, Smart Algorithms, Fonts, and Sharing**
+**Eleventh Comprehensive Round — The Popup Editor Window Above the Screen: Outside the Panel, with a Scrim, the App Visible Behind, and the System Keyboard Working Inside**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,78 +20,57 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.10.0 — محرر النص الذكي المنبثق
+## الجديد في V 1.11.0 — نافذة التعديل المنبثقة فوق الشاشة
 
-- 🖥️ **شاشة منبثقة كاملة بدل الحوار الصغير**: اختيار **«تعديل النص»**
-  من قائمة العنصر يفتح الآن **محررًا يكتسح لوحة الحافظة بالكامل** —
-  ترويسة بعنوان «محرر النص الذكي» مع زرّي **مشاركة** و**حفظ كملف**
-  في الترويسة نفسها، حقل تحرير يمتد على كامل المساحة المتبقية ويتمرر
-  رأسيًا، وصفّ إجراءات سفلي — كل شيء على الشاشة الواحدة دون تضييق
-- 🔍 **بحث واستبدال داخل النص بمحرك حرفي حقيقي**:
-  - حقل **بحث** يعدّ المطابقات لحظيًا على نص حتى 50,000 حرف مع
-    عدّاد **«{active} من {count}»** وأزرار **التالي/السابق** بلفّ
-    دائري كامل حول النص
-  - مفتاح **«مطابقة الحالة»** لتبديل الحساسية لحالة الأحرف فورًا
-  - حقل **استبدال** يظهر مع وجود بحث: **استبدال** المطابقة الحالية
-    أو **استبدال الكل** بتوست يذكر العدد الحقيقي «تم استبدال N
-    موضعًا»
-  - المطابقة **حرفية أبدًا وليست تعبيرًا نمطيًا**: البحث عن `a.c`
-    أو `$0` يعني حرفيًا تلك المحارف — والنتائج مقيّدة بـ1000
-    مطابقة كي يبقى التنقل ذا معنى على النصوص الضخمة
-- 🧠 **ستة عشر خوارزمية ذكية كرقائق تطبيق فوري — كلها قابلة للتراجع**:
-  - **عائلة الحالات** بشارات لاتينية محايدة: `AA` أحرف كبيرة، `aa`
-    صغيرة، `Aa` حالة العنوان (أول حرف من كل كلمة)، `aA` قلب الحالات
-  - **جراحة المسافات**: تشذيب الأسطر، ضغط المسافات الأفقية
-    (بما فيها غير الفاصلة) مع إبقاء فواصل الأسطر، حذف الأسطر الفارغة
-  - **عمليات الأسطر**: إزالة التكرار مع إبقاء أول ظهور وترتيب الأصل،
-    ترتيب تصاعدي/تنازلي، عكس ترتيب الأسطر
-  - **تطبيع عربي واعٍ**: **إزالة التشكيل** (كل الحركات والشدّة
-    والتكرير) و**توحيد الحروف** (أ إ آ ٱ ← ا، ى ← ي، ة ← ه) —
-    مثالي قبل البحث أو مشاركة النصوص العربية
-  - **مستخرجات ذكية**: **الروابط** (http/https/www)، **الإيميلات**،
-    **الأرقام** (بحارس ≥7 أرقام يستبعد السنوات والأرقام القصيرة) —
-    كل مستخرج يستبدل النص بالنتائج سطرًا لكل نتيجة مع توست العدد
-    الصادق «تم استخراج N» و«لا يوجد ما يُستخرج» عند الفراغ
-- ↩️ **تراجع/إعادة حقيقي بخمسين حالة**: كل خوارزمية وكل استبدال يدفع
-  الحالة السابقة إلى مكدس مقيّد بخمسين إدخالة (الأقدم يُهمَل)، وزرّا
-  **التراجع/الإعادة** يعملان باللفّ الصحيح: أي دفعة جديدة تُلغي فرع
-  الإعادة — فجرّب الخوارزميات بلا خوف
-- 🔤 **تخصيص خطوط المحرر**: **خمس عائلات خطوط** (افتراضي، سنسريف،
-  سريف، أحادي المسافة، مخطوط) × **أربع درجات حجم** (12/14/17/20) —
-  الاختيار لحظي على حقل التحرير نفسه، والرقاقة النشطة تُضاء بحالة
-  `active` تتبع ثيمتها
-- 📤 **مشاركة من موضعين**: زر **مشاركة** في ترويسة المحرر يشارك النص
-  قيد التحرير، وفعل **«مشاركة النص»** في قائمة العنصر المطوّلة يشارك
-  نص العنصر مباشرة — كلاهما عبر **ورقة مشاركة النظام** (ACTION_SEND
-  مع منتقي التطبيقات) وقد صُحّح للسياق غير النشط بعلم NEW_TASK
-- 📊 **الإحصاءات الحية والسقف كما هما**: سطر الأحرف/الكلمات/الأسطر
-  يتنفس مع كل ضغطة، وعدّاد **{used} / 50,000** يذكّر بسقف التخزين
-  المطبق لحظيًا على كل إدخال، والحفظ عبر المسار المحركي المعتمد
-  (رفع الطابع فيطفو العنصر، بقاء التثبيت والهوية، ومزامنة
-  المقصوصة الأساسية إن كانت هي العنصر)
-- 🌐 **29 مفتاح سلاسل AR/EN جديدًا**، بفحص توازٍ آلي (PARITY OK —
-  **2169** مفتاحًا لكل لغة).
-- ✅ **256 اختبار وحدة ناجحًا** (كانت 233): 23 اختبارًا جديدًا تغطي
-  عائلة الحالات على اللاتينية والعربية وحالات الفراغ، جراحة
-  المسافات بفواصل الأسطر المحفوظة، عمليات الأسطر بترتيب الأصل،
-  إزالة التشكيل وتوحيد الحروف حرفًا بحرف، المستخرجات الثلاثة
-  بعقودها (الترتيب وإزالة التكرار وحارس الأرقام)، الطابع الحرفي
-  للمحرك (الحروف الخاصة بلا تفسير نمطي)، حدّ 1000 مطابقة، اللفّ
-  الدائري وتقييد الفهارس اليتيمة في التنقل، عدد الاستبدال الصادق،
-  وعقد التراجع/الإعادة كاملًا (اللفّ، إلغاء فرع الإعادة، السقف
-  القابل للتضييق) — إضافة إلى تثبيت الخيارات النقية للخطوط.
+- 🪟 **«تعديل النص» يفتح نافذة عائمة حقيقية خارج اللوحة**: كما طلب
+  المستخدم تمامًا — لم يعد المحرر محشورًا داخل لوحة الحافظة؛ اختيار
+  **«تعديل النص»** من قائمة العنصر المطوّلة يفتح الآن **نافذة منبثقة
+  بأسلوب حوارات النظام تطفو فوق الشاشة كلها**: التطبيق الذي كنت فيه
+  يبقى **مرئيًا خلف ستارة تعتيم**، والنافذة عائمة في المنتصف — اضغط
+  خارجها وتُغلق بأمان
+- 🖥️ **المحرر الذكي الكامل داخل النافذة**: كل قدرات المحرر من الجولة
+  العاشرة تعمل الآن داخل النافذة العائمة — **بحث واستبدال** حرفي
+  بتنقل ملفوف وعدّاد مطابقات، **ستة عشر خوارزمية ذكية** قابلة
+  للتراجع، **خمس عائلات خطوط × أربع درجات حجم**، **مشاركة** عبر
+  ورقة النظام، **حفظ كملف** باسم تختاره، **تراجع/إعادة** بخمسين
+  حالة، سطر الإحصاءات الحية، وعدّاد سقف 50,000 حرف
+- ⌨️ **لوحة مفاتيح النظام تعمل داخل النافذة**: النافذة تُعيد ضبط
+  حجمها مع ظهور الكيبورد (adjustResize) فتحرّر النص بحرية كاملة
+  حتى داخل النافذة المنبثقة نفسها
+- 🎯 **تسليم بلا حدود أحرف**: النص ينتقل من الكيبورد إلى النافذة عبر
+  **مخزن تسليم بعملية واحدة بالضبط** (exactly-once) داخل العملية نفسها —
+  لا Intent إطلاقًا، فلا حدود حجم حتى عند سقف 50,000 حرف، والعنصر
+  الأصلي يُحفظ بهويته وتثبيته
+- 🧭 **سياسة توجيه نقية وقرار رجوع صادق**: النصوص الحقيقية تذهب إلى
+  النافذة المنبثقة، والوسائط وحالة النص الفارغة دفاعيًا تبقى مع
+  المحرر داخل اللوحة — وإن منع النظام فتح النافذة (وهو نادر) فالطلب
+  **يرجع تلقائيًا إلى المحرر داخل اللوحة** بدل أن يضيع: قرار النقطة
+  الفاشلة مكتوب كدالة نقية مثبتة بالاختبارات
+- ⚙️ **مسار حفظ محركي واحد**: الحفظ من النافذة يمر بنفس
+  `editClipText` المحركي: رفع الطابع الزمني فيطفو العنصر للمقدمة،
+  بقاء التثبيت والهوية، ومزامنة المقصوصة الأساسية إن كانت هي العنصر —
+  سلوك مطابق للمحرر داخل اللوحة حرفيًا، مع توست تأكيد «تم حفظ
+  التعديلات»
+- 🌐 **مفتاحا سلاسل AR/EN جديدان** (توست الحفظ وتلميح النافذة
+  المستقلة)، بفحص توازٍ آلي (PARITY OK — **2171** مفتاحًا لكل لغة).
+- ✅ **266 اختبار وحدة ناجحًا** (كانت 256): 10 اختبارات جديدة تغطي
+  سياسة التوجيه (النص ← النافذة، الوسائط والنص الفارغ الدفاعي ←
+  اللوحة)، عقد الرجوع الصادق باتجاهاته الثلاثة، مخزن التسليم كاملًا
+  (الفراغ، القراءة بلا استهلاك، الاستهلاك مرة واحدة بهوية العنصر
+  ووضوحه، الاستبدال، والنص الفارغ الدفاعي)، وعقد هندسة النافذة
+  (الكسور داخل (0,1] وحساب البكسلات بحارس الشاشة الصفرية).
 
 ## لماذا هذا مهم
 
-الحافظة كانت تخزن وتلصق؛ الآن **تحرّر وتنظّف وتستخرج وتشارك** من دون
-مغادرة الكيبورد: صحّح نصًا منسوخًا، نظّف مسافاته، وحّد حروفه العربية
-قبل البحث فيه، استخرج روابطه في رسالة، كبّر خطه لتقرأه براحة على
-شاشة صغيرة، ثم أرسله إلى أي تطبيق — وكل ذلك **دون إنترنت، ودون
-مغادرة جهازك**، وكل خوارزمية نقية مختبرة تعمل محليًا على الجهاز.
+التحرير لم يعد حبيس اللوحة: **نافذة حقيقية تطفو فوق تطبيقك** تعطيك
+مساحة كاملة وإحساس نظام أصيل — عدّل نصًا منسوخًا والرسالة أمامك خلف
+التعتيم، انسخ منها إلى أي مكان، شاركها، واحفظها ملفًا — ثم اضغط خارج
+النافذة فتعود إلى سياقك بلا أي أثر. وكل ذلك **دون إنترنت، ودون مغادرة
+جهازك**، وسياسة التوجيه والرجوع نقية مختبرة تعمل محليًا على الجهاز.
 
 ## Download
 
-- **APK**: `DRS-Smart-Keyboard-v1.10.0.apk` — ثبّته مباشرة (ترقية
+- **APK**: `DRS-Smart-Keyboard-v1.11.0.apk` — ثبّته مباشرة (ترقية
   موضعية آمنة فوق أي إصدار سابق، نفس مفتاح التوقيع)
 - **AAB**: للاحتياجات المتقدمة
 - **SHA256SUMS.txt**: تحقق تشفيري كامل من كل الأصول
@@ -99,12 +78,11 @@
 
 ## الخصوصية
 
-كل شيء يعمل **دون اتصال بالإنترنت إطلاقًا** على مسار الكتابة. البحث
-والخوارزميات والمشاركة تحدث محليًا على جهازك، والمشاركة تمر عبر ورقة
-النظام إلى التطبيق الذي تختاره أنت، والحفظ والتصدير يكتبان فقط حيث
-تختار، ولا يُطلب إذن تخزين قط — والإحصاءات تبقى عدّادات مجهولة على
-جهازك (لا نصوص، لا طوابع زمنية لكل ضغطة، لا هوية حقل) — كما في كل
-الجولات السابقة.
+كل شيء يعمل **دون اتصال بالإنترنت إطلاقًا** على مسار الكتابة. النافذة
+المنبثقة نشاط داخلي في التطبيق نفسه بلا أي اتصال، والنص ينتقل داخل
+العملة المحلية عبر مخزن التسليم ولا يكتب في أي مكان إلا حين تختار
+الحفظ، والمشاركة تمر عبر ورقة النظام إلى التطبيق الذي تختاره أنت —
+والإحصاءات تبقى عدّادات مجهولة على جهازك — كما في كل الجولات السابقة.
 
 </div>
 
@@ -121,90 +99,64 @@ layouts, and Arabic suggestions and correction, with English as a complete
 second option. Everything you type stays on your device: no accounts, no
 tracking, no ads.
 
-## What's new in V 1.10.0 — the popup smart text editor
+## What's new in V 1.11.0 — the popup editor window above the screen
 
-- 🖥️ **A full popup screen instead of the small dialog**: choosing
-  **«Edit text»** from an item's long-press menu now opens an editor
-  that **takes over the whole clipboard panel** — a «Smart text
-  editor» header with **Share** and **Save-as-file** right in it, an
-  edit field that fills the remaining height and scrolls vertically,
-  and a bottom action row. Everything lives on one screen.
-- 🔍 **Real literal find & replace inside the text**:
-  - a **find** field counts matches live on texts up to 50,000
-    characters, with an **«{active} of {count}»** counter and
-    **next/previous** buttons that wrap fully around the text;
-  - a **«Case sensitive»** toggle flips match sensitivity instantly;
-  - a **replace** field appears with an active query: replace the
-    current match or **replace all**, with an honest toast reporting
-    the real count;
-  - matching is **always literal, never regex**: searching `a.c` or
-    `$0` means exactly those characters — and results are capped at
-    1000 matches so navigation stays meaningful on huge texts.
-- 🧠 **Sixteen smart algorithms as one-tap chips — all undoable**:
-  - **the case family** with language-neutral badges: `AA` upper,
-    `aa` lower, `Aa` title case (first letter of every word), `aA`
-    invert case;
-  - **whitespace surgery**: trim lines, collapse horizontal
-    whitespace (including non-breaking spaces) while keeping line
-    breaks, remove empty lines;
-  - **line operations**: dedupe lines keeping the first occurrence
-    and original order, sort ascending/descending, reverse line
-    order;
-  - **Arabic-aware normalization**: **remove diacritics** (all
-    harakat, shadda, superscript marks) and **normalize letters**
-    (أ إ آ ٱ → ا، ى → ي، ة → ه) — perfect before searching or
-    sharing Arabic text;
-  - **smart extractors**: **links** (http/https/www), **emails**,
-    **phone numbers** (guarded by a ≥7-digit rule that rejects years
-    and short runs) — each replaces the text with the found lines,
-    one per line, with an honest «Extracted N» toast and a clear
-    «Nothing to extract» when empty.
-- ↩️ **Real undo/redo with fifty states**: every algorithm and every
-  replace pushes the previous state onto a stack capped at fifty
-  entries (oldest dropped), and the **undo/redo** buttons walk it
-  with correct semantics — any new push voids the redo branch. Try
-  the algorithms without fear.
-- 🔤 **Editor font customization**: **five font families** (default,
-  sans, serif, mono, cursive) × **four size steps** (12/14/17/20) —
-  applied instantly to the edit field itself, with the active chip
-  lit by a theme-aware `active` state.
-- 📤 **Sharing from two places**: a **Share** button in the editor
-  header shares the text being edited, and a **«Share text»** action
-  in the item's long-press menu shares the item directly — both via
-  the **system share sheet** (ACTION_SEND with the app chooser),
-  correctly flagged NEW_TASK for the non-activity IME context.
-- 📊 **Live stats and the cap, unchanged**: the chars/words/lines row
-  breathes with every keystroke, the **{used} / 50,000** counter
-  reminds the storage cap applied on every input, and saving goes
-  through the established engine path (bumped timestamp floats the
-  item, pin and id preserved, primary clip re-synced when it is the
-  same item).
-- 🌐 **29 new AR/EN string keys**, parity-checked automatically
-  (PARITY OK — **2169** keys per language).
-- ✅ **256 unit tests passing** (was 233): 23 new tests covering the
-  case family on Latin and Arabic and empty inputs, whitespace
-  surgery with preserved line breaks, line operations with original
-  order kept, diacritic stripping and letter normalization character
-  by character, all three extractors with their contracts (order,
-  dedupe, the digit guard), the engine's literal matching (special
-  characters never interpreted), the 1000-match cap, wrap-around and
-  stale-index-clamped navigation, the honest replace count, and the
-  full undo/redo contract (walk, redo-voiding, a shrinkable cap) —
-  plus the pure font options pinned.
+- 🪟 **«Edit text» now opens a real floating popup window outside the
+  panel**: exactly as requested — the editor no longer lives inside
+  the clipboard panel; choosing **«Edit text»** from an item's
+  long-press menu opens a **system-dialog-styled popup window floating
+  above the whole screen**: the app you were in stays **visible behind
+  a dimmed scrim**, and the window floats centered — tap outside it
+  and it closes safely.
+- 🖥️ **The full smart editor inside the window**: every capability
+  from the tenth round now runs inside the floating window — literal
+  **find & replace** with wrap-around navigation and a match counter,
+  **sixteen smart algorithms** (all undoable), **five font families ×
+  four size steps**, **sharing** via the system sheet, **save-as-file**
+  with a chosen name, a fifty-state **undo/redo**, the live stats row,
+  and the 50,000-character cap counter.
+- ⌨️ **The system keyboard works inside the window**: the window
+  resizes with the keyboard (adjustResize) so you can type freely even
+  inside the popup itself.
+- 🎯 **Handoff with no size limits**: the text travels from the IME to
+  the window through an **exactly-once in-process store** — no Intent
+  at all, so no size limit even at the 50,000-character cap, and the
+  original item keeps its identity and pin state.
+- 🧭 **A pure routing policy with an honest fallback**: real text items
+  go to the popup window; media and the defensive null-text case stay
+  with the in-panel editor — and if the system blocks the window launch
+  (rare), the request **automatically falls back to the in-panel
+  editor** instead of being lost: the edge-case decision is written as
+  a pure, test-pinned function.
+- ⚙️ **One engine save path**: saving from the window walks the same
+  `editClipText` engine path: bumped timestamp floats the item, pin and
+  id preserved, primary clip re-synced when it is the same item —
+  behavior identical to the in-panel editor, with an «Edits saved»
+  confirmation toast.
+- 🌐 **2 new AR/EN string keys** (the save toast and the independent-
+  window hint), parity-checked automatically (PARITY OK — **2171**
+  keys per language).
+- ✅ **266 unit tests passing** (was 256): 10 new tests covering the
+  routing policy (text → window; media and defensive null-text →
+  panel), the honest fallback contract in all three directions, the
+  full handoff store (empty state, peek without consuming, exactly-once
+  consume with item identity, overwrite, the defensive empty-string
+  case), and the window geometry contract (fractions inside (0,1] and
+  px math with the zero-screen guard).
 
 ## Why it matters
 
-The clipboard used to store and paste; now it **edits, cleans,
-extracts and shares** without leaving the keyboard: fix a copied
-text, tidy its whitespace, normalize its Arabic letters before
-searching, pull its links into a message, enlarge its font to read
-comfortably on a small screen, then send it to any app — all **fully
-offline, fully on-device**, with every algorithm a tested pure
-function running locally.
+Editing is no longer trapped in the panel: **a real window floats above
+your app** with full space and a native system feel — edit a copied text
+while your message waits behind the scrim, copy from it anywhere, share
+it, save it as a file — then tap outside the window and return to your
+context with no trace. And it is all **fully offline, fully on-device**,
+with the routing and fallback policies pure, tested functions running
+locally.
 
 ## Download
 
-- **APK**: `DRS-Smart-Keyboard-v1.10.0.apk` — install directly (safe
+- **APK**: `DRS-Smart-Keyboard-v1.11.0.apk` — install directly (safe
   in-place upgrade over any previous release, same signing key)
 - **AAB**: for advanced needs
 - **SHA256SUMS.txt**: full cryptographic verification of every asset
@@ -213,11 +165,10 @@ function running locally.
 ## Privacy
 
 Everything runs **fully offline**: no internet on the typing path at
-all. Search, algorithms and sharing happen locally on your device;
-sharing goes through the system sheet to the app **you** choose;
-saving and exporting write only where you choose; no storage
-permission is ever requested; and statistics remain anonymous
-counters on your device (never text, never per-keystroke timestamps,
-never field identity) — same as every round before this one.
+all. The popup window is an in-app activity with no network at all; the
+text travels inside the local process through the handoff store and is
+written nowhere unless you choose to save; sharing goes through the
+system sheet to the app **you** choose; and statistics remain anonymous
+counters on your device — same as every round before this one.
 
 </div>
