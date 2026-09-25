@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -214,6 +215,8 @@ fun EmojiPaletteView(
         emojiSet: EmojiSet,
         isPinned: Boolean = false,
         isRecent: Boolean = false,
+        canMoveLeft: Boolean = false,
+        canMoveRight: Boolean = false,
     ) {
         EmojiKey(
             emojiSet = emojiSet,
@@ -221,6 +224,8 @@ fun EmojiPaletteView(
             preferredSkinTone = preferredSkinTone,
             isPinned = isPinned,
             isRecent = isRecent,
+            canMoveLeft = canMoveLeft,
+            canMoveRight = canMoveRight,
             onEmojiInput = { emoji ->
                 keyboardManager.inputEventDispatcher.sendDownUp(emoji)
                 scope.launch {
@@ -453,16 +458,28 @@ fun EmojiPaletteView(
                             header("header_pinned") {
                                 GridHeader(text = stringRes(R.string.emoji__history__pinned))
                             }
-                            items(emojiMapping.pinned) { emojiSet ->
-                                EmojiKeyWrapper(emojiSet, isPinned = true)
+                            // DRS v1.19.0: edge-aware reorder arrows — the move arrows
+                            // only render when a neighboring slot actually exists.
+                            itemsIndexed(emojiMapping.pinned) { index, emojiSet ->
+                                EmojiKeyWrapper(
+                                    emojiSet,
+                                    isPinned = true,
+                                    canMoveLeft = index > 0,
+                                    canMoveRight = index < emojiMapping.pinned.lastIndex,
+                                )
                             }
                         }
                         if (emojiMapping.recent.isNotEmpty()) {
                             header("header_recent") {
                                 GridHeader(text = stringRes(R.string.emoji__history__recent))
                             }
-                            items(emojiMapping.recent) { emojiSet ->
-                                EmojiKeyWrapper(emojiSet, isRecent = true)
+                            itemsIndexed(emojiMapping.recent) { index, emojiSet ->
+                                EmojiKeyWrapper(
+                                    emojiSet,
+                                    isRecent = true,
+                                    canMoveLeft = index > 0,
+                                    canMoveRight = index < emojiMapping.recent.lastIndex,
+                                )
                             }
                         }
                         if (emojiMapping.simple.isNotEmpty()) {
@@ -531,6 +548,8 @@ private fun EmojiKey(
     preferredSkinTone: EmojiSkinTone,
     isPinned: Boolean,
     isRecent: Boolean,
+    canMoveLeft: Boolean,
+    canMoveRight: Boolean,
     onEmojiInput: (Emoji) -> Unit,
     onHistoryAction: () -> Unit,
 ) {
@@ -587,6 +606,8 @@ private fun EmojiKey(
                 emoji = base,
                 visible = showVariantsBox,
                 isCurrentlyPinned = isPinned,
+                canMoveLeft = canMoveLeft,
+                canMoveRight = canMoveRight,
                 onHistoryAction = {
                     onHistoryAction()
                     showVariantsBox = false
@@ -665,6 +686,8 @@ private fun EmojiHistoryPopup(
     emoji: Emoji,
     visible: Boolean,
     isCurrentlyPinned: Boolean,
+    canMoveLeft: Boolean,
+    canMoveRight: Boolean,
     onHistoryAction: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -674,8 +697,15 @@ private fun EmojiHistoryPopup(
     val context = LocalContext.current
     val pinnedUS by prefs.emoji.historyPinnedUpdateStrategy.collectAsState()
     val recentUS by prefs.emoji.historyRecentUpdateStrategy.collectAsState()
-    val showMoveLeft = isCurrentlyPinned && !pinnedUS.isAutomatic || !recentUS.isAutomatic
-    val showMoveRight = isCurrentlyPinned && !pinnedUS.isAutomatic || !recentUS.isAutomatic
+    // DRS v1.19.0: the two conditions were copy-pasted identical, so both arrows
+    // rendered at list edges where moveEmoji is a no-op, and the manual-sort gate
+    // tested the wrong strategy for non-pinned emojis. Now: a pinned emoji reorders
+    // the pinned list (gated by the pinned strategy), a recent emoji reorders the
+    // recent list (gated by the recent strategy), and each arrow additionally
+    // requires an existing neighbor slot (canMoveLeft/canMoveRight from the index).
+    val moveAllowed = if (isCurrentlyPinned) !pinnedUS.isAutomatic else !recentUS.isAutomatic
+    val showMoveLeft = canMoveLeft && moveAllowed
+    val showMoveRight = canMoveRight && moveAllowed
 
     @Composable
     fun Action(icon: ImageVector, action: suspend () -> Unit) {
@@ -700,7 +730,10 @@ private fun EmojiHistoryPopup(
         }
     }
 
-    val numActions = 1
+    // DRS v1.19.0: the popup offset was computed from a hardcoded numActions = 1,
+    // so the row floated too high whenever 2–4 actions were visible. It now counts
+    // the actions actually shown.
+    val numActions = 1 + (if (showMoveLeft) 1 else 0) + (if (showMoveRight) 1 else 0)
     if (visible) {
         Popup(
             alignment = Alignment.TopCenter,

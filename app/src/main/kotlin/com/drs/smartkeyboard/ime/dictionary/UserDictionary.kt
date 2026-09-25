@@ -227,8 +227,13 @@ abstract class DrsUserDictionaryDatabase : RoomDatabase(), UserDictionaryDatabas
 
     abstract override fun userDictionaryDao(): UserDictionaryDao
 
+    /**
+     * DRS v1.19.0: real reset — wipes every personal word from the Room
+     * database. The method was a `TODO("Not yet implemented")` landmine
+     * since the beginning: any caller would have crashed the process.
+     */
     override fun reset() {
-        TODO("Not yet implemented")
+        userDictionaryDao().deleteAll()
     }
 
     class Converters {
@@ -457,7 +462,11 @@ class SystemUserDictionaryDatabase(context: Context) : UserDictionaryDatabase {
         }
 
         override fun deleteAll() {
-            // Unsupported action
+            // DRS v1.19.0: real wipe through the system provider. The
+            // "Unsupported action" stub left deleteAll() silently doing
+            // nothing and reset() as a TODO crash — both are real now.
+            val resolver = applicationContext.get()?.contentResolver ?: return
+            resolver.delete(UserDictionary.Words.CONTENT_URI, null, null)
         }
     }
 
@@ -466,7 +475,7 @@ class SystemUserDictionaryDatabase(context: Context) : UserDictionaryDatabase {
     }
 
     override fun reset() {
-        TODO("Not yet implemented")
+        dao.deleteAll()
     }
 }
 

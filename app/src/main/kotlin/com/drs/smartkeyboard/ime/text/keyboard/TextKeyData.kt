@@ -181,6 +181,10 @@ data class TextKeyData(
                 TOGGLE_FLOATING_WINDOW,
                 TOGGLE_RESIZE_MODE,
                 SHOW_SUBTYPE_PICKER,
+                // DRS v1.19.0: the split/merge keyboard toggles are quick-action
+                // surfaceable tools, so their key data must resolve too.
+                SPLIT_LAYOUT,
+                MERGE_LAYOUT,
             )
         }
 
@@ -437,6 +441,21 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.COMPACT_LAYOUT_TO_LEFT,
             label = "compact_layout_to_left",
+        )
+        /** DRS v1.19.0: predefined key data for [KeyCode.SPLIT_LAYOUT] — the
+        split keyboard shipped in v1.18.0 but only reachable through the
+        settings screen; these two codes activate/merge it in one tap and
+        join InternalKeys so most-used tiles resolve. */
+        val SPLIT_LAYOUT = TextKeyData(
+            type = KeyType.FUNCTION,
+            code = KeyCode.SPLIT_LAYOUT,
+            label = "split_layout",
+        )
+        /** DRS v1.19.0: predefined key data for [KeyCode.MERGE_LAYOUT]. */
+        val MERGE_LAYOUT = TextKeyData(
+            type = KeyType.FUNCTION,
+            code = KeyCode.MERGE_LAYOUT,
+            label = "merge_layout",
         )
         /** Predefined key data for [KeyCode.COMPACT_LAYOUT_TO_RIGHT] */
         val COMPACT_LAYOUT_TO_RIGHT = TextKeyData(

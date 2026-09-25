@@ -23,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Contacts
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.SpaceBar
+import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material3.Card
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -159,6 +160,17 @@ fun TypingScreen() = DrsScreen {
                 icon = Icons.Default.Language,
                 title = stringRes(R.string.pref__spelling__language_mode__label),
                 entries = enumDisplayEntriesOf(SpellingLanguageMode::class),
+                enabledIf = { drsSpellCheckerEnabled.value },
+            )
+            // DRS v1.19.0: the spell checker finally marks real typos (red
+            // underline + tap-to-fix suggestions) behind conservative gates —
+            // rich dictionaries (Arabic/English) only, plain words only, and a
+            // plausible correction must exist. This switch turns it off.
+            SwitchPreference(
+                prefs.spelling.typoFlaggingEnabled,
+                icon = Icons.Default.Spellcheck,
+                title = stringRes(R.string.pref__spelling__typo_flagging_enabled__label),
+                summary = stringRes(R.string.pref__spelling__typo_flagging_enabled__summary),
                 enabledIf = { drsSpellCheckerEnabled.value },
             )
             SwitchPreference(

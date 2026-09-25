@@ -66,6 +66,8 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.MergeType
+import androidx.compose.material.icons.filled.Splitscreen
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.filled.Translate
@@ -83,6 +85,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.drs.DrsAdaptationEngine
 import com.drs.smartkeyboard.drs.DrsContextMode
 import com.drs.smartkeyboard.drs.DrsHybridViewMode
@@ -105,6 +108,7 @@ import com.drs.smartkeyboard.ime.window.LocalWindowController
 import com.drs.smartkeyboard.keyboardManager
 import androidx.compose.material3.Text
 import org.drs.jetpref.datastore.model.collectAsState
+import org.drs.lib.compose.stringRes
 import org.drs.lib.snygg.ui.SnyggIcon
 import org.drs.lib.snygg.ui.SnyggIconButton
 import org.drs.lib.snygg.ui.SnyggRow
@@ -187,6 +191,9 @@ internal fun iconForTool(id: String) = when (id) {
     "diacritics_panel" -> Icons.Default.TextFormat
     "smart_symbols" -> Icons.Default.Functions
     "arabic_letters" -> Icons.Default.Abc
+    // DRS v1.19.0: the split/merge keyboard toggles.
+    "split_keyboard" -> Icons.Default.Splitscreen
+    "merge_keyboard" -> Icons.Default.MergeType
     else -> Icons.Default.Build
 }
 
@@ -396,9 +403,16 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
     }
 }
 
-/** Short on-strip label of each display level (Arabic-first). */
-private fun viewModeLabel(mode: DrsHybridViewMode): String = when (mode) {
-    DrsHybridViewMode.SIMPLE -> "بسيط"
-    DrsHybridViewMode.ADVANCED -> "تقني"
-    DrsHybridViewMode.DUAL -> "مزدوج"
+/**
+ * Short on-strip label of each display level. DRS v1.19.0: the labels were
+ * hardcoded Arabic literals ("بسيط/تقني/مزدوج") that would leak into every
+ * non-Arabic locale the day someone calls this — they now resolve the same
+ * drs__unified__level_* strings the tools drawer uses. The function is
+ * composable so the resource lookup stays legal.
+ */
+@Composable
+internal fun viewModeLabel(mode: DrsHybridViewMode): String = when (mode) {
+    DrsHybridViewMode.SIMPLE -> stringRes(R.string.drs__unified__level_simple)
+    DrsHybridViewMode.ADVANCED -> stringRes(R.string.drs__unified__level_advanced)
+    DrsHybridViewMode.DUAL -> stringRes(R.string.drs__unified__level_dual)
 }

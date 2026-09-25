@@ -211,6 +211,12 @@ object KeyCode {
     const val TEXT_TOOL_STRIP_EMOJI =           -639
     const val TEXT_TOOL_URL_ENCODE =            -642
     const val TEXT_TOOL_URL_DECODE =            -643
+    // DRS v1.19.0: constants for the two v1.8.0 tools that shipped without
+    // KeyCode entries — their presses flow through DrsTextTool.CODE_RANGE as
+    // before, but the constants make the SmartToolCodes stats register
+    // self-documenting instead of magic numbers.
+    const val TEXT_TOOL_SEPARATE_DIGIT_LETTERS = -644
+    const val TEXT_TOOL_REMOVE_PUNCTUATION =    -645
     const val TEXT_TOOL_COUNT =                 -641
     const val TEXT_TOOL_DELETE_LINE =           -651
     const val TEXT_TOOL_DELETE_TO_LINE_START =  -652

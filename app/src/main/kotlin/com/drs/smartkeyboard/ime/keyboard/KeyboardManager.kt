@@ -1000,6 +1000,19 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.TOGGLE_NUMBER_ROW -> scope.launch {
                 prefs.keyboard.numberRow.set(!prefs.keyboard.numberRow.get())
             }
+            // DRS v1.19.0: the split keyboard (v1.18.0) becomes one-tap
+            // actionable — SPLIT_LAYOUT activates the split halves, MERGE_LAYOUT
+            // returns to the classic full layout. Same engine pref the settings
+            // screen drives, so the change lands on the very next frame, with a
+            // status toast like every other real toggle.
+            KeyCode.SPLIT_LAYOUT -> scope.launch {
+                prefs.keyboard.splitMode.set(SplitMode.ALWAYS)
+                appContext.showShortToastSync(R.string.keyboard__split_layout_toast_split)
+            }
+            KeyCode.MERGE_LAYOUT -> scope.launch {
+                prefs.keyboard.splitMode.set(SplitMode.NEVER)
+                appContext.showShortToastSync(R.string.keyboard__split_layout_toast_merge)
+            }
             KeyCode.SHIFT -> handleShiftUp(data)
             KeyCode.SPACE -> handleSpace(data)
             KeyCode.SYSTEM_INPUT_METHOD_PICKER -> InputMethodUtils.showImePicker(appContext)

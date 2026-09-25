@@ -196,6 +196,14 @@ val SmartToolCodes = setOf(
     KeyCode.IME_UI_MODE_DIACRITICS,
     KeyCode.IME_UI_MODE_SMART_SYMBOLS,
     KeyCode.IME_UI_MODE_ARABIC_LETTERS,
+    // DRS v1.19.0: the split/merge keyboard toggles count as tool presses,
+    // and the two v1.8.0 text tools that were missed by every stats register
+    // since their introduction (SEPARATE_DIGIT_LETTERS / REMOVE_PUNCTUATION)
+    // finally surface in the most-used tiles.
+    KeyCode.SPLIT_LAYOUT,
+    KeyCode.MERGE_LAYOUT,
+    KeyCode.TEXT_TOOL_SEPARATE_DIGIT_LETTERS,
+    KeyCode.TEXT_TOOL_REMOVE_PUNCTUATION,
 )
 
 @Composable
@@ -264,6 +272,9 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.IME_UI_MODE_DIACRITICS -> R.string.quick_action__ime_ui_mode_diacritics
             KeyCode.IME_UI_MODE_SMART_SYMBOLS -> R.string.quick_action__ime_ui_mode_smart_symbols
             KeyCode.IME_UI_MODE_ARABIC_LETTERS -> R.string.quick_action__ime_ui_mode_arabic_letters
+            // DRS v1.19.0: the split/merge keyboard toggles.
+            KeyCode.SPLIT_LAYOUT -> R.string.quick_action__split_layout
+            KeyCode.MERGE_LAYOUT -> R.string.quick_action__merge_layout
             // DRS v1.5.0: text tools show their real panel titles instead
             // of the invalid-fatal placeholder.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
@@ -343,6 +354,9 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.IME_UI_MODE_DIACRITICS -> R.string.quick_action__ime_ui_mode_diacritics__tooltip
             KeyCode.IME_UI_MODE_SMART_SYMBOLS -> R.string.quick_action__ime_ui_mode_smart_symbols__tooltip
             KeyCode.IME_UI_MODE_ARABIC_LETTERS -> R.string.quick_action__ime_ui_mode_arabic_letters__tooltip
+            // DRS v1.19.0: the split/merge keyboard toggles.
+            KeyCode.SPLIT_LAYOUT -> R.string.quick_action__split_layout__tooltip
+            KeyCode.MERGE_LAYOUT -> R.string.quick_action__merge_layout__tooltip
             // DRS v1.5.0: text tools show their real panel descriptions.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
                 ?.let { textToolDescRes(it) }
@@ -355,6 +369,11 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.NOOP -> R.string.quick_action__noop__tooltip
             else -> R.string.general__invalid_fatal
         })
-        is QuickAction.InsertText -> "Insert text '$data'"
+        // DRS v1.19.0: the tooltip is localized now (was a hardcoded
+        // English literal leaking into every locale).
+        is QuickAction.InsertText -> stringRes(
+            R.string.quick_action__insert_text_tooltip,
+            "text" to data,
+        )
     }
 }

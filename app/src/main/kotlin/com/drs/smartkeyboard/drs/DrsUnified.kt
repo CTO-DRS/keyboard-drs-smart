@@ -684,6 +684,27 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    // DRS v1.19.0: one-tap split keyboard activation/merge — the v1.18.0
+    // split layout was settings-only; these two catalogue tools drive the
+    // same splitMode pref with a status toast.
+    val SPLIT_KEYBOARD = DrsUnifiedTool(
+        id = "split_keyboard",
+        code = KeyCode.SPLIT_LAYOUT,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    val MERGE_KEYBOARD = DrsUnifiedTool(
+        id = "merge_keyboard",
+        code = KeyCode.MERGE_LAYOUT,
+        type = KeyType.FUNCTION,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /**
      * DRS v1.15.0: opens the context-aware smart symbols panel (لوحة
      * الرموز الذكية) through the REAL engine action
@@ -743,6 +764,8 @@ object DrsUnifiedTools {
         QUICK_ACTIONS, ACTIONS_EDITOR,
         // DRS v1.15.0: same tail-append contract for the new tools.
         DIACRITICS_PANEL, SMART_SYMBOLS, ARABIC_LETTERS,
+        // DRS v1.19.0: same tail-append contract for the new tools.
+        SPLIT_KEYBOARD, MERGE_KEYBOARD,
     )
 
     private val BY_ID = ALL.associateBy { it.id }

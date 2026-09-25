@@ -100,10 +100,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateSetOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -111,6 +113,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
@@ -170,6 +173,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import org.drs.lib.android.AndroidKeyguardManager
 import org.drs.lib.android.AndroidVersion
 import org.drs.lib.android.showShortToastSync
@@ -582,53 +586,59 @@ fun ClipboardInputLayout(
             if (item.type == ItemType.IMAGE) {
                 val id = ContentUris.parseId(item.uri!!)
                 val file = ClipboardFileStorage.getFileForId(context, id)
-                val bitmap = remember(id) {
-                    runCatching {
-                        check(file.exists()) { "Unable to resolve image at ${file.absolutePath}" }
-                        val rawBitmap = BitmapFactory.decodeFile(file.absolutePath)
-                        checkNotNull(rawBitmap) { "Unable to decode image at ${file.absolutePath}" }
-                        rawBitmap.asImageBitmap()
-                    }
+                // DRS v1.19.0: the decode used to run synchronously INSIDE
+                // composition (remember{} on the main thread) — a large photo
+                // froze the whole keyboard for hundreds of ms. It now decodes
+                // on Dispatchers.IO with a small LRU cache, so scrolling the
+                // media history stays smooth and the main thread never blocks.
+                val bitmap = rememberMediaThumbnail(id) {
+                    check(file.exists()) { "Unable to resolve image at ${file.absolutePath}" }
+                    val rawBitmap = BitmapFactory.decodeFile(file.absolutePath)
+                    checkNotNull(rawBitmap) { "Unable to decode image at ${file.absolutePath}" }
+                    rawBitmap.asImageBitmap()
                 }
-                if (bitmap.isSuccess) {
+                val decoded = bitmap.value
+                if (decoded != null && decoded.isSuccess) {
                     Image(
                         modifier = Modifier.fillMaxWidth(),
-                        bitmap = bitmap.getOrThrow(),
+                        bitmap = decoded.getOrThrow(),
                         // DRS v1.17.0: media tiles speak — TalkBack announces
                         // what the tile holds instead of skipping it.
                         contentDescription = stringRes(R.string.clipboard__a11y_image_tile),
                         contentScale = ContentScale.FillWidth,
                     )
-                } else {
+                } else if (decoded != null) {
                     SnyggText(
                         modifier = Modifier.fillMaxWidth(),
-                        text = bitmap.exceptionOrNull()?.message ?: "Unknown error",
+                        text = stringRes(R.string.clipboard__media_unresolvable),
                     )
                 }
             } else if (item.type == ItemType.VIDEO) {
                 val id = ContentUris.parseId(item.uri!!)
                 val file = ClipboardFileStorage.getFileForId(context, id)
-                val bitmap = remember(id) {
-                    runCatching {
-                        check(file.exists()) { "Unable to resolve video at ${file.absolutePath}" }
-                        val rawBitmap = if (AndroidVersion.ATLEAST_API29_Q) {
-                            val dataRetriever = MediaMetadataRetriever()
-                            dataRetriever.setDataSource(file.absolutePath)
-                            val width = dataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
-                            val height = dataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
-                            ThumbnailUtils.createVideoThumbnail(file, Size(width!!.toInt(), height!!.toInt()), null)
-                        } else {
-                            @Suppress("DEPRECATION")
-                            ThumbnailUtils.createVideoThumbnail(file.absolutePath, MediaStore.Video.Thumbnails.MINI_KIND)
-                        }
-                        checkNotNull(rawBitmap) { "Unable to decode video at ${file.absolutePath}" }
-                        rawBitmap.asImageBitmap()
+                // DRS v1.19.0: async twin of the image fix above —
+                // MediaMetadataRetriever + thumbnail extraction leave the
+                // main thread for good.
+                val bitmap = rememberMediaThumbnail(id) {
+                    check(file.exists()) { "Unable to resolve video at ${file.absolutePath}" }
+                    val rawBitmap = if (AndroidVersion.ATLEAST_API29_Q) {
+                        val dataRetriever = MediaMetadataRetriever()
+                        dataRetriever.setDataSource(file.absolutePath)
+                        val width = dataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                        val height = dataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                        ThumbnailUtils.createVideoThumbnail(file, Size(width!!.toInt(), height!!.toInt()), null)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        ThumbnailUtils.createVideoThumbnail(file.absolutePath, MediaStore.Video.Thumbnails.MINI_KIND)
                     }
+                    checkNotNull(rawBitmap) { "Unable to decode video at ${file.absolutePath}" }
+                    rawBitmap.asImageBitmap()
                 }
-                if (bitmap.isSuccess) {
+                val decoded = bitmap.value
+                if (decoded != null && decoded.isSuccess) {
                     Image(
                         modifier = Modifier.fillMaxWidth(),
-                        bitmap = bitmap.getOrThrow(),
+                        bitmap = decoded.getOrThrow(),
                         // DRS v1.17.0: media tiles speak — see image twin above.
                         contentDescription = stringRes(R.string.clipboard__a11y_video_tile),
                         contentScale = ContentScale.FillWidth,
@@ -642,10 +652,10 @@ fun ClipboardInputLayout(
                         contentDescription = null,
                         tint = Color.Black,
                     )
-                } else {
+                } else if (decoded != null) {
                     SnyggText(
                         modifier = Modifier.fillMaxWidth(),
-                        text = bitmap.exceptionOrNull()?.message ?: "Unknown error",
+                        text = stringRes(R.string.clipboard__media_unresolvable),
                     )
                 }
             } else {
@@ -830,17 +840,18 @@ fun ClipboardInputLayout(
 
                         FilterChip(
                             imageVector = Icons.Default.TextFields,
-                            text = "Text",
+                            // DRS v1.19.0: was a hardcoded "Text" literal.
+                            text = stringRes(R.string.clipboard__filter_text),
                             itemType = ItemType.TEXT,
                         )
                         FilterChip(
                             imageVector = Icons.Default.Image,
-                            text = "Images",
+                            text = stringRes(R.string.clipboard__filter_images),
                             itemType = ItemType.IMAGE,
                         )
                         FilterChip(
                             imageVector = Icons.Default.Movie,
-                            text = "Videos",
+                            text = stringRes(R.string.clipboard__filter_videos),
                             itemType = ItemType.VIDEO,
                         )
 
@@ -2017,5 +2028,45 @@ private fun PopupAction(
             modifier = Modifier.weight(1f),
             text = text,
         )
+    }
+}
+
+/**
+ * DRS v1.19.0: bounded LRU of decoded media thumbnails keyed by clip id.
+ * Synchronized because decodes run on Dispatchers.IO while the UI thread
+ * reads on recomposition. 48 entries keeps memory in the low tens of MB
+ * worst case (mini-kind video thumbs are small) without thrashing.
+ */
+private val mediaThumbnailCache = object : LinkedHashMap<Long, ImageBitmap>(16, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<Long, ImageBitmap>?): Boolean {
+        return size > 48
+    }
+}
+
+/**
+ * DRS v1.19.0: decodes a media thumbnail OFF the main thread. Previously
+ * BitmapFactory.decodeFile / MediaMetadataRetriever ran synchronously inside
+ * remember{} during composition, freezing the keyboard for large media and
+ * re-decoding on every recomposition. Now the decode is a produceState job on
+ * Dispatchers.IO with the LRU above as a second-level cache; the state starts
+ * null (tile renders empty for a frame) and completes with the decode Result.
+ */
+@Composable
+private fun rememberMediaThumbnail(
+    id: Long,
+    decode: suspend () -> ImageBitmap,
+): State<Result<ImageBitmap>?> {
+    return produceState<Result<ImageBitmap>?>(initialValue = null, id) {
+        val cached = synchronized(mediaThumbnailCache) { mediaThumbnailCache[id] }
+        if (cached != null) {
+            value = Result.success(cached)
+            return@produceState
+        }
+        value = withContext(Dispatchers.IO) {
+            runCatching { decode() }
+                .onSuccess { decoded ->
+                    synchronized(mediaThumbnailCache) { mediaThumbnailCache[id] = decoded }
+                }
+        }
     }
 }

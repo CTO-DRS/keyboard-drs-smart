@@ -353,7 +353,11 @@ class NlpManager(context: Context) {
         }
 
         suspend fun destroyIfNecessary() {
-            if (isInstanceAlive.getAndSet(true)) provider.destroy()
+            // DRS v1.19.0 fix: the flag was getAndSet(true) — destroy() ran on
+            // EVERY call (not only when alive) and left the flag true forever,
+            // so a later createIfNecessary() could never re-create the provider.
+            // Now: destroy exactly when alive, and mark the instance dead.
+            if (isInstanceAlive.getAndSet(false)) provider.destroy()
         }
     }
 

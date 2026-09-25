@@ -936,6 +936,13 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "spelling__language_mode",
             default = SpellingLanguageMode.USE_KEYBOARD_SUBTYPES,
         )
+        // DRS v1.19.0: real typo marking behind the conservative SpellingDecider
+        // gates (rich dictionaries only, plausible correction required). Default
+        // on — the spell-checker channel finally does what the system expects.
+        val typoFlaggingEnabled = boolean(
+            key = "spelling__typo_flagging_enabled",
+            default = true,
+        )
         val useContacts = boolean(
             key = "spelling__use_contacts",
             default = true,

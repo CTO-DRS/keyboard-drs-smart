@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.18.0
+# DRS Smart Keyboard V 1.19.0
 
-## الجولة الشاملة الثامنة عشرة — قوة عالمية: R8 مفعّل بأمان مُثبَت، لوحة مفاتيح مقسومة، قواميس ثماني لغات جديدة، وترجمة إسبانية موسعة
+## الجولة الشاملة التاسعة عشرة — الفحص الشامل: المدقق الإملائي الحقيقي، البحث في الإيموجي يعمل أخيرًا، تقسيم/دمج اللوحة بضغطة، صور مصغرة بلا تجميد، وإحياء قنوات ميتة حقيقية
 
-**Eighteenth Comprehensive Round — Global Strength: R8 Re-Enabled with Proven Safety, a Split Keyboard, Eight New Language Dictionaries, and an Expanded Spanish Translation**
+**Nineteenth Comprehensive Round — The Full Audit: Real Spell Checking, Working Emoji Search, One-Tap Split/Merge, Jank-Free Thumbnails, and Genuine Dead Channels Revived**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,131 +20,211 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.18.0 — قوة عالمية
+## الجديد في V 1.19.0 — جولة الفحص الشامل
 
-- 🗜️ **R8 مفعّل أخيرًا — ببوابة أمان مُثبَتة** — منذ الإصدار v1.7 كان
-  التصغير معطلًا بسبب فشل «الشاشة الفارغة» الشهير: dex بحجم 3.1 ميغابايت
-  بلا أي واجهة. أُعيد التحقق تجريبيًا: **الفشل لم يعد يُستنسخ** مع سلسلة
-  الأدوات الحالية (تجربة مضبوطة مع إبقاء نقاط الدخول صراحةً وبدونها أنتجت
-  dex كاملًا في الحالتين: 6.8 ألف فئة، كل شاشات Compose وmaterial3 ووقت
-  تشغيل JetPref ونماذج التفضيلات المولّدة كلها موجودة). بقيت قواعد إبقاء
-  نقاط الدخول الأربع كتأمين إضافي، وأُضيفت **بوابة `validateR8Dex`**
-  تفحص الـdex الناتج بايتًا بايتًا بعد كل بناء (beta وrelease) وترفض
-  البناء فورًا إذا اختفت أي فئة علامة — فلن يصل فشل «الشاشة الفارغة» إلى
-  إصدار صامتًا مرة أخرى. النتيجة: dex أنضف وموارد مصغّرة (`shrinkResources`
-  مفعّل) وسجل انهيارات مقروء كما هو (`-dontobfuscate`).
+هذه الجولة بدأت بفحص شامل ثلاثي الجبهات (محرك الإدخال واللوحات، طبقة
+الإيموجي والحافظة واللوحات الذكية، وطبقة التطبيق والإعدادات والقواميس)
+قارن التطبيق بمعايير أقوى لوحات المفاتيح عالميًا. النتيجة: قنوات ميتة
+حقيقية أُحييت كلها، وميزتان عالميتان ناقصتان وُصلتا فعليًا.
 
-- ⌨️ **لوحة المفاتيح المقسومة** — صفحة الحروف تُرسم في نصفين بفجوة وسطى
-  حقيقية داخل محرك التخطيط نفسه (تُحسب في فرعي الاتساع والتقليص معًا
-  فتتماشى مع كل أوزان المفاتيح والهوامش). ثلاثة أوضاع في إعدادات لوحة
-  المفاتيح: **تلقائي** (على العريض ≥560dp فقط: الهاتف بالوضع الأفقي،
-  الأجهزة القابلة للطي، اللوحية — الافتراضي)، **دائمًا**، **أبدًا**.
-  لا تُفعَّل في نافذة اليد الواحدة ولا النافذة العائمة ولا على لوحات
-  الأرقام والهاتف — فقط حيث تنفع فعلًا. محرك القرار نقية بالكامل و21
-  اختبارًا جديدًا.
+- ✅ **المدقق الإملائي الحقيقي — أخيرًا** — خدمة المدقق كانت موصولة
+  بالكامل (جلسات، ~180 لغة معلنة، شاشة تشخيص) لكن دالة `spell()` نفسها
+  كانت تعيد «كلمة صحيحة» دائمًا بلا استثناء: **لا خط أحمر واحد منذ
+  اليوم الأول**. الآن تُحدَّد الأخطاء فعليًا بخط أحمر مع اقتراحات التصحيح
+  عند اللمس، خلف **فاصل قراري نقي محافظ** (SpellingDecider): الحكم فقط
+  على قواميس غنية (العربية 50 ألف كلمة والإنجليزية 50 ألف — القواميس
+  الثماني المختصرة لا تحكم أصلًا لأنها ستضع خطًا تحت نصف الجملة)، كلمات
+  نقية بلا أرقام أو رموز، الاختصارات الكبيرة (DRS وNASA) محمية، والأسماء
+  العلمية في منتصف الجملة محمية، ولا يوضع خط أبدًا إلا إذا وُجد تصحيح
+  معقول على مسافة تحرير واحدة فعلًا. ولأن «المجهول لا ينذر كاذبًا» بقيت
+  القاعدة الحاكمة، أُضيف مفتاح **«تحديد الأخطاء الإملائية»** في شاشة
+  الكتابة لإيقاف القناة كلها بضغطة. المدقق يُصغي أيضًا لقاموسك الشخصي
+  والكلمات المتعلمة فلا يعاقب ما علّمتَه إياه بنفسك.
 
-- 🌍 **قواميس ثماني لغات جديدة — لا اقتراحات إنجليزية بالوكالة** — كانت
-  كل لغة عدا العربية تحصل على قاموس الإنجليزية العام (فرنسي يكتب
-  فيتلقى اقتراحات إنجليزية!). أضفنا قواميس تكرارية مُنتقاة بعناية
-  لـ **الفرنسية والألمانية والإسبانية والإيطالية والبرتغالية والتركية
-  والروسية والفارسية** (~8 آلاف مدخل بمجموع منحنى تقييم تنازلي يحترم
-  عتبة التصحيح التلقائي)، مع **تطوي حروف اللاتينية** للمطابقة فقط:
-  اكتب «eleve» فتظهر «élève»، و«größe» تعنيه المطابقة «grosse»،
-  والهمزات العربية الموحّدة كما هي مختبرة. واللغات بلا قاموس تتراجع
-  للإنجليزية تراجعًا صادقًا معلنًا، وجداول الأزواج الثنائية (التنبؤ
-  بالكلمة التالية) بقيت للعربية والإنجليزية بلا تزييف.
+- 🔍 **البحث في الإيموجي يعمل أخيرًا — بسبع لغات وبكلماتك** —
+  اكتشف الفحص أن لوحة الإيموجي كانت تحمّل ملف `root.txt` الذي أعمدة
+  أسمائه وكلماته المفتاحية **فارغة في 3,944 من 3,965 سطرًا**، فيما كانت
+  ملفات التعريفات الكاملة (CLDR v48: العربية والإنجليزية والألمانية
+  والإسبانية والفرنسية والإيطالية والبرتغالية) ترمق في الأصول دون
+  استهلاك من اللوحة! البحث كان «لا نتائج» دائمًا. الآن تتبع اللوحة لغة
+  النظام النشط: ابحث «قلب» في العربية و«Herz» في الألمانية، واللغات
+  بلا ملف تعريفات تتراجع للإنجليزية تراجعًا صادقًا (وإلا لملف البنية
+  الأصلي) — وبذلك انبعثت اقتراحات الإيموجي في المحرك نفسه للغات كانت
+  ميّتة هناك أيضًا. **والسطر المشؤوم تحميل اللوحة أصبح مرتبطًا بلغة
+  النظام النشط فتتبدل مع تغيير اللغة.**
 
-- 🇪🇸 **ترجمة إسبانية موسعة** — 277 مفتاحًا جديدًا يغطي بلاطات الحافظة
-  ومحررها الذكي كاملًا (البحث والاستبدال والخوارزميات والخطوط والنتائج
-  الملونة وكشف الكود وإعداداتها الست مجموعات) ولوحات الحركات والرموز
-  والحواف الذكية ومفاتيح الوصول (TalkBack) والأفعال السريعة — وصل تغطية
-  الواجهة الإسبانية إلى ~1,256 مفتاحًا، وبقية شاشات التشخيص والإحصاء
-  تكتمل في الجولة القادمة.
+- ⌨️ **تقسيم/دمج لوحة المفاتيح بضغطة** — التقسيم في v1.18.0 كان
+  حكرًا على شاشة الإعدادات. رمزاه المعرّفان منذ الإصدار السابق كانا
+  بلا معالج ولا ظهور (قناة ميتة نمطية): الآن **«تقسيم اللوحة»** و**«دمج
+  اللوحة»** أداتا كتالوج كاملتان (49 أداة) بأيقونتين واسم ووصف ومفتاح
+  إحصاء، تقلبان نفس مفتاح المحرك الذي تقلبه الإعدادات مع توست تأكيد،
+  ملحقتان بذيل الكتالوج حفاظًا على ترتيبك وتثبيتك المحفوظين.
 
-- 🐛 **إصلاح جوهري: 24 مفتاحًا إنجليزيًا كانت عربية!** — فحص التوازي
-  كشف أن مفاتيح v1.17 الوصولية وإعدادات التصحيح والحذف الأولى للحركة
-  دخلت النص العربي إلى ملف الإنجليزية نفسه (كان TalkBack ينطق تسميات
-  عربية لمستخدم الإنجليزية). صُححت كلها بترجمات إنجليزية سليمة مع
-  الحفاظ على توازي 2,348 مفتاحًا لكل لغة حرفيًا.
+- 🖼️ **صور مصغرة بلا تجميد — خارج الخيط الرئيسي** — فك ترميز صور
+  وفيديوهات الحافظة كان يجري **بشكل متزامن داخل التركيب** على خيط
+  الواجهة (`remember{}`): صورة كبيرة = لوحة مفاتيح متجمدة مئات
+  الميلي ثانية. انتقل الفك إلى `Dispatchers.IO` مع **كاش LRU مقيد
+  بـ48 مدخلًا** فتمرير سجل الوسائط صار سلسًا، مع رسالة فشل معرّبة
+  بدل النص الإنجليزي المضمّن.
+
+- 📊 **توازي إحصائي: أداتا v1.8.0 تُحسبان أخيرًا** — «فصل الأرقام عن
+  الحروف» و«إزالة الترقيم» كانتا تعملان عملهما النقي لكن ضغطتَيهما لم
+  تُحتسبا قط في «الأكثر استخدامًا» (لم تكونا في سجل SmartToolCodes
+  ولا في ثوابت KeyCode). صارتا مُحتسبتين بأسماء ثابتة صريحة، وتظهر
+  بلاطاتهن في الأكثر استخدامًا مثل باقي الأربع والثلاثين.
+
+- 🧹 **قنوات ميتة حقيقية أُحييت — ثمرة الفحص** —
+  **`NlpManager.destroyIfNecessary`**: الشرط كان `getAndSet(true)`
+  فيُدمر المزود في كل استدعاء ويترك الراية حية إلى الأبد فلا يُعاد
+  إنشاؤه مرة أخرى أبدًا — صار يُدمَّر فقط وهو حي ويعود للحياة صحيحًا.
+  **`UserDictionaryDatabase.reset()`**: أصلان من `TODO("Not yet
+  implemented")` — أي مستدعٍ مستقبلي كان سينهار — صارتا مسحًا حقيقيًا
+  (قاعدة Room والنظام) خلف زر **«مسح القاموس»** بحوار تأكيد في شاشة
+  قاموس المستخدم الداخلي. **`EmojiHistoryPopup`**: شرطا السهمين كانا
+  منسوخين متطابقين فظهرا عند الحواف حيث التحريك بلا أثر،
+  و`numActions = 1` مجازفة ثابتة تجعل النافذة تطفو عاليًا — صار
+  السهمان واعيين بالموضع (لا سهم عند الحافة) والنافذة تُحسب من
+  الأفعال المعروضة فعلًا، وبوابة الفرز اليدوي امتزجت للقائمة الصحيحة
+  (المثبت بقاعدته، والأخير بقاعدته).
+
+- 🌐 **مسح i18n: أحد عشر نصًا مضمنًا صارت سلاسل** — رقائق «نص/صور/فيديو»
+  في لوحة الحافظة (كانت إنجليزية جامدة)، توست «فشل لصق العنصر» في
+  مسارين، تلميح «إدراج النص» في محرر الأفعال السريعة، وصف العنصر الفاشل
+  للوسائط، ستة أوصاف وصولية في نافذة محرر الحافظة (إغلاق/مشاركة/حفظ
+  كملف/السابق/التالي/مسح البحث)، «Show subtype picker» المتسربة إنجليزيًا
+  في قائمة إعدادات الإيماءات، و«بسيط/تقني/مزدوج» المضمّنة عربيًا في
+  شريط النظام الموحد — كلها مفاتيح سلاسل معرّبة بالعربية والإنجليزية.
+  **28 مفتاحًا جديدًا — توازي 2,376 لكل لغة.**
+
+- 🧪 **15 اختبار وحدة جديدًا (472 ناجحًا، كانت 457)** — فاصل القرار
+  الإملائي بعقوده السبعة (الطول، الأرقام والرموز، الاختصارات، الأسماء
+  العلمية، القواميس الرقيقة، الحاجة لتصحيح معقول، القبول الكامل)، سلسلة
+  دقة مسارات الإيموجي (الأولوية لغة←بلد←تنويع، الرجوع للإنجليزية ثم
+  للبنية، الحساسية للحالة)، أداتا التقسيم/الدمج من الرمز إلى الكتالوج،
+  وتوازي الأداتين الإحصائيتين — مع تحديث عقود ذيل الكتالوج في اختبارات
+  الجولات السابقة (47 أداة ← 49).
 
 ## التثبيت
 
-1. حمّل ملف `DRS-Smart-Keyboard-v1.18.0.apk` من الأسفل.
+1. حمّل ملف `DRS-Smart-Keyboard-v1.19.0.apk` من الأسفل.
 2. ثبّته (اسمح بالتثبيت من مصادر غير معروفة عند الحاجة).
 3. افتح الإعدادات ← أنظمة ← اللغات وأدخل لوحة المفاتيح ← فعّلها.
 4. اخترها لوحة مفاتيح افتراضية وابدأ الكتابة.
 
-التحقق من سلامة الملف: قارن بصمة SHA-256 في `SHA256SUMS.txt` المرفق.
+تحقق من سلامة الملف بمجموعات SHA-256 في `SHA256SUMS.txt` المرفق.
 
 ## الخصوصية
 
-كل شيء يعمل **محليًا وبلا إنترنت**: لا حسابات، لا تتبع، لا إعلانات، لا
-شبكة إلا لفحص تحديثات التطبيق نفسه. اقرأ `PRIVACY.md` الكامل.
+كل شيء يعمل **محليًا وبلا اتصال**: لا حسابات، لا تتبع، لا إعلانات، ولا
+شبكة إلا فحص تحديث التطبيق نفسه. اقرأ `PRIVACY.md` كاملة.
 
 </div>
+
+---
 
 <div dir="ltr">
 
 ## About the project
 
-**DRS Smart Keyboard** is a free, open-source (Apache-2.0) Android keyboard
-built with Kotlin, Jetpack Compose and Material 3, designed **Arabic-first**
-with a fully localized RTL interface and thoughtful Arabic layouts, plus
-English as a complete second option. Everything you type stays on your
-device: no accounts, no tracking, no ads.
+**DRS Smart Keyboard** is a free, open-source Android keyboard
+(Apache-2.0) built with Kotlin, Jetpack Compose and Material 3 —
+**Arabic-first**: a fully Arabic interface with native RTL support,
+thoughtful Arabic layouts and Arabic suggestions/correction, with English
+as a complete second option. Everything stays on your device: no accounts,
+no tracking, no ads.
 
-## What's new in V 1.18.0 — Global Strength
+## What's new in V 1.19.0 — The Full Audit Round
 
-- 🗜️ **R8 finally enabled — with a proven safety gate** — minification had
-  been disabled since v1.7 because of the infamous "blank screen" failure
-  (a 3.1MB dex with no UI). A controlled experiment proves the failure no
-  longer reproduces on the current toolchain: minifying with and without
-  explicit entry-point keeps both produced a complete dex (6.8k+ classes;
-  every Compose screen, material3, the JetPref runtime and the generated
-  preference models all present). Explicit entry-point keeps stay as
-  belt-and-suspenders, and a new **`validateR8Dex` gate** byte-scans the
-  minified dex after every beta/release build and fails the build the
-  moment any marker class is missing — a blank-screen regression can never
-  reach a release silently again. Resources shrink too; stack traces stay
-  readable (`-dontobfuscate`).
+This round began with a three-front deep audit (input engine, panels,
+app/settings layer) benchmarked against the world's strongest keyboards.
+Every genuine dead channel found was revived, and two world-class
+missing capabilities were actually wired.
 
-- ⌨️ **Split keyboard** — the letters page renders as two halves with a
-  real central gap computed inside the layout engine itself (in both the
-  grow and the shrink branch, so it composes with every width factor and
-  margin rule). Three modes in Keyboard settings: **Auto** (wide screens
-  ≥560dp only: landscape phones, foldables, tablets — the default),
-  **Always**, **Never**. It never engages in one-handed or floating
-  windows, nor on the numeric/phone pads — only where it actually helps.
-  The decision engine is fully pure, with 21 new tests.
+- ✅ **Real spell checking — at last** — the spell-checker service was
+  fully wired (sessions, ~180 advertised locales, a diagnostics screen),
+  yet `spell()` itself unconditionally returned "valid word": **not a
+  single red underline since day one**. Misspellings are now flagged in
+  red with tap-to-fix suggestions, behind a **conservative pure decision
+  engine** (SpellingDecider): only rich dictionaries judge (Arabic 50k
+  and English 50k — the eight thin curated v1.18.0 dictionaries never
+  flag, or they'd underline half a sentence), letters-only words, all-caps
+  acronyms protected (DRS, NASA), mid-sentence capitalized proper nouns
+  protected, and a word is only flagged when a plausible edit-distance-1
+  correction actually exists. Because "the unknown never warns falsely"
+  remains the governing rule, a **"Flag spelling mistakes"** switch in the
+  Typing screen turns the whole channel off. The checker also respects
+  your personal and learned words.
 
-- 🌍 **Eight new language dictionaries — no more English-by-proxy** —
-  every non-Arabic language used to receive the generic ENGLISH dictionary
-  (a French typist got English suggestions!). We added carefully curated
-  frequency dictionaries for **French, German, Spanish, Italian,
-  Portuguese, Turkish, Russian and Persian** (~8k entries with a rank-based
-  descending score curve that respects the autocorrect threshold), plus
-  **Latin accent folding for matching only**: type "eleve" and "élève"
-  appears, "größe" matches "grosse", while the Arabic hamza unification is
-  pinned by tests. Languages without a bundled dictionary fall back to
-  English honestly and openly, and next-word bigram tables remain where
-  they truly exist (Arabic, English).
+- 🔍 **Emoji search finally works — in seven languages, your words** —
+  the audit found the palette loaded `root.txt` whose name/keyword columns
+  are **empty for 3,944 of 3,965 lines**, while the full CLDR v48
+  annotation files (Arabic, English, German, Spanish, French, Italian,
+  Portuguese) sat unused in assets. Search was permanently "no results".
+  The palette now follows the active subtype locale: search "قلب" in
+  Arabic, "Herz" in German; languages without annotations fall back to
+  English honestly (then to the structural root file) — which also
+  revived the engine's emoji suggestions for languages that were dead
+  there too. **The palette reloads with the active subtype.**
 
-- 🇪🇸 **Expanded Spanish translation** — 277 new keys covering the
-  clipboard tiles and its full smart editor (search/replace, algorithms,
-  fonts, colored results, code detection and its six settings groups),
-  the harakat/symbols/letters panels, accessibility (TalkBack) keys and
-  quick actions — bringing Spanish UI coverage to ~1,256 keys. The
-  remaining diagnostics/stats screens complete next round.
+- ⌨️ **One-tap split/merge keyboard** — splitting was settings-only in
+  v1.18.0; its two defined codes had no handler and no exposure (a
+  textbook dead channel). **"Split keyboard"** and **"Merge keyboard"**
+  are now full catalogue tools (49 tools) with icons, names, descriptions
+  and stats registration, driving the same engine pref the settings
+  screen drives, with a status toast, appended at the catalogue tail so
+  your saved order and pins keep their meaning.
 
-- 🐛 **Root-cause fix: 24 English keys carried Arabic text** — the parity
-  audit revealed v1.17's accessibility and autocorrect/backspace-preference
-  keys had landed in the ENGLISH file as Arabic text (TalkBack spoke
-  Arabic labels to English users). All 24 fixed with proper English,
-  preserving exact 2,348-key per-language parity.
+- 🖼️ **Jank-free thumbnails — off the main thread** — clipboard image and
+  video decoding ran **synchronously inside composition** on the UI
+  thread (`remember{}`): a large photo froze the whole keyboard for
+  hundreds of milliseconds. Decoding moved to `Dispatchers.IO` with a
+  **bounded 48-entry LRU cache** so scrolling the media history is smooth,
+  with a localized failure message replacing the hardcoded English text.
+
+- 📊 **Stats parity: the two v1.8.0 tools finally count** — "separate
+  digits from letters" and "remove punctuation" performed their pure
+  work, but their presses were never counted in the most-used surface
+  (absent from SmartToolCodes and the KeyCode constants). Both are now
+  counted under explicit named constants, surfacing as most-used tiles
+  like the other thirty-four.
+
+- 🧹 **Real dead channels revived — the audit's fruit** —
+  **`NlpManager.destroyIfNecessary`**: the condition used `getAndSet(true)`,
+  destroying the provider on EVERY call and leaving the alive-flag set
+  forever so it could never be re-created — it now destroys only when
+  alive and marks the instance dead. **`UserDictionaryDatabase.reset()`**:
+  two `TODO("Not yet implemented")` landmines any future caller would
+  have crashed on — now real wipes (Room database and the system
+  provider) behind a **"Clear dictionary"** action with a confirmation
+  dialog in the internal user-dictionary screen. **`EmojiHistoryPopup`**:
+  the move-arrow conditions were copy-paste identical, rendering arrows
+  at list edges where moving is a no-op, and `numActions = 1` was a
+  hardcoded guess floating the popup too high — arrows are now
+  position-aware (none at an edge), the offset counts the actions actually
+  shown, and the manual-sort gate tests the correct list's strategy.
+
+- 🌐 **i18n sweep: eleven hardcoded literals became strings** — the
+  clipboard "Text/Images/Videos" chips (hardwired English), the "Failed
+  to paste item." toast in two paths, the quick-actions "Insert text"
+  tooltip, the media-tile unknown-error text, six accessibility
+  descriptions in the clip editor popup (close/share/save as file/prev/
+  next/clear find), the English "Show subtype picker" leaking into the
+  gesture-settings enum, and the Arabic "بسيط/تقني/مزدوج" literals in
+  the unified strip — all localized in both languages. **28 new keys —
+  exact 2,376-key per-language parity.**
+
+- 🧪 **15 new unit tests (472 passing, up from 457)** — the spelling
+  decision engine's seven contracts (length, digits/symbols, acronyms,
+  proper nouns, thin dictionaries, correction requirement, full
+  acceptance), the emoji asset-path chain (language→country→variant
+  priority, honest en/root fallbacks, case-insensitivity), the
+  split/merge tools from code to catalogue, and the two stats-parity
+  codes — with the previous rounds' catalogue tail contracts updated
+  (47 → 49 tools).
 
 ## Install
 
-1. Download `DRS-Smart-Keyboard-v1.18.0.apk` below.
+1. Download `DRS-Smart-Keyboard-v1.19.0.apk` below.
 2. Install it (allow unknown sources when prompted).
 3. Open Settings → System → Languages & input → enable the keyboard.
 4. Pick it as your default keyboard and start typing.

@@ -315,10 +315,44 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         allowPossiblyOffensive: Boolean,
         isPrivateSession: Boolean,
     ): SpellingResult {
-        // We intentionally never flag words as typos: the bundled dictionaries cover the
-        // most frequent words of each language but not every valid inflection, so false
-        // positives (red underlines on correct words) would be worse than no marking.
-        return SpellingResult.validWord()
+        // DRS v1.19.0: REAL typo marking, governed by the pure SpellingDecider.
+        // Until v1.18.0 this function unconditionally returned validWord(), so the
+        // spell-checker service was a dead channel: fully wired sessions, ~180
+        // advertised subtypes, and never a single red underline. The gates are
+        // deliberately conservative — only rich dictionaries (ar/en, >=10k entries)
+        // judge, plain single-script words only, all-caps acronyms and mid-sentence
+        // capitalized proper nouns excluded, and a word is only flagged when a
+        // plausible edit-distance-1 correction actually exists. Users can switch
+        // the whole channel off via prefs.spelling.typoFlaggingEnabled.
+        if (!prefs.spelling.typoFlaggingEnabled.get()) return SpellingResult.validWord()
+        val raw = word.trim()
+        if (!SpellingDecider.isSpellableWord(raw, midSentence = precedingWords.isNotEmpty())) {
+            return SpellingResult.validWord()
+        }
+        val dict = dictFor(subtype) ?: return SpellingResult.validWord()
+        val norm = normalize(raw)
+        val exactInDict = dict.words.containsKey(raw)
+        val normInDict = norm.isNotEmpty() && norm != raw &&
+            dict.findByPrefix(norm, limit = 1).firstOrNull()?.norm == norm
+        if (exactInDict || normInDict) return SpellingResult.validWord()
+        val isArabic = raw.any { it in ARABIC_SCRIPT_START..ARABIC_SCRIPT_END }
+        val inUserWords = userDataFor(subtype).any { entry ->
+            entry.word == raw ||
+                (isArabic && normalize(entry.word) == norm) ||
+                (!isArabic && entry.word.lowercase() == raw.lowercase())
+        }
+        if (inUserWords) return SpellingResult.validWord()
+        val corrections = dict.corrections(norm, maxSuggestionCount.coerceIn(1, 5))
+        if (!SpellingDecider.shouldFlagTypo(
+                wordInDict = false,
+                wordInUserWords = false,
+                dictEntries = dict.entries.size,
+                correctionCount = corrections.size,
+            )
+        ) {
+            return SpellingResult.validWord()
+        }
+        return SpellingResult.typo(corrections.map { it.word }.toTypedArray())
     }
 
     override suspend fun suggest(

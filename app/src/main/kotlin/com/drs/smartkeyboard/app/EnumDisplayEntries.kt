@@ -700,7 +700,9 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             )
             entry(
                 key = SwipeAction.SHOW_SUBTYPE_PICKER,
-                label = "Show subtype picker"
+                // DRS v1.19.0: was a hardcoded "Show subtype picker"
+                // English literal shown to users of every locale.
+                label = stringRes(R.string.enum__swipe_action__show_subtype_picker)
             )
             entry(
                 key = SwipeAction.SWITCH_TO_PREV_SUBTYPE,

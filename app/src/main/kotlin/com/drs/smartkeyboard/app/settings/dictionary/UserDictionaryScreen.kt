@@ -98,6 +98,10 @@ fun UserDictionaryScreen(type: UserDictionaryType) = DrsScreen {
     var languageList by remember { mutableStateOf(emptyList<DrsLocale>()) }
     var wordList by remember { mutableStateOf(emptyList<UserDictionaryEntry>()) }
     var userDictionaryEntryForDialog by remember { mutableStateOf<UserDictionaryEntry?>(null) }
+    // DRS v1.19.0: wipe-all confirmation — reset() is destructive, so it
+    // asks before it deletes (the very first honest caller of the
+    // previously-TODO reset()).
+    var showClearDialog by remember { mutableStateOf(false) }
 
     fun userDictionaryDao(): UserDictionaryDao? {
         return when (type) {
@@ -231,6 +235,18 @@ fun UserDictionaryScreen(type: UserDictionaryType) = DrsScreen {
                         expanded = false
                     },
                     text = { Text(text = stringRes(R.string.settings__udm__open_system_manager_ui)) },
+                )
+            }
+            // DRS v1.19.0: clear the DRS personal dictionary (with a
+            // confirmation dialog). Only for the app-private database — the
+            // system provider holds words owned by other apps too.
+            if (type == UserDictionaryType.DRS) {
+                DropdownMenuItem(
+                    onClick = {
+                        showClearDialog = true
+                        expanded = false
+                    },
+                    text = { Text(text = stringRes(R.string.settings__udm__clear_dictionary)) },
                 )
             }
         }
@@ -399,6 +415,41 @@ fun UserDictionaryScreen(type: UserDictionaryType) = DrsScreen {
                         Validation(showValidationErrors, localeValidation)
                     }
                 }
+            }
+        }
+
+        // DRS v1.19.0: destructive wipe confirmation — reset() clears every
+        // personal/learned word from the app-private Room database. The
+        // spell checker and the suggestion engine pick up the empty state
+        // within the user-words cache TTL (15s), so the effect is honest.
+        if (showClearDialog) {
+            JetPrefAlertDialog(
+                title = stringRes(R.string.settings__udm__clear_dictionary),
+                confirmLabel = stringRes(R.string.action__delete),
+                dismissLabel = stringRes(R.string.action__cancel),
+                onConfirm = {
+                    showClearDialog = false
+                    val db = dictionaryManager.drsUserDictionaryDatabase()
+                    if (db == null) {
+                        context.showLongToastSync("Database handle is null, failed to clear")
+                    } else {
+                        scope.launch {
+                            runCatching { db.reset() }
+                                .onSuccess {
+                                    buildUi()
+                                    context.showLongToast(
+                                        R.string.settings__udm__clear_dictionary_success,
+                                    )
+                                }
+                                .onFailure { error ->
+                                    context.showLongToastSync("Error: ${error.localizedMessage}")
+                                }
+                        }
+                    }
+                },
+                onDismiss = { showClearDialog = false },
+            ) {
+                Text(text = stringRes(R.string.settings__udm__clear_dictionary_confirm))
             }
         }
     }

@@ -35,6 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +54,7 @@ import com.drs.smartkeyboard.ime.media.emoji.EmojiPaletteView
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
+import com.drs.smartkeyboard.subtypeManager
 import org.drs.lib.snygg.SnyggSelector
 import org.drs.lib.snygg.ui.SnyggBox
 import org.drs.lib.snygg.ui.SnyggColumn
@@ -65,10 +67,17 @@ fun MediaInputLayout(
 ) {
     val context = LocalContext.current
     val keyboardManager by context.keyboardManager()
+    // DRS v1.19.0: the palette follows the active subtype's locale so the emoji
+    // metadata (names + keywords) matches the user's language — native search in
+    // ar/en/de/es/fr/it/pt, honest English fallback elsewhere. Previously the
+    // palette was hard-wired to "root.txt" whose metadata columns are empty for
+    // ~99.8% of its lines, which made emoji search permanently return no results.
+    val subtypeManager by context.subtypeManager()
+    val activeSubtype by subtypeManager.activeSubtypeFlow.collectAsState()
 
     var emojiLayoutDataMap by remember { mutableStateOf(EmojiData.Fallback) }
-    LaunchedEffect(Unit) {
-        emojiLayoutDataMap = EmojiData.get(context, "ime/media/emoji/root.txt")
+    LaunchedEffect(activeSubtype.id) {
+        emojiLayoutDataMap = EmojiData.get(context, activeSubtype.primaryLocale)
     }
 
     SnyggColumn(

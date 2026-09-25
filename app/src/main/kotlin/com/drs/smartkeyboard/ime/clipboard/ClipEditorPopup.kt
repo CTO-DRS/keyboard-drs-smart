@@ -511,7 +511,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
                 Column(modifier = Modifier.fillMaxSize().padding(horizontal = 14.dp, vertical = 10.dp)) {
                     // Header: close, title, share, save-as-file.
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        PopupIconButton(icon = Icons.Default.Close, description = "close") {
+                        PopupIconButton(icon = Icons.Default.Close, description = stringRes(R.string.clip__a11y_close)) {
                             finish()
                         }
                         // DRS v1.11.0: the title plus the honest hint that
@@ -533,10 +533,10 @@ class ClipEditorPopupActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                        PopupIconButton(icon = Icons.Default.Share, description = "share") {
+                        PopupIconButton(icon = Icons.Default.Share, description = stringRes(R.string.clip__a11y_share)) {
                             shareCurrent()
                         }
-                        PopupIconButton(icon = Icons.Default.SaveAlt, description = "save as file") {
+                        PopupIconButton(icon = Icons.Default.SaveAlt, description = stringRes(R.string.clip__a11y_save_file)) {
                             saveName = ClipFileNamer.defaultFileName(
                                 System.currentTimeMillis(), ZoneId.systemDefault(),
                             )
@@ -629,21 +629,21 @@ class ClipEditorPopupActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(horizontal = 6.dp),
                             )
-                            PopupIconButton(icon = Icons.Default.KeyboardArrowUp, description = "prev") {
+                            PopupIconButton(icon = Icons.Default.KeyboardArrowUp, description = stringRes(R.string.clip__a11y_prev)) {
                                 if (matches.isNotEmpty()) {
                                     val index = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
                                     activeMatch = index
                                     jumpToMatchLine(matches[index].start)
                                 }
                             }
-                            PopupIconButton(icon = Icons.Default.KeyboardArrowDown, description = "next") {
+                            PopupIconButton(icon = Icons.Default.KeyboardArrowDown, description = stringRes(R.string.clip__a11y_next)) {
                                 if (matches.isNotEmpty()) {
                                     val index = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
                                     activeMatch = index
                                     jumpToMatchLine(matches[index].start)
                                 }
                             }
-                            PopupIconButton(icon = Icons.Default.Close, description = "clear find") {
+                            PopupIconButton(icon = Icons.Default.Close, description = stringRes(R.string.clip__a11y_clear_find)) {
                                 findQuery = ""
                                 replaceQuery = ""
                                 activeMatch = 0

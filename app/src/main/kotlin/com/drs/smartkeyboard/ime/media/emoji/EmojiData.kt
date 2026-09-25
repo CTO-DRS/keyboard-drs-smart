@@ -62,8 +62,8 @@ data class EmojiData(
         }
 
         suspend fun get(context: Context, locale: DrsLocale): EmojiData {
-            val path = resolveEmojiAssetPath(context, locale) ?: return empty()
-            return get(context, path)
+            val available = context.assets.list(EMOJI_ASSETS_DIR)?.toList().orEmpty()
+            return get(context, resolveEmojiAssetPathWithFallback(available, locale))
         }
 
         private fun loadEmojiDataMap(context: Context, path: String): EmojiData {
@@ -132,45 +132,71 @@ data class EmojiData(
         }
 
         /**
-         * Resolves the path to the emoji asset file based on the active keyboard subtype and active locale.
+         * DRS v1.19.0: pure, testable resolution of the emoji asset file for a locale.
          *
-         * This method prioritizes usage of cached emoji layout maps when available. If a cached map is found then return,
-         * the parseRawEmojiSpecsFile will correctly return the cached data
+         * The previous behavior was the root cause of the dead emoji search: the palette
+         * loaded "root.txt" whose metadata columns are empty for ~99.8% of the lines, so
+         * the search engine had nothing to match against. Meanwhile the full CLDR v48
+         * annotation files (ar/en/de/es/fr/it/pt) shipped in the very same assets
+         * directory, consumed only by [EmojiSuggestionProvider].
          *
-         * It then attempts to locate a matching emoji asset file within the "ime/media/emoji/" directory in the
-         * application's assets based on locale priority:
-         * - Primary locale of the active subtype
-         * - Secondary locales of the active subtype
-         * - Root path ("ime/media/emoji/root.txt") as a fallback
-         *
-         * For each locale, file matching follows this preference order:
+         * File matching follows this preference order:
          * - {language}_{country}_{variant}.txt
          * - {language}_{country}.txt
          * - {language}.txt
          *
-         * @param context The context used to access application assets.
-         * @param locale The locale to resolve for.
+         * @param available The file names inside "ime/media/emoji/" (no directory prefix).
+         * @param language Lowercase-agnostic language code of the locale.
+         * @param country Country/region code of the locale, or null.
+         * @param variant Variant code of the locale, or null.
          *
-         * @return The path to the emoji asset file, or the root path ("ime/media/emoji/root.txt") if no match is found.
+         * @return The full asset path of the best-matching file, or null when the language
+         *         has no annotation file at all.
          */
-        private fun resolveEmojiAssetPath(context: Context, locale: DrsLocale): String? {
-            val emojiAssets = context.assets.list("ime/media/emoji/")!!.toList()
-            val makePath = { file: String -> "ime/media/emoji/$file" }
-            val language = locale.language.lowercase()
-            val country = locale.country.takeIf { it.isNotBlank() }
-            val variant = locale.variant.takeIf { it.isNotBlank() }
+        internal fun pickEmojiAssetPath(
+            available: List<String>,
+            language: String,
+            country: String?,
+            variant: String?,
+        ): String? {
+            val makePath = { file: String -> "$EMOJI_ASSETS_DIR$file" }
+            val lang = language.lowercase()
             if (variant != null && country != null) {
-                "${language}_${country}_${variant}.txt".takeIf { emojiAssets.contains(it) }?.let {
+                "${lang}_${country}_${variant}.txt".takeIf { available.contains(it) }?.let {
                     return makePath(it)
                 }
             }
             if (country != null) {
-                "${language}_${country}.txt".takeIf { emojiAssets.contains(it) }?.let { return makePath(it) }
+                "${lang}_${country}.txt".takeIf { available.contains(it) }?.let { return makePath(it) }
             }
-            "${language}.txt".takeIf { emojiAssets.contains(it) }?.let {
+            "${lang}.txt".takeIf { available.contains(it) }?.let {
                 return makePath(it)
             }
             return null
         }
+
+        /**
+         * DRS v1.19.0: resolves the emoji annotation file for a locale with honest fallbacks
+         * so the palette (and the emoji suggestions) never degrade to metadata-less data:
+         * 1. The locale's own annotation file (native-language keyword search).
+         * 2. The English annotation file — search still works via the documented English
+         *    keywords ("heart, fire…") instead of not working at all.
+         * 3. The structural root file (last resort; same emoji set, empty metadata).
+         */
+        internal fun resolveEmojiAssetPathWithFallback(available: List<String>, locale: DrsLocale): String {
+            pickEmojiAssetPath(
+                available = available,
+                language = locale.language,
+                country = locale.country.takeIf { it.isNotBlank() },
+                variant = locale.variant.takeIf { it.isNotBlank() },
+            )?.let { return it }
+            if (available.contains("en.txt")) {
+                return EMOJI_ASSETS_DIR + "en.txt"
+            }
+            return EMOJI_ASSETS_DIR + EMOJI_ROOT_FILE
+        }
+
+        private const val EMOJI_ASSETS_DIR = "ime/media/emoji/"
+        private const val EMOJI_ROOT_FILE = "root.txt"
     }
 }

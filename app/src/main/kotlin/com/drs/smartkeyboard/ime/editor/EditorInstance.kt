@@ -485,7 +485,9 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         phantomSpace.setInactive()
         return commitClipboardItem(clipboardManager.primaryClip).also { result ->
             if (!result) {
-                appContext.showShortToastSync("Failed to paste item.")
+                // DRS v1.19.0: the failure toast is localized now (was a
+                // hardcoded English literal in every locale).
+                appContext.showShortToastSync(R.string.clipboard__paste_failed)
             }
         }
     }

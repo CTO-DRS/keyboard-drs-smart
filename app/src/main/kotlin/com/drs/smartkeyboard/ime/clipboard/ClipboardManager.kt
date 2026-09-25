@@ -425,7 +425,9 @@ class ClipboardManager(
         val editorInstance by appContext.editorInstance()
         editorInstance.commitClipboardItem(item).also { result ->
             if (!result) {
-                appContext.showShortToastSync("Failed to paste item.")
+                // DRS v1.19.0: the failure toast is localized now (was a
+                // hardcoded English literal in every locale).
+                appContext.showShortToastSync(R.string.clipboard__paste_failed)
             }
         }
         // DRS v1.0.5: clipboard use from the clipboard panel is now credited

@@ -78,8 +78,9 @@ class DrsV170Tests : FunSpec({
         TextKeyData.getCodeInfoAsTextKeyData(KeyCode.CLIPBOARD_PIN_ACTIVE)
             .shouldNotBeNull()
         // DRS v1.8.0 appended the quick-actions pair after this tail, and
-        // DRS v1.15.0 the three smart panels after that.
-        DrsUnifiedTools.ALL.dropLast(5).last().id shouldBe "clipboard_pin"
+        // DRS v1.15.0 the three smart panels after that, and DRS v1.19.0
+        // the split/merge pair after those.
+        DrsUnifiedTools.ALL.dropLast(7).last().id shouldBe "clipboard_pin"
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
     }
 
