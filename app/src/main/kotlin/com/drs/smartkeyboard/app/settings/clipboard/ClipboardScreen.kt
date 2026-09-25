@@ -29,6 +29,9 @@ import com.drs.smartkeyboard.app.enumDisplayEntriesOf
 import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupSize
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorScrim
 import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
 import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
 import com.drs.smartkeyboard.ime.clipboard.ClipboardHistoryExport
@@ -202,6 +205,28 @@ fun ClipboardScreen() = DrsScreen {
             )
         }
 
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_popup_editor__label)) {
+            // DRS v1.14.0 — the comprehensive settings list covers the
+            // floating edit popup window itself: where the edit opens,
+            // how big the window is, and how strongly the app behind it
+            // is dimmed — everything v1.11.0 hardcoded becomes a choice.
+            ListPreference(
+                prefs.clipboard.editRoute,
+                title = stringRes(R.string.pref__clipboard__edit_route__label),
+                entries = enumDisplayEntriesOf(ClipEditorRoute::class),
+            )
+            ListPreference(
+                prefs.clipboard.popupSize,
+                title = stringRes(R.string.pref__clipboard__popup_size__label),
+                entries = enumDisplayEntriesOf(ClipEditorPopupSize::class),
+            )
+            ListPreference(
+                prefs.clipboard.popupScrim,
+                title = stringRes(R.string.pref__clipboard__popup_scrim__label),
+                entries = enumDisplayEntriesOf(ClipEditorScrim::class),
+            )
+        }
+
         PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_smart_editor__label)) {
             // DRS v1.12.0 — the complete smart clipboard system: every
             // default the editors honor lives here, in the app, the way
@@ -211,6 +236,17 @@ fun ClipboardScreen() = DrsScreen {
                 title = stringRes(R.string.pref__clipboard__editor_char_limit__label),
                 entries = enumDisplayEntriesOf(ClipEditorCharLimit::class),
             )
+            SwitchPreference(
+                prefs.clipboard.largeTextWarning,
+                title = stringRes(R.string.pref__clipboard__large_text_warning__label),
+                summary = stringRes(R.string.pref__clipboard__large_text_warning__summary),
+            )
+        }
+
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_search_results__label)) {
+            // DRS v1.12.0 + v1.13.0 + v1.14.0: the colored result cards,
+            // their navigation, and the direct line jump — every part of
+            // the search experience the user asked for, in one place.
             SwitchPreference(
                 prefs.clipboard.searchResultCards,
                 title = stringRes(R.string.pref__clipboard__search_result_cards__label),
@@ -223,29 +259,76 @@ fun ClipboardScreen() = DrsScreen {
                 enabledIf = { prefs.clipboard.searchResultCards isEqualTo true },
             )
             SwitchPreference(
-                prefs.clipboard.codeDetection,
-                title = stringRes(R.string.pref__clipboard__code_detection__label),
-                summary = stringRes(R.string.pref__clipboard__code_detection__summary),
-            )
-            ListPreference(
-                prefs.clipboard.editorFont,
-                title = stringRes(R.string.pref__clipboard__editor_font__label),
-                entries = enumDisplayEntriesOf(ClipFontOption::class),
-            )
-            ListPreference(
-                prefs.clipboard.editorFontSize,
-                title = stringRes(R.string.pref__clipboard__editor_font_size__label),
-                entries = enumDisplayEntriesOf(ClipFontSizeOption::class),
-            )
-            SwitchPreference(
                 prefs.clipboard.matchCaseByDefault,
                 title = stringRes(R.string.pref__clipboard__match_case_by_default__label),
                 summary = stringRes(R.string.pref__clipboard__match_case_by_default__summary),
             )
+            SwitchPreference(
+                prefs.clipboard.jumpToLine,
+                title = stringRes(R.string.pref__clipboard__jump_to_line__label),
+                summary = stringRes(R.string.pref__clipboard__jump_to_line__summary),
+                enabledIf = { prefs.clipboard.searchResultCards isEqualTo true },
+            )
+            SwitchPreference(
+                prefs.clipboard.jumpCenter,
+                title = stringRes(R.string.pref__clipboard__jump_center__label),
+                summary = stringRes(R.string.pref__clipboard__jump_center__summary),
+                enabledIf = {
+                    prefs.clipboard.searchResultCards isEqualTo true &&
+                        prefs.clipboard.jumpToLine isEqualTo true
+                },
+            )
+            SwitchPreference(
+                prefs.clipboard.followActiveCard,
+                title = stringRes(R.string.pref__clipboard__follow_active_card__label),
+                summary = stringRes(R.string.pref__clipboard__follow_active_card__summary),
+                enabledIf = { prefs.clipboard.searchResultCards isEqualTo true },
+            )
+        }
+
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_code_detection__label)) {
+            // DRS v1.12.0 + v1.14.0: the code-line detection and its two
+            // details — the language badge and the automatic monospace
+            // switch — each with its own honest switch.
+            SwitchPreference(
+                prefs.clipboard.codeDetection,
+                title = stringRes(R.string.pref__clipboard__code_detection__label),
+                summary = stringRes(R.string.pref__clipboard__code_detection__summary),
+            )
+            SwitchPreference(
+                prefs.clipboard.codeBadge,
+                title = stringRes(R.string.pref__clipboard__code_badge__label),
+                summary = stringRes(R.string.pref__clipboard__code_badge__summary),
+                enabledIf = { prefs.clipboard.codeDetection isEqualTo true },
+            )
+            SwitchPreference(
+                prefs.clipboard.codeAutoMonospace,
+                title = stringRes(R.string.pref__clipboard__code_auto_monospace__label),
+                summary = stringRes(R.string.pref__clipboard__code_auto_monospace__summary),
+                enabledIf = { prefs.clipboard.codeDetection isEqualTo true },
+            )
+        }
+
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_history_organization__label)) {
+            // DRS v1.12.0 + v1.14.0: the panel organization — the sort
+            // order, the calendar sections, and the smart category
+            // badges — the full comprehensive organization as settings.
             ListPreference(
                 prefs.clipboard.historySort,
                 title = stringRes(R.string.pref__clipboard__history_sort__label),
                 entries = enumDisplayEntriesOf(ClipHistorySort::class),
+            )
+            SwitchPreference(
+                prefs.clipboard.calendarSections,
+                title = stringRes(R.string.pref__clipboard__calendar_sections__label),
+                summary = stringRes(R.string.pref__clipboard__calendar_sections__summary),
+                enabledIf = { prefs.clipboard.historyEnabled isEqualTo true },
+            )
+            SwitchPreference(
+                prefs.clipboard.categoryBadges,
+                title = stringRes(R.string.pref__clipboard__category_badges__label),
+                summary = stringRes(R.string.pref__clipboard__category_badges__summary),
+                enabledIf = { prefs.clipboard.historyEnabled isEqualTo true },
             )
         }
 

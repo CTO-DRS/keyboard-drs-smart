@@ -26,6 +26,9 @@ import com.drs.smartkeyboard.app.setup.NotificationPermissionState
 import com.drs.smartkeyboard.app.drsupdater.UpdateCheckMode
 import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupSize
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorScrim
 import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
 import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
@@ -202,6 +205,56 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val historySort = enum(
             key = "clipboard__history_sort",
             default = ClipHistorySort.NEWEST,
+        )
+
+        // DRS v1.14.0 — the comprehensive settings list in the app covers
+        // everything the recent rounds built: the floating edit popup
+        // window (surface, size, dimming), the direct line jump of the
+        // result cards, the code-line detection details, and the panel
+        // organization (calendar sections and category badges).
+        val editRoute = enum(
+            key = "clipboard__edit_route",
+            default = ClipEditorRoute.POPUP_WINDOW,
+        )
+        val popupSize = enum(
+            key = "clipboard__popup_size",
+            default = ClipEditorPopupSize.NORMAL,
+        )
+        val popupScrim = enum(
+            key = "clipboard__popup_scrim",
+            default = ClipEditorScrim.NORMAL,
+        )
+        val jumpToLine = boolean(
+            key = "clipboard__jump_to_line",
+            default = true,
+        )
+        val jumpCenter = boolean(
+            key = "clipboard__jump_center",
+            default = true,
+        )
+        val followActiveCard = boolean(
+            key = "clipboard__follow_active_card",
+            default = true,
+        )
+        val largeTextWarning = boolean(
+            key = "clipboard__large_text_warning",
+            default = true,
+        )
+        val codeBadge = boolean(
+            key = "clipboard__code_badge",
+            default = true,
+        )
+        val codeAutoMonospace = boolean(
+            key = "clipboard__code_auto_monospace",
+            default = true,
+        )
+        val calendarSections = boolean(
+            key = "clipboard__calendar_sections",
+            default = true,
+        )
+        val categoryBadges = boolean(
+            key = "clipboard__category_badges",
+            default = true,
         )
     }
 

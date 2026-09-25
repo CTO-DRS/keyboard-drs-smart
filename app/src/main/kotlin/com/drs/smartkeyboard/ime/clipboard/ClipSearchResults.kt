@@ -206,6 +206,11 @@ object ClipResultJump {
      * view, or null when there is no layout yet or [offset] is outside
      * the laid-out text. [viewportPx] is the visible height of the editor
      * viewport and [maxScrollPx] the scroll range's upper bound.
+     *
+     * DRS v1.14.0: [centerRow] is the user's chosen jump alignment from
+     * the comprehensive app settings — true centers the row in the
+     * viewport (the v1.13.0 behavior), false always pins the row head
+     * just under the top edge. Both are clamped to the real scroll range.
      */
     fun scrollOffsetFor(
         layout: ClipLineLayout?,
@@ -213,6 +218,7 @@ object ClipResultJump {
         viewportPx: Int,
         maxScrollPx: Int,
         topPeekPx: Int = TOP_PEEK_PX,
+        centerRow: Boolean = true,
     ): Int? {
         if (layout == null) return null
         if (offset < 0 || offset > layout.textLength) return null
@@ -221,9 +227,9 @@ object ClipResultJump {
         val top = layout.rowTop(row)
         val bottom = layout.rowBottom(row)
         val rowHeight = bottom - top
-        val target = if (viewportPx <= 0 || rowHeight >= viewportPx) {
-            // No viewport knowledge yet, or a wrapped giant row: pin the
-            // row head just under the top edge.
+        val target = if (!centerRow || viewportPx <= 0 || rowHeight >= viewportPx) {
+            // The pinned alignment, no viewport knowledge yet, or a wrapped
+            // giant row: pin the row head just under the top edge.
             top - topPeekPx
         } else {
             // Center the row inside the viewport.

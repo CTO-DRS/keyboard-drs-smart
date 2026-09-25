@@ -118,6 +118,40 @@ enum class ClipEditorRoute {
 }
 
 /**
+ * DRS v1.14.0: the size of the popup editor window, chosen in the app
+ * settings — the comprehensive settings list covers the popup window the
+ * user asked for in v1.11.0 too. Pure and JVM-testable.
+ */
+enum class ClipEditorPopupSize {
+    /** A discreet card — most of the app stays visible around it. */
+    COMPACT,
+
+    /** The pinned v1.11.0 geometry. */
+    NORMAL,
+
+    /** Nearly the whole screen — the widest editing canvas. */
+    NEARLY_FULL,
+}
+
+/**
+ * DRS v1.14.0: how strongly the underlying app is dimmed behind the popup
+ * editor window, chosen in the app settings. Pure and JVM-testable.
+ */
+enum class ClipEditorScrim {
+    /** The app behind stays fully visible. */
+    NONE,
+
+    /** A gentle hint of separation. */
+    LIGHT,
+
+    /** The pinned v1.11.0 dimming. */
+    NORMAL,
+
+    /** The strongest focus short of full black. */
+    STRONG,
+}
+
+/**
  * DRS v1.11.0: decides where an edit request goes. Only real text items are
  * served by the popup window — images/videos and the defensive null-text
  * case stay with the in-panel editor. Pure and JVM-testable.
@@ -129,6 +163,18 @@ object ClipEditorPopupPolicy {
         } else {
             ClipEditorRoute.IN_PANEL
         }
+    }
+
+    /**
+     * DRS v1.14.0: the user's chosen edit surface from the app settings
+     * («قائمة الإعدادات الشاملة») joins the decision: a preferred in-panel
+     * editor always stays in-panel, and the popup preference keeps the
+     * v1.11.0 media/null-text honesty — the popup window never receives
+     * what it cannot render. Pure and JVM-testable.
+     */
+    fun routeFor(type: ItemType, text: String?, preferred: ClipEditorRoute): ClipEditorRoute {
+        if (preferred == ClipEditorRoute.IN_PANEL) return ClipEditorRoute.IN_PANEL
+        return routeFor(type, text)
     }
 
     /**
@@ -159,6 +205,32 @@ object ClipEditorPopupSpec {
 
     /** The scrim dimming the underlying app. */
     const val SCRIM_ALPHA: Float = 0.55f
+
+    /**
+     * DRS v1.14.0: the card width fraction for the user's chosen window
+     * size — NORMAL is the pinned v1.11.0 geometry, and every choice stays
+     * strictly inside (0, 1] so the card never leaves the screen.
+     */
+    fun widthFractionFor(size: ClipEditorPopupSize): Float = when (size) {
+        ClipEditorPopupSize.COMPACT -> 0.80f
+        ClipEditorPopupSize.NORMAL -> WIDTH_FRACTION
+        ClipEditorPopupSize.NEARLY_FULL -> 0.98f
+    }
+
+    /** DRS v1.14.0: the card height fraction for the chosen window size. */
+    fun heightFractionFor(size: ClipEditorPopupSize): Float = when (size) {
+        ClipEditorPopupSize.COMPACT -> 0.70f
+        ClipEditorPopupSize.NORMAL -> HEIGHT_FRACTION
+        ClipEditorPopupSize.NEARLY_FULL -> 0.96f
+    }
+
+    /** DRS v1.14.0: the scrim strength for the user's chosen dimming. */
+    fun scrimAlphaFor(scrim: ClipEditorScrim): Float = when (scrim) {
+        ClipEditorScrim.NONE -> 0.00f
+        ClipEditorScrim.LIGHT -> 0.30f
+        ClipEditorScrim.NORMAL -> SCRIM_ALPHA
+        ClipEditorScrim.STRONG -> 0.75f
+    }
 
     /** Card width in px for a given screen width (guarded). */
     fun cardWidthPx(screenWidthPx: Int): Int {
@@ -291,10 +363,21 @@ class ClipEditorPopupActivity : ComponentActivity() {
         // font family/size, the case matching, the editor character limit
         // (up to the 500,000 policy cap), the colored result cards, and
         // the code-line detection.
+        // DRS v1.14.0: the comprehensive settings list — the window size
+        // and dimming, the direct line jump behavior, and the badges and
+        // warnings all follow the app settings too.
         val prefs by DrsPreferenceStore
         val cardsEnabled = prefs.clipboard.searchResultCards.get()
         val codeDetection = prefs.clipboard.codeDetection.get()
         val editorLimit = prefs.clipboard.editorCharLimit.get().effectiveLimit()
+        val popupSize = prefs.clipboard.popupSize.get()
+        val popupScrim = prefs.clipboard.popupScrim.get()
+        val jumpEnabled = prefs.clipboard.jumpToLine.get()
+        val jumpCenters = prefs.clipboard.jumpCenter.get()
+        val followCards = prefs.clipboard.followActiveCard.get()
+        val largeTextWarning = prefs.clipboard.largeTextWarning.get()
+        val codeBadge = prefs.clipboard.codeBadge.get()
+        val codeAutoMonospace = prefs.clipboard.codeAutoMonospace.get()
         var text by remember { mutableStateOf(pending.text) }
         val history = remember { ClipEditorHistory() }
         var font by remember {
@@ -319,11 +402,16 @@ class ClipEditorPopupActivity : ComponentActivity() {
         var editorViewportPx by remember { mutableStateOf(0) }
 
         fun jumpToMatchLine(offset: Int) {
+            // DRS v1.14.0: the jump itself is a setting — when the user
+            // turns the direct line jump off, tapping a card (or the
+            // arrows) only activates the match without scrolling.
+            if (!jumpEnabled) return
             val target = ClipResultJump.scrollOffsetFor(
                 layout = editorLayout?.let(::ClipTextLineLayout),
                 offset = offset,
                 viewportPx = editorViewportPx,
                 maxScrollPx = textScrollState.maxValue,
+                centerRow = jumpCenters,
             )
             if (target != null) {
                 scope.launch { textScrollState.animateScrollTo(target) }
@@ -332,8 +420,10 @@ class ClipEditorPopupActivity : ComponentActivity() {
 
         // DRS v1.12.0: detected code switches to the monospace family
         // once, at open time, when detection is enabled.
+        // DRS v1.14.0: the auto switch itself has its own setting now.
         LaunchedEffect(pending.item.id) {
-            if (codeDetection &&
+            if (codeAutoMonospace &&
+                codeDetection &&
                 pending.text.length <= ClipCodeDetector.LARGE_TEXT_CHARS &&
                 ClipCodeDetector.analyze(pending.text).isCode
             ) {
@@ -383,7 +473,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = ClipEditorPopupSpec.SCRIM_ALPHA))
+                .background(Color.Black.copy(alpha = ClipEditorPopupSpec.scrimAlphaFor(popupScrim)))
                 .pointerInput(Unit) {
                     detectTapGestures { finish() }
                 }
@@ -395,8 +485,8 @@ class ClipEditorPopupActivity : ComponentActivity() {
                 color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 12.dp,
                 modifier = Modifier
-                    .fillMaxWidth(ClipEditorPopupSpec.WIDTH_FRACTION)
-                    .fillMaxHeight(ClipEditorPopupSpec.HEIGHT_FRACTION)
+                    .fillMaxWidth(ClipEditorPopupSpec.widthFractionFor(popupSize))
+                    .fillMaxHeight(ClipEditorPopupSpec.heightFractionFor(popupSize))
                     .pointerInput(Unit) {
                         detectTapGestures { /* swallow */ }
                     },
@@ -464,7 +554,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             null
                         }
                     }
-                    if (codeAnalysis?.isCode == true) {
+                    if (codeBadge && codeAnalysis?.isCode == true) {
                         Text(
                             text = "\uD83D\uDCBB " + stringRes(
                                 R.string.clip__code_badge,
@@ -478,7 +568,8 @@ class ClipEditorPopupActivity : ComponentActivity() {
                         )
                     }
                     // DRS v1.12.0: the slowdown warning for huge texts.
-                    if (text.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
+                    // DRS v1.14.0: the warning itself is a setting now.
+                    if (largeTextWarning && text.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
                         Text(
                             text = "⚠ " + stringRes(R.string.clip__large_text_warning),
                             style = MaterialTheme.typography.labelSmall,
@@ -630,8 +721,9 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             }
                             // Keep the active card in sight — from the
                             // arrows, from a card tap, and after edits.
+                            // DRS v1.14.0: the tracking itself is a setting.
                             LaunchedEffect(activeIndex, resultCards) {
-                                if (activeIndex >= 0 && resultCards.isNotEmpty()) {
+                                if (followCards && activeIndex >= 0 && resultCards.isNotEmpty()) {
                                     cardsListState.animateScrollToItem(
                                         activeIndex.coerceAtMost(resultCards.size - 1),
                                     )

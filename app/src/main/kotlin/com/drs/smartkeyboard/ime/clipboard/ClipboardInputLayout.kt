@@ -140,6 +140,8 @@ import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardItem
 import com.drs.smartkeyboard.ime.clipboard.provider.ItemType
 import com.drs.smartkeyboard.ime.clipboard.ClipCodeDetector
 import com.drs.smartkeyboard.ime.clipboard.ClipCodeLanguage
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupPolicy
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySection
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySections
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
@@ -217,6 +219,9 @@ fun ClipboardInputLayout(
     // DRS v1.12.0 — the complete smart clipboard system: the persisted
     // sort order, the editor defaults from the app settings, and the
     // toggles of the colored search-result cards and code detection.
+    // DRS v1.14.0 — the comprehensive settings list: the edit surface,
+    // the jump behavior, the badges and warnings, and the panel
+    // organization toggles all flow from the app settings too.
     val historySortPref by prefs.clipboard.historySort.collectAsState()
     val editorLimitPref by prefs.clipboard.editorCharLimit.collectAsState()
     val searchResultCardsPref by prefs.clipboard.searchResultCards.collectAsState()
@@ -225,6 +230,15 @@ fun ClipboardInputLayout(
     val defaultFontPref by prefs.clipboard.editorFont.collectAsState()
     val defaultFontSizePref by prefs.clipboard.editorFontSize.collectAsState()
     val defaultMatchCasePref by prefs.clipboard.matchCaseByDefault.collectAsState()
+    val editRoutePref by prefs.clipboard.editRoute.collectAsState()
+    val jumpToLinePref by prefs.clipboard.jumpToLine.collectAsState()
+    val jumpCenterPref by prefs.clipboard.jumpCenter.collectAsState()
+    val followCardsPref by prefs.clipboard.followActiveCard.collectAsState()
+    val largeTextWarningPref by prefs.clipboard.largeTextWarning.collectAsState()
+    val codeBadgePref by prefs.clipboard.codeBadge.collectAsState()
+    val codeAutoMonospacePref by prefs.clipboard.codeAutoMonospace.collectAsState()
+    val calendarSectionsPref by prefs.clipboard.calendarSections.collectAsState()
+    val categoryBadgesPref by prefs.clipboard.categoryBadges.collectAsState()
     val editorLimit = editorLimitPref.effectiveLimit()
     var resultsPanelShown by remember { mutableStateOf(autoResultsPref) }
 
@@ -341,6 +355,9 @@ fun ClipboardInputLayout(
                 ?: Color.White
         }
         val category = remember(card.item.text) { ClipItemCategoryDetector.detect(card.item.text) }
+        // DRS v1.14.0: the category badges are a setting — with them off,
+        // the card loses its badge and its "important" border weight.
+        val badgeCategory = if (categoryBadgesPref) category else ClipItemCategory.TEXT
         val annotated = buildAnnotatedString {
             if (card.truncatedBefore) append("…")
             append(card.before)
@@ -355,7 +372,7 @@ fun ClipboardInputLayout(
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 3.dp)
                 .background(color.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
-                .border(1.5.dp, if (category != ClipItemCategory.TEXT) color else color.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                .border(1.5.dp, if (badgeCategory != ClipItemCategory.TEXT) color else color.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ripple(),
@@ -365,7 +382,7 @@ fun ClipboardInputLayout(
                 .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            val badge = categoryBadgeIcon(category)
+            val badge = categoryBadgeIcon(badgeCategory)
             if (badge != null) {
                 Icon(
                     imageVector = badge,
@@ -660,7 +677,8 @@ fun ClipboardInputLayout(
             // DRS v1.12.0: the smart category badge of text tiles — a link,
             // an email, a phone number, or a code snippet is flagged on
             // sight (plain text stays unbadged to avoid noise).
-            if (item.type == ItemType.TEXT) {
+            // DRS v1.14.0: the badges themselves are a setting now.
+            if (item.type == ItemType.TEXT && categoryBadgesPref) {
                 val category = remember(item.text) { ClipItemCategoryDetector.detect(item.text) }
                 if (category != ClipItemCategory.TEXT) {
                     Icon(
@@ -898,23 +916,38 @@ fun ClipboardInputLayout(
                         // today, yesterday, this week, this month, older)
                         // replace the old pinned/recent/other split — the
                         // comprehensive reorganization of the panel.
-                        val sectionGroups = remember(filteredHistory.all) {
-                            ClipHistorySections.group(
-                                filteredHistory.all,
-                                System.currentTimeMillis(),
-                                ZoneId.systemDefault(),
-                            )
+                        // DRS v1.14.0: the calendar sections themselves are
+                        // a setting — with them off the panel falls back to
+                        // one honest flat grid of the same sorted items.
+                        val sectionGroups = remember(filteredHistory.all, calendarSectionsPref) {
+                            if (calendarSectionsPref) {
+                                ClipHistorySections.group(
+                                    filteredHistory.all,
+                                    System.currentTimeMillis(),
+                                    ZoneId.systemDefault(),
+                                )
+                            } else {
+                                emptyList()
+                            }
                         }
                         LazyVerticalStaggeredGrid(
                             modifier = Modifier.fillMaxSize(),
                             state = gridState,
                             columns = staggeredGridCells,
                         ) {
-                            for (group in sectionGroups) {
+                            if (calendarSectionsPref) {
+                                for (group in sectionGroups) {
+                                    clipboardItems(
+                                        items = group.items,
+                                        key = "section-${group.section.name.lowercase()}",
+                                        title = sectionTitleRes(group.section),
+                                    )
+                                }
+                            } else {
                                 clipboardItems(
-                                    items = group.items,
-                                    key = "section-${group.section.name.lowercase()}",
-                                    title = sectionTitleRes(group.section),
+                                    items = filteredHistory.all,
+                                    key = "section-flat",
+                                    title = R.string.clipboard__group_flat,
                                 )
                             }
                         }
@@ -1006,16 +1039,29 @@ fun ClipboardInputLayout(
                                     // screen (outside the panel). The in-panel
                                     // editor stays as the honest fallback when
                                     // the launch is blocked by the system.
-                                    if (ClipEditorPopupLauncher.launch(context, target) ==
+                                    // DRS v1.14.0: the user's chosen edit
+                                    // surface from the comprehensive settings
+                                    // joins the routing — the in-panel choice
+                                    // skips the popup window entirely.
+                                    val preferred = ClipEditorPopupPolicy.routeFor(
+                                        target.type, target.text, editRoutePref,
+                                    )
+                                    val route = if (preferred == ClipEditorRoute.IN_PANEL) {
                                         ClipEditorRoute.IN_PANEL
-                                    ) {
+                                    } else {
+                                        ClipEditorPopupLauncher.launch(context, target)
+                                    }
+                                    if (route == ClipEditorRoute.IN_PANEL) {
                                         editingItem = target
                                         editingText = target.text.orEmpty()
                                         editorHistory.clear()
                                         // DRS v1.12.0: the editor honors the app
                                         // settings defaults, and detected code
                                         // switches to the monospace family once.
-                                        editorFont = if (codeDetectionPref &&
+                                        // DRS v1.14.0: the auto switch is its
+                                        // own setting.
+                                        editorFont = if (codeAutoMonospacePref &&
+                                            codeDetectionPref &&
                                             ClipCodeDetector.analyze(target.text.orEmpty()).isCode
                                         ) {
                                             ClipFontOption.MONOSPACE
@@ -1228,11 +1274,16 @@ fun ClipboardInputLayout(
         var editorViewportPx by remember { mutableStateOf(0) }
 
         fun jumpToMatchLine(offset: Int) {
+            // DRS v1.14.0: the jump itself is a setting — when the user
+            // turns the direct line jump off, tapping a card (or the
+            // arrows) only activates the match without scrolling.
+            if (!jumpToLinePref) return
             val target = ClipResultJump.scrollOffsetFor(
                 layout = editorLayout?.let(::ClipTextLineLayout),
                 offset = offset,
                 viewportPx = editorViewportPx,
                 maxScrollPx = editorScrollState.maxValue,
+                centerRow = jumpCenterPref,
             )
             if (target != null) {
                 jumpScope.launch { editorScrollState.animateScrollTo(target) }
@@ -1318,7 +1369,7 @@ fun ClipboardInputLayout(
                     null
                 }
             }
-            if (codeAnalysis?.isCode == true) {
+            if (codeBadgePref && codeAnalysis?.isCode == true) {
                 SnyggText(
                     elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
                     modifier = Modifier.fillMaxWidth(),
@@ -1331,7 +1382,8 @@ fun ClipboardInputLayout(
                 )
             }
             // DRS v1.12.0: the slowdown warning for huge texts.
-            if (editingText.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
+            // DRS v1.14.0: the warning itself is a setting now.
+            if (largeTextWarningPref && editingText.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
                 SnyggText(
                     elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
                     modifier = Modifier.fillMaxWidth(),
@@ -1531,8 +1583,9 @@ fun ClipboardInputLayout(
                     }
                     // Keep the active card in sight — from the arrows,
                     // from a card tap, and after edits.
+                    // DRS v1.14.0: the tracking itself is a setting.
                     LaunchedEffect(activeIndex, resultCards) {
-                        if (activeIndex >= 0 && resultCards.isNotEmpty()) {
+                        if (followCardsPref && activeIndex >= 0 && resultCards.isNotEmpty()) {
                             cardsListState.animateScrollToItem(
                                 activeIndex.coerceAtMost(resultCards.size - 1),
                             )

@@ -22,6 +22,9 @@ import com.drs.smartkeyboard.app.settings.theme.DisplayKbdAfterDialogs
 import com.drs.smartkeyboard.app.settings.theme.SnyggLevel
 import com.drs.smartkeyboard.app.drsupdater.UpdateCheckMode
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupSize
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorScrim
 import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
 import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
@@ -879,6 +882,56 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             entry(
                 key = ClipFontSizeOption.EXTRA_LARGE,
                 label = ClipFontSizeOption.EXTRA_LARGE.spValue.toString(),
+            )
+        }
+    },
+    // DRS v1.14.0 — the comprehensive settings list: the popup edit
+    // window surface, size, and dimming enums join the registry.
+    ClipEditorRoute::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipEditorRoute.POPUP_WINDOW,
+                label = stringRes(R.string.enum__clip_edit_route__popup),
+            )
+            entry(
+                key = ClipEditorRoute.IN_PANEL,
+                label = stringRes(R.string.enum__clip_edit_route__panel),
+            )
+        }
+    },
+    ClipEditorPopupSize::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipEditorPopupSize.COMPACT,
+                label = stringRes(R.string.enum__clip_popup_size__compact),
+            )
+            entry(
+                key = ClipEditorPopupSize.NORMAL,
+                label = stringRes(R.string.enum__clip_popup_size__normal),
+            )
+            entry(
+                key = ClipEditorPopupSize.NEARLY_FULL,
+                label = stringRes(R.string.enum__clip_popup_size__nearly_full),
+            )
+        }
+    },
+    ClipEditorScrim::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipEditorScrim.NONE,
+                label = stringRes(R.string.enum__clip_popup_scrim__none),
+            )
+            entry(
+                key = ClipEditorScrim.LIGHT,
+                label = stringRes(R.string.enum__clip_popup_scrim__light),
+            )
+            entry(
+                key = ClipEditorScrim.NORMAL,
+                label = stringRes(R.string.enum__clip_popup_scrim__normal),
+            )
+            entry(
+                key = ClipEditorScrim.STRONG,
+                label = stringRes(R.string.enum__clip_popup_scrim__strong),
             )
         }
     },
