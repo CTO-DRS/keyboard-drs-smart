@@ -159,3 +159,76 @@ data class ClipHighlightRange(
         require(start >= 0 && end >= start) { "invalid highlight range [$start, $end)" }
     }
 }
+
+/**
+ * DRS v1.13.0 — a minimal read-only view of the editor's laid-out text:
+ * the visual rows (wrapping included) the direct line jump positions
+ * itself by. The UI adapts the real TextLayoutResult into this; the JVM
+ * tests pin the jump math against tiny fakes. Offsets are characters,
+ * rows are 0-based visual lines, and every edge value is in pixels.
+ */
+interface ClipLineLayout {
+
+    /** The length of the laid-out text. */
+    val textLength: Int
+
+    /** The number of visual rows (wrapped lines included). */
+    val rowCount: Int
+
+    /** The visual row of [offset] (0-based). */
+    fun rowForOffset(offset: Int): Int
+
+    /** The top edge (px) of [row], relative to the text top. */
+    fun rowTop(row: Int): Int
+
+    /** The bottom edge (px) of [row], relative to the text top. */
+    fun rowBottom(row: Int): Int
+}
+
+/**
+ * DRS v1.13.0 — the direct line jump the user asked for («اضغط على البطاقة
+ * فينتقل مباشرة إلى السطر»): tapping a result card — or walking the matches
+ * with the navigation arrows — scrolls the editor straight to the row that
+ * holds that match. The row is centered inside the viewport when it fits
+ * and pinned just under the top edge when it is taller than the viewport
+ * (a long wrapped line); the returned offset is always clamped to the real
+ * scroll range. Pure — the UI supplies the layout snapshot and animates to
+ * the returned offset; a null layout or an out-of-bounds offset honestly
+ * yields null (no scroll).
+ */
+object ClipResultJump {
+
+    /** The peek gap (px) kept above a pinned taller-than-viewport row. */
+    const val TOP_PEEK_PX: Int = 16
+
+    /**
+     * The scroll offset (px) that brings the row holding [offset] into
+     * view, or null when there is no layout yet or [offset] is outside
+     * the laid-out text. [viewportPx] is the visible height of the editor
+     * viewport and [maxScrollPx] the scroll range's upper bound.
+     */
+    fun scrollOffsetFor(
+        layout: ClipLineLayout?,
+        offset: Int,
+        viewportPx: Int,
+        maxScrollPx: Int,
+        topPeekPx: Int = TOP_PEEK_PX,
+    ): Int? {
+        if (layout == null) return null
+        if (offset < 0 || offset > layout.textLength) return null
+        if (layout.rowCount <= 0) return null
+        val row = layout.rowForOffset(offset).coerceIn(0, layout.rowCount - 1)
+        val top = layout.rowTop(row)
+        val bottom = layout.rowBottom(row)
+        val rowHeight = bottom - top
+        val target = if (viewportPx <= 0 || rowHeight >= viewportPx) {
+            // No viewport knowledge yet, or a wrapped giant row: pin the
+            // row head just under the top edge.
+            top - topPeekPx
+        } else {
+            // Center the row inside the viewport.
+            top - (viewportPx - rowHeight) / 2
+        }
+        return target.coerceIn(0, maxScrollPx.coerceAtLeast(0))
+    }
+}

@@ -38,6 +38,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -66,7 +68,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -177,6 +181,20 @@ data class PendingClipEdit(
     val text: String,
     val openedAtMs: Long,
 )
+
+/**
+ * DRS v1.13.0: adapts the editor's real TextLayoutResult to the pure
+ * ClipLineLayout — the wrapped visual rows the direct line jump reads.
+ * The transformation is identity, so the field offsets and the layout
+ * offsets agree one to one.
+ */
+internal class ClipTextLineLayout(private val layout: TextLayoutResult) : ClipLineLayout {
+    override val textLength: Int get() = layout.layoutInput.text.length
+    override val rowCount: Int get() = layout.lineCount
+    override fun rowForOffset(offset: Int): Int = layout.getLineForOffset(offset)
+    override fun rowTop(row: Int): Int = layout.getLineTop(row).toInt()
+    override fun rowBottom(row: Int): Int = layout.getLineBottom(row).toInt()
+}
 
 /**
  * DRS v1.11.0: the process-wide handoff slot for the popup editor. The IME
@@ -290,6 +308,27 @@ class ClipEditorPopupActivity : ComponentActivity() {
         var resultsShown by remember { mutableStateOf(prefs.clipboard.autoResultsPanel.get()) }
         var showSaveAsFile by remember { mutableStateOf(false) }
         var saveName by remember { mutableStateOf("") }
+
+        // DRS v1.13.0: the direct line jump — the editor viewport's scroll
+        // state, its laid-out snapshot, its visible height, and the result
+        // cards' list state. Tapping a card (or the navigation arrows)
+        // animates the field straight to the match's row.
+        val textScrollState = rememberScrollState()
+        val cardsListState = rememberLazyListState()
+        var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+        var editorViewportPx by remember { mutableStateOf(0) }
+
+        fun jumpToMatchLine(offset: Int) {
+            val target = ClipResultJump.scrollOffsetFor(
+                layout = editorLayout?.let(::ClipTextLineLayout),
+                offset = offset,
+                viewportPx = editorViewportPx,
+                maxScrollPx = textScrollState.maxValue,
+            )
+            if (target != null) {
+                scope.launch { textScrollState.animateScrollTo(target) }
+            }
+        }
 
         // DRS v1.12.0: detected code switches to the monospace family
         // once, at open time, when detection is enabled.
@@ -487,12 +526,16 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             )
                             PopupIconButton(icon = Icons.Default.KeyboardArrowUp, description = "prev") {
                                 if (matches.isNotEmpty()) {
-                                    activeMatch = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
+                                    val index = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
+                                    activeMatch = index
+                                    jumpToMatchLine(matches[index].start)
                                 }
                             }
                             PopupIconButton(icon = Icons.Default.KeyboardArrowDown, description = "next") {
                                 if (matches.isNotEmpty()) {
-                                    activeMatch = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
+                                    val index = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
+                                    activeMatch = index
+                                    jumpToMatchLine(matches[index].start)
                                 }
                             }
                             PopupIconButton(icon = Icons.Default.Close, description = "clear find") {
@@ -548,7 +591,9 @@ class ClipEditorPopupActivity : ComponentActivity() {
 
                     // DRS v1.12.0: the colored search-result cards — every
                     // match becomes a card with its line number and the
-                    // same-line context; tapping a card navigates to it.
+                    // same-line context; DRS v1.13.0: tapping a card jumps
+                    // the editor straight to that match's row, and the
+                    // cards list tracks the active card both ways.
                     if (cardsEnabled && matches.isNotEmpty()) {
                         val resultCards = remember(matches, text) {
                             ClipSearchResults.buildCards(text, matches)
@@ -565,17 +610,30 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             )
                         }
                         if (resultsShown) {
-                            Column(
+                            LazyColumn(
+                                state = cardsListState,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 132.dp)
-                                    .verticalScroll(rememberScrollState()),
+                                    .heightIn(max = 132.dp),
                             ) {
-                                for (card in resultCards) {
+                                items(resultCards.size) { cardIndex ->
+                                    val card = resultCards[cardIndex]
                                     PopupResultCard(
                                         card = card,
                                         active = card.matchIndex == activeIndex,
-                                        onSelect = { activeMatch = card.matchIndex },
+                                        onSelect = {
+                                            activeMatch = card.matchIndex
+                                            jumpToMatchLine(card.start)
+                                        },
+                                    )
+                                }
+                            }
+                            // Keep the active card in sight — from the
+                            // arrows, from a card tap, and after edits.
+                            LaunchedEffect(activeIndex, resultCards) {
+                                if (activeIndex >= 0 && resultCards.isNotEmpty()) {
+                                    cardsListState.animateScrollToItem(
+                                        activeIndex.coerceAtMost(resultCards.size - 1),
                                     )
                                 }
                             }
@@ -718,7 +776,8 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             .fillMaxWidth()
                             .weight(1f)
                             .padding(vertical = 6.dp)
-                            .verticalScroll(rememberScrollState()),
+                            .onSizeChanged { editorViewportPx = it.height }
+                            .verticalScroll(textScrollState),
                     ) {
                         // DRS v1.12.0: the matches glow inside the text —
                         // each match paints its palette color, the active
@@ -762,6 +821,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
                                 color = MaterialTheme.colorScheme.onSurface,
                             ),
                             visualTransformation = highlightTransformation,
+                            onTextLayout = { editorLayout = it },
                         )
                     }
 

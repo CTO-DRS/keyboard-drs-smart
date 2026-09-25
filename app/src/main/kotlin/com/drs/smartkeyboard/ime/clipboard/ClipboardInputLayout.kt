@@ -49,7 +49,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
@@ -115,9 +117,11 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -1213,6 +1217,28 @@ fun ClipboardInputLayout(
         }
         val activeIndex = if (matches.isEmpty()) -1 else activeMatch.coerceIn(0, matches.size - 1)
 
+        // DRS v1.13.0: the direct line jump — the editor viewport's scroll
+        // state, its laid-out snapshot, its visible height, and the result
+        // cards' list state. Tapping a card (or the navigation arrows)
+        // animates the field straight to the match's row.
+        val editorScrollState = rememberScrollState()
+        val cardsListState = rememberLazyListState()
+        val jumpScope = rememberCoroutineScope()
+        var editorLayout by remember { mutableStateOf<TextLayoutResult?>(null) }
+        var editorViewportPx by remember { mutableStateOf(0) }
+
+        fun jumpToMatchLine(offset: Int) {
+            val target = ClipResultJump.scrollOffsetFor(
+                layout = editorLayout?.let(::ClipTextLineLayout),
+                offset = offset,
+                viewportPx = editorViewportPx,
+                maxScrollPx = editorScrollState.maxValue,
+            )
+            if (target != null) {
+                jumpScope.launch { editorScrollState.animateScrollTo(target) }
+            }
+        }
+
         fun applyTransform(newText: String) {
             if (newText != editingText) {
                 editorHistory.push(editingText)
@@ -1368,7 +1394,9 @@ fun ClipboardInputLayout(
                         elementName = DrsImeUi.ClipboardHeaderButton.elementName,
                         onClick = {
                             if (matches.isNotEmpty()) {
-                                activeMatch = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
+                                val index = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
+                                activeMatch = index
+                                jumpToMatchLine(matches[index].start)
                             }
                         },
                     ) {
@@ -1378,7 +1406,9 @@ fun ClipboardInputLayout(
                         elementName = DrsImeUi.ClipboardHeaderButton.elementName,
                         onClick = {
                             if (matches.isNotEmpty()) {
-                                activeMatch = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
+                                val index = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
+                                activeMatch = index
+                                jumpToMatchLine(matches[index].start)
                             }
                         },
                     ) {
@@ -1456,8 +1486,10 @@ fun ClipboardInputLayout(
             }
 
             // DRS v1.12.0: the colored search-result cards — every match
-            // becomes a card with its line number and same-line context;
-            // tapping a card navigates the match counter to it.
+            // becomes a card with its line number and same-line context.
+            // DRS v1.13.0: tapping a card jumps the editor straight to
+            // that match's row, and the cards list tracks the active card
+            // both ways.
             if (findQuery.isNotEmpty() && searchResultCardsPref && matches.isNotEmpty()) {
                 val resultCards = remember(matches, editingText) {
                     ClipSearchResults.buildCards(editingText, matches)
@@ -1479,17 +1511,30 @@ fun ClipboardInputLayout(
                     )
                 }
                 if (resultsPanelShown) {
-                    Column(
+                    LazyColumn(
+                        state = cardsListState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .heightIn(max = 132.dp)
-                            .drsVerticalScroll(),
+                            .heightIn(max = 132.dp),
                     ) {
-                        for (card in resultCards) {
+                        items(resultCards.size) { cardIndex ->
+                            val card = resultCards[cardIndex]
                             EditorResultCardView(
                                 card = card,
                                 active = card.matchIndex == activeIndex,
-                                onSelect = { activeMatch = card.matchIndex },
+                                onSelect = {
+                                    activeMatch = card.matchIndex
+                                    jumpToMatchLine(card.start)
+                                },
+                            )
+                        }
+                    }
+                    // Keep the active card in sight — from the arrows,
+                    // from a card tap, and after edits.
+                    LaunchedEffect(activeIndex, resultCards) {
+                        if (activeIndex >= 0 && resultCards.isNotEmpty()) {
+                            cardsListState.animateScrollToItem(
+                                activeIndex.coerceAtMost(resultCards.size - 1),
                             )
                         }
                     }
@@ -1638,7 +1683,8 @@ fun ClipboardInputLayout(
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(horizontal = 8.dp)
-                    .drsVerticalScroll(),
+                    .onSizeChanged { editorViewportPx = it.height }
+                    .drsVerticalScroll(state = editorScrollState),
             ) {
                 // DRS v1.12.0: the matches glow inside the text itself —
                 // every match paints its palette color, the active one
@@ -1681,6 +1727,7 @@ fun ClipboardInputLayout(
                         fontSize = editorFontSize.spValue.sp,
                     ),
                     visualTransformation = highlightTransformation,
+                    onTextLayout = { editorLayout = it },
                 )
             }
 
