@@ -17,6 +17,7 @@
 package com.drs.smartkeyboard.ime.clipboard
 
 import android.content.ContentUris
+import android.content.Intent
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.media.ThumbnailUtils
@@ -54,13 +55,18 @@ import androidx.compose.foundation.lazy.staggeredgrid.rememberLazyStaggeredGridS
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Redo
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.Image
@@ -102,6 +108,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
@@ -152,7 +159,6 @@ import org.drs.lib.snygg.ui.rememberSnyggThemeQuery
 private val ItemWidth = 200.dp
 private val DialogWidth = 240.dp
 private val EditDialogWidth = 320.dp
-private val EditFieldHeight = 180.dp
 
 const val CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO: Int = 0
 
@@ -196,9 +202,34 @@ fun ClipboardInputLayout(
     var editingText by remember { mutableStateOf("") }
     var savingItem by remember { mutableStateOf<ClipboardItem?>(null) }
     var saveName by remember { mutableStateOf("") }
+    // DRS v1.10.0: the popup editor's smart state — bounded undo/redo,
+    // font customization, and the find/replace engine.
+    val editorHistory = remember { ClipEditorHistory() }
+    var editorFont by remember { mutableStateOf(ClipFontOption.DEFAULT) }
+    var editorFontSize by remember { mutableStateOf(ClipFontSizeOption.NORMAL) }
+    var findQuery by remember { mutableStateOf("") }
+    var replaceQuery by remember { mutableStateOf("") }
+    var matchCase by remember { mutableStateOf(false) }
+    var activeMatch by remember { mutableStateOf(0) }
 
     fun isPopupSurfaceActive() = popupItem != null || showClearAllHistory ||
         editingItem != null || savingItem != null
+
+    // DRS v1.10.0: shares any text through the system share sheet. The
+    // chooser activity needs FLAG_ACTIVITY_NEW_TASK because the IME
+    // service context is not an activity context.
+    fun shareText(text: String) {
+        val send = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        runCatching {
+            context.startActivity(
+                Intent.createChooser(send, context.getString(R.string.clip__share_item))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
+    }
 
     LaunchedEffect(isFilterRowShown) {
         delay(AnimationDuration.toLong())
@@ -664,12 +695,29 @@ fun ClipboardInputLayout(
                                 popupItem = null
                             }
                             if (popupItem!!.type == ItemType.TEXT) {
+                                // DRS v1.10.0: share straight from the item
+                                // ladder through the system share sheet.
+                                PopupAction(
+                                    icon = Icons.Default.Share,
+                                    text = stringRes(R.string.clip__share_item),
+                                ) {
+                                    shareText(popupItem!!.text.orEmpty())
+                                    popupItem = null
+                                }
                                 PopupAction(
                                     icon = Icons.Default.Edit,
                                     text = stringRes(R.string.clip__edit_item),
                                 ) {
                                     editingItem = popupItem!!
                                     editingText = popupItem!!.text.orEmpty()
+                                    // DRS v1.10.0: a fresh editor session.
+                                    editorHistory.clear()
+                                    editorFont = ClipFontOption.DEFAULT
+                                    editorFontSize = ClipFontSizeOption.NORMAL
+                                    findQuery = ""
+                                    replaceQuery = ""
+                                    matchCase = false
+                                    activeMatch = 0
                                     popupItem = null
                                 }
                                 PopupAction(
@@ -695,86 +743,9 @@ fun ClipboardInputLayout(
                 }
             }
 
-            // DRS v1.9.0: the in-panel text editor — live counts, the 50k
-            // storage policy applied on every change, save through
-            // ClipboardManager.editClipText (history + primary clip sync).
-            if (editingItem != null) {
-                SnyggRow(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTapGestures { editingItem = null }
-                        },
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceAround,
-                ) {
-                    SnyggColumn(
-                        elementName = DrsImeUi.ClipboardClearAllDialog.elementName,
-                        modifier = Modifier
-                            .width(EditDialogWidth)
-                            .pointerInput(Unit) {
-                                detectTapGestures { /* Do nothing */ }
-                            },
-                    ) {
-                        SnyggText(
-                            elementName = DrsImeUi.ClipboardHeaderText.elementName,
-                            text = stringRes(R.string.clip__edit_title),
-                        )
-                        val stats = ClipTextStats.of(editingText)
-                        SnyggText(
-                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
-                            text = stringRes(
-                                R.string.clip__stats_label,
-                                "chars" to stats.chars,
-                                "words" to stats.words,
-                                "lines" to stats.lines,
-                            ),
-                        )
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = EditFieldHeight)
-                                .drsVerticalScroll(),
-                        ) {
-                            BasicTextField(
-                                value = editingText,
-                                onValueChange = { editingText = ClipboardTextPolicy.truncateForStorage(it) },
-                                modifier = Modifier.fillMaxWidth(),
-                                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
-                            )
-                        }
-                        SnyggText(
-                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
-                            text = stringRes(
-                                R.string.clip__char_limit_counter,
-                                "used" to editingText.length,
-                                "max" to ClipboardTextPolicy.MAX_TEXT_CHARS,
-                            ),
-                        )
-                        SnyggRow(DrsImeUi.ClipboardClearAllDialogButtons.elementName) {
-                            Spacer(modifier = Modifier.weight(1f))
-                            SnyggButton(
-                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
-                                attributes = mapOf("action" to "no"),
-                                onClick = { editingItem = null },
-                            ) {
-                                SnyggText(text = stringRes(R.string.action__cancel))
-                            }
-                            SnyggButton(
-                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
-                                attributes = mapOf("action" to "yes"),
-                                onClick = {
-                                    val item = editingItem!!
-                                    editingItem = null
-                                    clipboardManager.editClipText(item, editingText)
-                                },
-                            ) {
-                                SnyggText(text = stringRes(R.string.action__save))
-                            }
-                        }
-                    }
-                }
-            }
+            // DRS v1.10.0: the small v1.9.0 edit dialog was promoted to the
+            // full-panel popup smart editor (ClipEditorScreen) that takes
+            // over the whole clipboard surface — see the root composition.
 
             // DRS v1.9.0: save-as-file with a user-named file — the name is
             // normalized by ClipFileNamer and written by ClipFileSaver
@@ -924,6 +895,417 @@ fun ClipboardInputLayout(
         }
     }
 
+    // DRS v1.10.0: the popup smart editor — a full-panel takeover replacing
+    // the small v1.9.0 dialog. Find/replace with match navigation and case
+    // control, sixteen smart transform/extract chips, font family and size
+    // customization, live statistics, bounded undo/redo, share, and
+    // save-as-file — all on top of the same engine-owned pure core.
+    @Composable
+    fun ClipEditorScreen() {
+        val matches = remember(editingText, findQuery, matchCase) {
+            ClipSearchEngine.findMatches(editingText, findQuery, ignoreCase = !matchCase)
+        }
+        val activeIndex = if (matches.isEmpty()) -1 else activeMatch.coerceIn(0, matches.size - 1)
+
+        fun applyTransform(newText: String) {
+            if (newText != editingText) {
+                editorHistory.push(editingText)
+                editingText = ClipboardTextPolicy.truncateForStorage(newText)
+            }
+        }
+
+        SnyggColumn(
+            elementName = DrsImeUi.ClipboardContent.elementName,
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            // Header: back, title, share, save-as-file.
+            SnyggRow(
+                elementName = DrsImeUi.ClipboardHeader.elementName,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(DrsImeSizing.smartbarHeight),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                val headerButton = Modifier
+                    .sizeIn(maxHeight = DrsImeSizing.smartbarHeight)
+                    .aspectRatio(1f)
+                SnyggIconButton(
+                    elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                    onClick = { editingItem = null },
+                    modifier = headerButton,
+                ) {
+                    SnyggIcon(imageVector = Icons.AutoMirrored.Filled.ArrowBack)
+                }
+                SnyggText(
+                    elementName = DrsImeUi.ClipboardHeaderText.elementName,
+                    modifier = Modifier.weight(1f),
+                    text = stringRes(R.string.clip__editor_title),
+                )
+                SnyggIconButton(
+                    elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                    onClick = { shareText(editingText) },
+                    modifier = headerButton,
+                ) {
+                    SnyggIcon(imageVector = Icons.Default.Share)
+                }
+                SnyggIconButton(
+                    elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                    onClick = {
+                        savingItem = editingItem
+                        saveName = ClipFileNamer.defaultFileName(
+                            System.currentTimeMillis(), ZoneId.systemDefault(),
+                        )
+                        editingItem = null
+                    },
+                    modifier = headerButton,
+                ) {
+                    SnyggIcon(imageVector = Icons.Default.SaveAlt)
+                }
+            }
+
+            // Live statistics.
+            val stats = ClipTextStats.of(editingText)
+            SnyggText(
+                elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                modifier = Modifier.fillMaxWidth(),
+                text = stringRes(
+                    R.string.clip__stats_label,
+                    "chars" to stats.chars,
+                    "words" to stats.words,
+                    "lines" to stats.lines,
+                ),
+            )
+
+            // Find row: query, case toggle, match counter, navigation.
+            SnyggRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                BasicTextField(
+                    value = findQuery,
+                    onValueChange = {
+                        findQuery = it
+                        activeMatch = 0
+                    },
+                    modifier = Modifier.weight(1f),
+                    singleLine = true,
+                    textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                    decorationBox = { innerTextField ->
+                        Box {
+                            if (findQuery.isEmpty()) {
+                                Text(
+                                    text = stringRes(R.string.clip__editor_find_hint),
+                                    color = LocalTextStyle.current.color.copy(alpha = 0.6f),
+                                    fontSize = 14.sp,
+                                )
+                            }
+                            innerTextField()
+                        }
+                    },
+                )
+                SnyggChip(
+                    elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                    attributes = mapOf("state" to if (matchCase) "active" else "inactive"),
+                    onClick = {
+                        matchCase = !matchCase
+                        activeMatch = 0
+                    },
+                    text = stringRes(R.string.clip__editor_match_case),
+                )
+                if (findQuery.isNotEmpty()) {
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                        text = if (matches.isEmpty()) {
+                            stringRes(R.string.clip__editor_no_matches)
+                        } else {
+                            stringRes(
+                                R.string.clip__editor_matches_counter,
+                                "active" to (activeIndex + 1),
+                                "count" to matches.size,
+                            )
+                        },
+                    )
+                    SnyggIconButton(
+                        elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                        onClick = {
+                            if (matches.isNotEmpty()) {
+                                activeMatch = ClipSearchEngine.prevMatchIndex(matches.size, activeIndex)
+                            }
+                        },
+                    ) {
+                        SnyggIcon(imageVector = Icons.Default.KeyboardArrowUp)
+                    }
+                    SnyggIconButton(
+                        elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                        onClick = {
+                            if (matches.isNotEmpty()) {
+                                activeMatch = ClipSearchEngine.nextMatchIndex(matches.size, activeIndex)
+                            }
+                        },
+                    ) {
+                        SnyggIcon(imageVector = Icons.Default.KeyboardArrowDown)
+                    }
+                    SnyggIconButton(
+                        elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                        onClick = {
+                            findQuery = ""
+                            replaceQuery = ""
+                            activeMatch = 0
+                        },
+                    ) {
+                        SnyggIcon(imageVector = Icons.Default.Close)
+                    }
+                }
+            }
+
+            // Replace row: appears only while a find query is active.
+            if (findQuery.isNotEmpty()) {
+                SnyggRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    BasicTextField(
+                        value = replaceQuery,
+                        onValueChange = { replaceQuery = it },
+                        modifier = Modifier.weight(1f),
+                        singleLine = true,
+                        textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (replaceQuery.isEmpty()) {
+                                    Text(
+                                        text = stringRes(R.string.clip__editor_replace_hint),
+                                        color = LocalTextStyle.current.color.copy(alpha = 0.6f),
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                                innerTextField()
+                            }
+                        },
+                    )
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        onClick = {
+                            if (activeIndex in matches.indices) {
+                                applyTransform(
+                                    ClipSearchEngine.replaceOne(
+                                        editingText, matches[activeIndex], replaceQuery,
+                                    ),
+                                )
+                            }
+                        },
+                        text = stringRes(R.string.clip__editor_replace_one),
+                    )
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        onClick = {
+                            if (matches.isNotEmpty()) {
+                                val (newText, count) = ClipSearchEngine.replaceAll(
+                                    editingText, findQuery, replaceQuery, ignoreCase = !matchCase,
+                                )
+                                applyTransform(newText)
+                                context.showShortToastSync(
+                                    R.string.clip__editor_replace_done, "count" to count,
+                                )
+                            }
+                        },
+                        text = stringRes(R.string.clip__editor_replace_all),
+                    )
+                }
+            }
+
+            // Smart algorithms row: the case family (language-neutral
+            // labels), the whitespace/line surgeries, the Arabic-aware
+            // normalization, and the smart extractors.
+            SnyggRow(
+                elementName = DrsImeUi.ClipboardFilterRow.elementName,
+                modifier = Modifier.fillMaxWidth(),
+                clickAndSemanticsModifier = Modifier.drsHorizontalScroll(),
+            ) {
+                @Composable
+                fun EditorChip(text: String, onClick: () -> Unit) {
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        onClick = onClick,
+                        text = text,
+                    )
+                }
+
+                EditorChip("AA") { applyTransform(ClipTextTransforms.toUpper(editingText)) }
+                EditorChip("aa") { applyTransform(ClipTextTransforms.toLower(editingText)) }
+                EditorChip("Aa") { applyTransform(ClipTextTransforms.toTitleCase(editingText)) }
+                EditorChip("aA") { applyTransform(ClipTextTransforms.invertCase(editingText)) }
+                EditorChip(stringRes(R.string.clip__transform_trim)) {
+                    applyTransform(ClipTextTransforms.trimLines(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_collapse)) {
+                    applyTransform(ClipTextTransforms.collapseHorizontalWhitespace(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_remove_empty)) {
+                    applyTransform(ClipTextTransforms.removeEmptyLines(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_dedupe)) {
+                    applyTransform(ClipTextTransforms.removeDuplicateLines(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_sort_asc)) {
+                    applyTransform(ClipTextTransforms.sortLinesAscending(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_sort_desc)) {
+                    applyTransform(ClipTextTransforms.sortLinesDescending(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_reverse)) {
+                    applyTransform(ClipTextTransforms.reverseLines(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_no_diacritics)) {
+                    applyTransform(ClipTextTransforms.removeArabicDiacritics(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_normalize)) {
+                    applyTransform(ClipTextTransforms.normalizeArabicLetters(editingText))
+                }
+                // The extractors replace the text with the found lines
+                // (undoable) and report the count honestly via a toast.
+                EditorChip(stringRes(R.string.clip__extract_urls)) {
+                    val found = ClipTextTransforms.extractUrls(editingText)
+                    if (found.isEmpty()) {
+                        context.showShortToastSync(R.string.clip__extract_none)
+                    } else {
+                        applyTransform(found.joinToString("\n"))
+                        context.showShortToastSync(R.string.clip__extract_done, "count" to found.size)
+                    }
+                }
+                EditorChip(stringRes(R.string.clip__extract_emails)) {
+                    val found = ClipTextTransforms.extractEmails(editingText)
+                    if (found.isEmpty()) {
+                        context.showShortToastSync(R.string.clip__extract_none)
+                    } else {
+                        applyTransform(found.joinToString("\n"))
+                        context.showShortToastSync(R.string.clip__extract_done, "count" to found.size)
+                    }
+                }
+                EditorChip(stringRes(R.string.clip__extract_phones)) {
+                    val found = ClipTextTransforms.extractPhoneNumbers(editingText)
+                    if (found.isEmpty()) {
+                        context.showShortToastSync(R.string.clip__extract_none)
+                    } else {
+                        applyTransform(found.joinToString("\n"))
+                        context.showShortToastSync(R.string.clip__extract_done, "count" to found.size)
+                    }
+                }
+            }
+
+            // Font row: five families + four size steps.
+            SnyggRow(
+                elementName = DrsImeUi.ClipboardFilterRow.elementName,
+                modifier = Modifier.fillMaxWidth(),
+                clickAndSemanticsModifier = Modifier.drsHorizontalScroll(),
+            ) {
+                for (font in ClipFontOption.entries) {
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        attributes = mapOf("state" to if (font == editorFont) "active" else "inactive"),
+                        onClick = { editorFont = font },
+                        text = stringRes(
+                            when (font) {
+                                ClipFontOption.DEFAULT -> R.string.clip__font_default
+                                ClipFontOption.SANS_SERIF -> R.string.clip__font_sans
+                                ClipFontOption.SERIF -> R.string.clip__font_serif
+                                ClipFontOption.MONOSPACE -> R.string.clip__font_mono
+                                ClipFontOption.CURSIVE -> R.string.clip__font_cursive
+                            },
+                        ),
+                    )
+                }
+                for (size in ClipFontSizeOption.entries) {
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        attributes = mapOf("state" to if (size == editorFontSize) "active" else "inactive"),
+                        onClick = { editorFontSize = size },
+                        text = size.spValue.toString(),
+                    )
+                }
+            }
+
+            // The editor field itself — takes the remaining height and
+            // scrolls under the current editor font.
+            val editorFontFamily = when (editorFont) {
+                ClipFontOption.DEFAULT -> FontFamily.Default
+                ClipFontOption.SANS_SERIF -> FontFamily.SansSerif
+                ClipFontOption.SERIF -> FontFamily.Serif
+                ClipFontOption.MONOSPACE -> FontFamily.Monospace
+                ClipFontOption.CURSIVE -> FontFamily.Cursive
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 8.dp)
+                    .drsVerticalScroll(),
+            ) {
+                BasicTextField(
+                    value = editingText,
+                    onValueChange = { editingText = ClipboardTextPolicy.truncateForStorage(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(
+                        fontFamily = editorFontFamily,
+                        fontSize = editorFontSize.spValue.sp,
+                    ),
+                )
+            }
+
+            // Storage-policy counter + undo/redo + cancel/save.
+            SnyggText(
+                elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                modifier = Modifier.fillMaxWidth(),
+                text = stringRes(
+                    R.string.clip__char_limit_counter,
+                    "used" to editingText.length,
+                    "max" to ClipboardTextPolicy.MAX_TEXT_CHARS,
+                ),
+            )
+            SnyggRow(DrsImeUi.ClipboardClearAllDialogButtons.elementName) {
+                SnyggIconButton(
+                    elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                    onClick = { editorHistory.undo(editingText)?.let { editingText = it } },
+                    enabled = editorHistory.canUndo,
+                ) {
+                    SnyggIcon(imageVector = Icons.AutoMirrored.Filled.Undo)
+                }
+                SnyggIconButton(
+                    elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                    onClick = { editorHistory.redo(editingText)?.let { editingText = it } },
+                    enabled = editorHistory.canRedo,
+                ) {
+                    SnyggIcon(imageVector = Icons.AutoMirrored.Filled.Redo)
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                SnyggButton(
+                    elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                    attributes = mapOf("action" to "no"),
+                    onClick = { editingItem = null },
+                ) {
+                    SnyggText(text = stringRes(R.string.action__cancel))
+                }
+                SnyggButton(
+                    elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                    attributes = mapOf("action" to "yes"),
+                    onClick = {
+                        val edited = editingItem
+                        editingItem = null
+                        if (edited != null) {
+                            clipboardManager.editClipText(edited, editingText)
+                        }
+                    },
+                ) {
+                    SnyggText(text = stringRes(R.string.action__save))
+                }
+            }
+        }
+    }
+
     @Composable
     fun HistoryEmptyView() {
         SnyggColumn(DrsImeUi.ClipboardContent.elementName,
@@ -986,19 +1368,24 @@ fun ClipboardInputLayout(
             .fillMaxWidth()
             .height(DrsImeSizing.imeUiHeight()),
     ) {
-        HeaderRow()
-        SearchRow()
-        if (deviceLocked) {
-            HistoryLockedView()
+        if (editingItem != null) {
+            // DRS v1.10.0: the popup smart editor takes over the whole panel.
+            ClipEditorScreen()
         } else {
-            if (historyEnabled) {
-                if (filteredHistory.all.isNotEmpty() || !activeFilterTypes.isEmpty() || searchQuery.isNotBlank()) {
-                    HistoryMainView()
-                } else {
-                    HistoryEmptyView()
-                }
+            HeaderRow()
+            SearchRow()
+            if (deviceLocked) {
+                HistoryLockedView()
             } else {
-                HistoryDisabledView()
+                if (historyEnabled) {
+                    if (filteredHistory.all.isNotEmpty() || !activeFilterTypes.isEmpty() || searchQuery.isNotBlank()) {
+                        HistoryMainView()
+                    } else {
+                        HistoryEmptyView()
+                    }
+                } else {
+                    HistoryDisabledView()
+                }
             }
         }
     }
