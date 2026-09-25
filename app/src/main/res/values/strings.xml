@@ -13,7 +13,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">وجوه تعبيرية</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">كاوموجي</string>
     <string name="prefs__media__emoji_preferred_skin_tone">لون الرموز التعبيرية المفضل</string>
-    <string name="prefs__media__emoji_preferred_hair_style">نوع الشعر المفضل للرموز التعبيرية</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">سجل الرموز التعبيرية</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">تمكين سجل الرموز التعبيرية</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">الاحتفاظ بالرموز التعبيرية المستخدمة مؤخرًا للوصول السريع</string>
@@ -493,10 +492,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">معطل على مستوى النظام. لن تظهر أي خطوط حمراء في الحقول النصية للكلمات غير الصحيحة. انقر للتغيير.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">لم يتم تعيين خدمة المدقق الإملائي للنص المضمّن. انقر للتغيير.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">اللغات</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">استخدم الأسماء من جهات الاتصال</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">استخدم الأسماء من جهات الاتصال</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">استخدم إدخالات قاموس المستخدم</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">النظر إلى المدخلات من قاموس المستخدم</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">قاموس المستخدم</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">تفعيل قاموس مستخدم النظام</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">اقترح كلمات مخزنة في قاموس مستخدم النظام</string>
@@ -2511,4 +2506,7 @@
     <string name="settings__udm__clear_dictionary_confirm">سيُمسح كل كلمتك الشخصية المتعلمة نهائيًا من قاموس التطبيق الداخلي. لا يمكن التراجع — هل تريد المتابعة؟</string>
     <string name="settings__udm__clear_dictionary_success">تم مسح القاموس الداخلي</string>
     <string name="enum__swipe_action__show_subtype_picker">إظهار منتقي اللغات</string>
+    <string name="editor__cut_failed">تعذر قص النص المحدد: إما أن حالة التحديد غير صالحة أو حدث خطأ في اتصال الإدخال.</string>
+    <string name="editor__copy_failed">تعذر نسخ النص المحدد: إما أن حالة التحديد غير صالحة أو حدث خطأ في اتصال الإدخال.</string>
+    <string name="ime__voice_ime_not_found">تعذر العثور على لوحة مفاتيح صوتية، هل لديك واحدة مثبتة؟</string>
 </resources>

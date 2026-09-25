@@ -252,7 +252,7 @@ class DrsImeService : LifecycleInputMethodService() {
                 }
             }
         }
-        showShortToastSync("Failed to find voice IME, do you have one installed?")
+        showShortToastSync(R.string.ime__voice_ime_not_found)
         return false
     }
 

@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emotikony</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Preferovaná barva pokožky emotikonů</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Preferovaný styl vlasů emotikonů</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Historie emotikonů</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Zapnout historii emotikonů</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Uchovávat nedávno použité emotikony pro rychlý přístup</string>
@@ -459,10 +458,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Systémově zakázáno. V textových polích se nebudou objevovat červené pruhy u nesprávných slov. Klepněte pro změnu.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Není nastavena žádná služba kontroly pravopisu v textu. Klepnutím na tlačítko to změníte.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Jazyky</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Používat jména z kontaktů</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Hledat jména z vašeho seznamu kontaktů</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Použít slova z vlastního slovníku</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Hledat položky z uživatelských slovníků</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Uživatelské slovníky</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Použít vlastní systémový slovník</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Nabízet slova uložená ve vlastním systémovém slovníku</string>

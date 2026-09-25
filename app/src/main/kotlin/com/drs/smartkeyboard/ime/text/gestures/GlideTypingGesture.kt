@@ -40,10 +40,35 @@ class GlideTypingGesture {
         private val listeners: ArrayList<Listener> = arrayListOf()
         private var pointerId: Int = -1
 
+        /** DRS v1.20.0: sliding (position, eventTime) window used for the gesture decision. */
+        private val recentWindow = ArrayDeque<Pair<Position, Long>>()
+
         companion object {
-            private const val MAX_DETECT_TIME = 500
-            private const val VELOCITY_THRESHOLD = 0.10 // dp per ms
-            private val SWIPE_GESTURE_KEYS = arrayOf(KeyCode.DELETE, KeyCode.SHIFT, KeyCode.SPACE, KeyCode.CJK_SPACE)
+            // DRS v1.20.0: this is no longer a hard deadline that permanently latches the
+            // touch as "not a gesture". It is a SLIDING window: velocity is measured over
+            // the most recent ~500ms of movement, so a slow start (press, dwell, then
+            // glide) still becomes a glide once the finger actually moves — the way
+            // world-class keyboards behave. A user who dwells for 2 seconds is no longer
+            // locked out of glide typing for that whole touch.
+            private const val RECENT_WINDOW_MS = 500
+            internal const val VELOCITY_THRESHOLD = 0.10 // dp per ms
+            internal val SWIPE_GESTURE_KEYS = arrayOf(KeyCode.DELETE, KeyCode.SHIFT, KeyCode.SPACE, KeyCode.CJK_SPACE)
+
+            /**
+             * DRS v1.20.0: pure gesture-start decision, extracted for JVM testing.
+             * [distDp] is the distance travelled within the sliding window, [windowMs]
+             * the window duration, [keySizeDp] the minimum travel expected of a real
+             * glide and [initialKeyCode] the key the touch stream started on (swipe
+             * gesture keys — delete/shift/space — are excluded from glide).
+             */
+            internal fun shouldStartGesture(
+                distDp: Float,
+                windowMs: Long,
+                keySizeDp: Float,
+                initialKeyCode: Int?,
+            ): Boolean = distDp > keySizeDp &&
+                (distDp / windowMs.coerceAtLeast(1L)) > VELOCITY_THRESHOLD &&
+                initialKeyCode !in SWIPE_GESTURE_KEYS
         }
 
         /**
@@ -71,24 +96,41 @@ class GlideTypingGesture {
                     return false
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    if (pointerId != event.getPointerId(event.actionIndex)) {
-                        // not our pointer.
+                    // DRS v1.20.0: the old guard compared our pointer id against
+                    // event.getPointerId(event.actionIndex) — but for ACTION_MOVE the
+                    // actionIndex is always 0, so a glide tracked on any non-zero pointer
+                    // was silently ignored. The correct guard is: does our pointer still
+                    // exist in this event?
+                    val pointerIndex = event.findPointerIndex(pointerId)
+                    if (pointerIndex < 0) {
+                        // not our pointer (or it already lifted).
                         return false
                     }
 
-                    val pointerIndex = event.findPointerIndex(pointerId)
                     for (i in 0..event.historySize) {
+                        // Historical batch timestamps are shared across pointers, so the
+                        // flat index variant of getHistoricalEventTime is the correct one.
+                        val sampleTime = when (i) {
+                            event.historySize -> event.eventTime
+                            else -> event.getHistoricalEventTime(i)
+                        }
                         val pos = when (i) {
                             event.historySize -> Position(event.getX(pointerIndex), event.getY(pointerIndex))
                             else -> Position(event.getHistoricalX(pointerIndex, i), event.getHistoricalY(pointerIndex, i))
                         }
                         pointerData.positions.add(pos)
+                        recentWindow.addLast(pos to sampleTime)
+                        while (recentWindow.isNotEmpty() && sampleTime - recentWindow.first().second > RECENT_WINDOW_MS) {
+                            recentWindow.removeFirst()
+                        }
                         if (pointerData.isActuallyGesture == null) {
-                            // evaluate whether is actually a gesture
-                            val dist = ViewUtils.px2dp(pointerData.positions[0].dist(pos))
-                            val time = (System.currentTimeMillis() - pointerData.startTime) + 1
+                            // evaluate whether is actually a gesture — over the SLIDING
+                            // window, not since the touch began
+                            val (anchorPos, anchorTime) = recentWindow.first()
+                            val dist = ViewUtils.px2dp(anchorPos.dist(pos))
+                            val time = (sampleTime - anchorTime) + 1
                             flogDebug { "Distance glided: $dist dp with velocity: ${dist / time} dp/ms" }
-                            if (dist > keySize && (dist / time) > VELOCITY_THRESHOLD && (initialKey?.computedData?.code !in SWIPE_GESTURE_KEYS)) {
+                            if (shouldStartGesture(dist, time.toLong(), keySize, initialKey?.computedData?.code)) {
                                 pointerData.isActuallyGesture = true
                                 // Let listener know all those points need to be added.
                                 pointerData.positions.take(pointerData.positions.size - 1).forEach { point ->
@@ -96,10 +138,10 @@ class GlideTypingGesture {
                                         it.onGlideAddPoint(point)
                                     }
                                 }
-                            } else if (time > MAX_DETECT_TIME) {
-                                pointerData.isActuallyGesture = false
                             }
-
+                            // DRS v1.20.0: the permanent `isActuallyGesture = false` latch
+                            // after 500 ms is gone — with the sliding window the decision
+                            // simply re-evaluates on every new sample, so slow starts recover.
                         }
 
                         if (pointerData.isActuallyGesture == true) {
@@ -146,6 +188,7 @@ class GlideTypingGesture {
                 startTime = 0
                 isActuallyGesture = null
             }
+            recentWindow.clear()
             pointerId = -1
         }
 

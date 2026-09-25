@@ -103,7 +103,11 @@ interface UserDictionaryDao {
     @Query(SELECT_ALL_FROM_WORDS)
     fun queryAll(): List<UserDictionaryEntry>
 
-    @Query("$SELECT_ALL_FROM_WORDS WHERE (${UserDictionary.Words.LOCALE} = :locale AND :locale IS NOT NULL) OR (${UserDictionary.Words.LOCALE} IS NULL AND :locale IS NULL)")
+    // DRS v1.20.0: entries stored WITHOUT a locale are global ("all languages") words.
+    // The old query returned them only when asking for null, so a word learned while a
+    // different locale was active (or imported as "all") never surfaced in suggestions
+    // for any specific language — the documented contract said the opposite.
+    @Query("$SELECT_ALL_FROM_WORDS WHERE (${UserDictionary.Words.LOCALE} = :locale AND :locale IS NOT NULL) OR ${UserDictionary.Words.LOCALE} IS NULL")
     fun queryAll(locale: DrsLocale?): List<UserDictionaryEntry>
 
     @Query("$SELECT_ALL_FROM_WORDS WHERE ${UserDictionary.Words.WORD} = :word")
@@ -323,9 +327,13 @@ class SystemUserDictionaryDatabase(context: Context) : UserDictionaryDatabase {
                     sortOrder = SORT_BY_FREQ_DESC,
                 )
             } else {
+                // DRS v1.20.0: mirror queryExactFuzzyLocale's semantics — match the full
+                // tag, the bare language, AND global (null-locale) entries, so system
+                // words stored for "en" serve an "en_US" subtype and null-locale words
+                // serve every language.
                 queryResolver(
-                    selection = "${UserDictionary.Words.LOCALE} = ?",
-                    selectionArgs = arrayOf(locale.localeTag()),
+                    selection = "${UserDictionary.Words.LOCALE} = ? OR ${UserDictionary.Words.LOCALE} = ? OR ${UserDictionary.Words.LOCALE} IS NULL",
+                    selectionArgs = arrayOf(locale.localeTag(), locale.language),
                     sortOrder = SORT_BY_FREQ_DESC,
                 )
             }

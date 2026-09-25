@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emotikon</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Foretrukket emoji-hudfarge</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Foretrukket emoji-sveis</string>
     <!-- Emoji strings -->
     <string name="emoji__category__smileys_emotion" comment="Emoji category name">Smilefjes &amp; Emotikon</string>
     <string name="emoji__category__people_body" comment="Emoji category name">Folk &amp; Kropp</string>
@@ -234,7 +233,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Deaktivert på systembasis. Ingen røde linjer vil vises i tekstfelt for feil ord. Klikk for å endre.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Ingen linjebundet stavekontrolltjeneste angitt. Klikk for å endre.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Språk</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Bruk brukerordlisteoppføringer</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Brukerordlister</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Aktiver system-brukerordliste</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Anbefal ord lagret i system-brukerordlisten</string>

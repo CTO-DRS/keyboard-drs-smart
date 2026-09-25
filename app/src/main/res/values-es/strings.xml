@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emoticonos</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Tono de piel preferido de los emojis</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Estilo del pelo preferido para los emojis</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Historial de emojis</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Habilitar historial de emojis</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Mantener emojis usados recientemente para un acceso rápido</string>
@@ -449,10 +448,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Deshabilitado a nivel sistema. No se mostrarán líneas rojas en campos de texto con palabras incorrectas. Toque para cambiar.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">No se ha establecido ningún servicio de corrección ortográfica inline. Toque para cambiar.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Idiomas</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Usar nombres de contactos</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Usar nombres desde su lista de contactos</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Utilizar entradas del diccionario de usuario</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Usar entradas desde los diccionarios del usuario</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Diccionarios del usuario</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Habilitar diccionario personal del sistema</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Sugerir palabras almacenadas en el diccionario personal del sistema</string>

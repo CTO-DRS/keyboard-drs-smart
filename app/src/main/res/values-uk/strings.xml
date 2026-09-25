@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Смайлики</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Каомоджі</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Бажаний відтінок шкіри емоджі</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Бажана зачіска емоджі</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Історія емоджі</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Увімкнути історію емоджі</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Зберігайте нещодавно використані емоджі для швидкого доступу</string>
@@ -343,10 +342,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Вимкнено для всієї системи. У текстових полях для неправильних слів червоні лінії не з’являтимуться. Торкніться, щоб змінити.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Службу перевірки правопису не встановлено. Натисніть, щоб змінити.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Мови</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Використовувати імена контактів</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Знаходити імена з вашого списку контактів</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Використовувати користувацький словник</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Шукати записи в користувацьких словниках</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Користувацькі словники</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Увімкнути системний користувацький словник</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Запропонувати слова, що зберігаються в словнику користувача системи</string>

@@ -1050,6 +1050,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             KeyCode.VIEW_PHONE2 -> activeState.keyboardMode = KeyboardMode.PHONE2
             KeyCode.VIEW_SYMBOLS -> activeState.keyboardMode = KeyboardMode.SYMBOLS
             KeyCode.VIEW_SYMBOLS2 -> activeState.keyboardMode = KeyboardMode.SYMBOLS2
+            // DRS v1.20.0: transient placeholder tiles (the quick-actions editor paints
+            // empty slots with NOOP/DRAG_MARKER while rearranging) previously fell through
+            // to the "unknown key" error path and fired a pointless empty commit. They are
+            // layout markers, never actionable keys — swallow them silently.
+            KeyCode.NOOP,
+            KeyCode.DRAG_MARKER,
+            -> Unit
             else -> {
                 if (activeState.imeUiMode == ImeUiMode.MEDIA) {
                     nlpManager.getAutoCommitCandidate()?.let { commitCandidate(it) }

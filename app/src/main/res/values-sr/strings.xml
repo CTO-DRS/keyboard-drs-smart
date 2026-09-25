@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Емотикони</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Каомоџи</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Преферирани емоџи тен коже</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Преферирана емоџи боја косе</string>
     <!-- Emoji strings -->
     <string name="emoji__category__smileys_emotion" comment="Emoji category name">Смајлији &amp; Емоције</string>
     <string name="emoji__category__people_body" comment="Emoji category name">Људи &amp; Тело</string>

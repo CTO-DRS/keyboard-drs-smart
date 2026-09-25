@@ -76,6 +76,15 @@ class NlpManager(context: Context) {
         scope.launch { assembleCandidates() }
     }
 
+    /**
+     * DRS v1.20.0: uptime stamp of the last direct (glide preview) publish. Non-zero
+     * means a glide gesture is (or very recently was) publishing word previews through
+     * [suggestDirectly], and the candidate row must keep showing them instead of
+     * letting the clipboard chip take over mid-gesture.
+     */
+    @Volatile
+    private var directSuggestionStamp: Long = 0L
+
     private val _activeCandidatesFlow = MutableStateFlow(listOf<SuggestionCandidate>())
     val activeCandidatesFlow = _activeCandidatesFlow.asStateFlow()
     inline var activeCandidates
@@ -224,6 +233,9 @@ class NlpManager(context: Context) {
             }
             internalSuggestionsGuard.withLock {
                 if (internalSuggestions.first < reqTime) {
+                    // DRS v1.20.0: regular (typed) suggestions supersede any pending
+                    // glide preview — the gesture is over once real typing resumes.
+                    directSuggestionStamp = 0L
                     internalSuggestions = reqTime to buildList {
                         addAll(emojiSuggestions)
                         addAll(suggestions)
@@ -246,8 +258,13 @@ class NlpManager(context: Context) {
 
     fun suggestDirectly(suggestions: List<SuggestionCandidate>) {
         val reqTime = SystemClock.uptimeMillis()
+        // DRS v1.20.0: stamp the direct publish so assembleCandidates keeps the live
+        // glide word preview instead of silently swapping in the clipboard chip.
+        directSuggestionStamp = reqTime
         runBlocking {
-            internalSuggestions = reqTime to suggestions
+            internalSuggestionsGuard.withLock {
+                internalSuggestions = reqTime to suggestions
+            }
         }
     }
 
@@ -289,18 +306,26 @@ class NlpManager(context: Context) {
         runBlocking {
             val candidates = when {
                 isSuggestionOn() -> {
-                    clipboardSuggestionProvider.suggest(
+                    val clipboardCandidates = clipboardSuggestionProvider.suggest(
                         subtype = Subtype.DEFAULT,
                         content = editorInstance.activeContent,
                         maxCandidateCount = 8,
                         allowPossiblyOffensive = !prefs.suggestion.blockPossiblyOffensive.get(),
                         isPrivateSession = keyboardManager.activeState.isIncognitoMode,
-                    ).ifEmpty {
-                        buildList {
-                            internalSuggestionsGuard.withLock {
-                                addAll(internalSuggestions.second)
-                            }
+                    )
+                    val internal = buildList {
+                        internalSuggestionsGuard.withLock {
+                            addAll(internalSuggestions.second)
                         }
+                    }
+                    // DRS v1.20.0: during a glide the word preview IS the candidate row.
+                    // It used to lose to the clipboard chip whenever any clip was recent
+                    // (the most common state right after a copy), leaving the user with
+                    // no visual feedback for the gesture in progress.
+                    if (glidePreviewBeatsClipboard(internal.size, clipboardCandidates.size, directSuggestionStamp)) {
+                        internal
+                    } else {
+                        clipboardCandidates.ifEmpty { internal }
                     }
                 }
                 else -> emptyList()
@@ -468,3 +493,11 @@ class NlpManager(context: Context) {
             }
     }
 }
+
+/**
+ * DRS v1.20.0: pure precedence decision — a live glide preview (direct publish,
+ * stamped non-zero) with actual content beats the clipboard chip even when a recent
+ * clip exists. Top-level so the JVM contract tests can exercise it without a Context.
+ */
+internal fun glidePreviewBeatsClipboard(internalCount: Int, clipboardCount: Int, directStamp: Long): Boolean =
+    internalCount > 0 && clipboardCount > 0 && directStamp > 0L

@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Смайлики</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Каомодзи</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Предпочтительный цвет кожи эмодзи</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Предпочтительная прическа эмодзи</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">История эмодзи</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Включить историю эмодзи</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Сохраняйте недавно использованные эмодзи для быстрого доступа</string>
@@ -453,10 +452,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Отключено для всей системы. В случае написания слов неправильно в текстовых полях не появятся красные подчёркивания. Нажмите, чтобы изменить.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Не настроена служба проверки орфографии текстовых полей. Нажмите, чтобы изменить.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Язык</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Использовать имена из контактов</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Поиск имен в списке контактов</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Использовать записи из словаря пользователя</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Поиск записей в пользовательских словарях</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Пользовательские словари</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Использовать системный словарь пользователя</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Предлагать слова, находящиеся в системном словаре пользователя</string>

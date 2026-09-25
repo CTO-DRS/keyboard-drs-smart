@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emotikon</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Warna kulit emoji yang disukai</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Gaya rambut emoji yang disukai</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Riwayat emoji</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Aktifkan riwayat emoji</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Simpan emoji yang baru saja digunakan agar mudah diakses dengan cepat</string>
@@ -444,10 +443,6 @@ Klik di sini untuk menyelesaikan masalah ini.</string>
     <string name="pref__spelling__active_spellchecker__summary_disabled">Dinonaktifkan di sistem. Tidak ada lagi garis merah di kolom teks atau kata-kata yang tidak benar. Ketuk untuk mengubahnya.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Tidak ada pemeriksa ejaan teks inline yang diatur. Ketuk untuk mengubahnya.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Bahasa</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Gunakan nama dari kontak</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Lihat nama dari daftar kontak Anda</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Gunakan entri kamus pengguna</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Lihat entri dari kamus pengguna</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Kamus pengguna</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Aktifkan kamus pengguna sistem</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Sarankan kata-kata tersimpan di kamus pengguna sistem</string>

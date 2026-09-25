@@ -58,7 +58,9 @@ import com.drs.smartkeyboard.lib.io.ZipUtils
 import org.drs.jetpref.datastore.runtime.AndroidAppDataStorage
 import org.drs.jetpref.datastore.runtime.FileBasedStorage
 import org.drs.jetpref.material.ui.JetPrefListItem
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.drs.lib.android.showLongToast
@@ -146,7 +148,11 @@ fun BackupScreen() = DrsScreen {
 
     var backupDestination by remember { mutableStateOf(Backup.Destination.FILE_SYS) }
     val backupFilesSelector = remember { Backup.FilesSelector() }
-    var backupWorkspace: CacheManager.BackupAndRestoreWorkspace? = null
+    // DRS v1.20.0: this workspace handle used to be a plain local `var`, so a config
+    // change or process death while the SAF picker was open lost it and the launcher
+    // callbacks crashed on `backupWorkspace!!` — reported to the user as a bogus
+    // "backup failed". It must survive recomposition like RestoreScreen's does.
+    var backupWorkspace by remember { mutableStateOf<CacheManager.BackupAndRestoreWorkspace?>(null) }
 
     val backUpToFileSystemLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("application/zip"),
@@ -158,81 +164,103 @@ fun BackupScreen() = DrsScreen {
                 backupWorkspace = null
                 return@rememberLauncherForActivityResult
             }
-            runCatching {
-                context.contentResolver.writeFromFile(uri, backupWorkspace!!.zipFile)
-                backupWorkspace!!.close()
-            }.onSuccess {
-                context.showLongToastSync(R.string.backup_and_restore__back_up__success)
-                navController.popBackStack()
-            }.onFailure { error ->
-                flogError { error.stackTraceToString() }
-                context.showLongToastSync(R.string.backup_and_restore__back_up__failure, "error_message" to error.message)
-                backupWorkspace = null
+            val workspace = backupWorkspace
+            if (workspace == null) {
+                context.showLongToastSync(R.string.backup_and_restore__back_up__failure, "error_message" to "")
+                return@rememberLauncherForActivityResult
+            }
+            scope.launch {
+                // DRS v1.20.0: writing the archive through the SAF and closing the
+                // workspace are file IO — they used to run on the main thread here.
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        context.contentResolver.writeFromFile(uri, workspace.zipFile)
+                        workspace.close()
+                    }
+                }.onSuccess {
+                    context.showLongToastSync(R.string.backup_and_restore__back_up__success)
+                    navController.popBackStack()
+                }.onFailure { error ->
+                    flogError { error.stackTraceToString() }
+                    context.showLongToastSync(R.string.backup_and_restore__back_up__failure, "error_message" to error.message)
+                    backupWorkspace = null
+                }
             }
         },
     )
 
     suspend fun prepareBackupWorkspace() {
-        val workspace = cacheManager.backupAndRestore.new()
-        if (backupFilesSelector.jetprefDatastore) {
-            val fileBasedStorage = workspace.inputDir
-                .subDir(AndroidAppDataStorage.JETPREF_DIR_NAME)
-                .subFile("${DrsPreferenceModel.NAME}.${AndroidAppDataStorage.JETPREF_FILE_EXT}")
-                .let { FileBasedStorage(it.path) }
-            DrsPreferenceStore.export(fileBasedStorage).getOrThrow()
-        }
-        val workspaceFilesDir = workspace.inputDir.subDir("files")
-        if (backupFilesSelector.imeKeyboard) {
-            context.filesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH).let { dir ->
-                dir.copyRecursively(workspaceFilesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH))
+        // DRS v1.20.0: zipping and copying the whole backup workspace (potentially
+        // hundreds of MB of clipboard media) used to run on the main dispatcher —
+        // a guaranteed jank/ANR source. Pure file IO belongs on IO.
+        withContext(Dispatchers.IO) {
+            val workspace = cacheManager.backupAndRestore.new()
+            if (backupFilesSelector.jetprefDatastore) {
+                val fileBasedStorage = workspace.inputDir
+                    .subDir(AndroidAppDataStorage.JETPREF_DIR_NAME)
+                    .subFile("${DrsPreferenceModel.NAME}.${AndroidAppDataStorage.JETPREF_FILE_EXT}")
+                    .let { FileBasedStorage(it.path) }
+                DrsPreferenceStore.export(fileBasedStorage).getOrThrow()
             }
-        }
-        if (backupFilesSelector.imeTheme) {
-            context.filesDir.subDir(ExtensionManager.IME_THEME_PATH).let { dir ->
-                dir.copyRecursively(workspaceFilesDir.subDir(ExtensionManager.IME_THEME_PATH))
+            val workspaceFilesDir = workspace.inputDir.subDir("files")
+            if (backupFilesSelector.imeKeyboard) {
+                context.filesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH).let { dir ->
+                    dir.copyRecursively(workspaceFilesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH))
+                }
             }
-        }
+            if (backupFilesSelector.imeTheme) {
+                context.filesDir.subDir(ExtensionManager.IME_THEME_PATH).let { dir ->
+                    dir.copyRecursively(workspaceFilesDir.subDir(ExtensionManager.IME_THEME_PATH))
+                }
+            }
 
-        if (backupFilesSelector.provideClipboardItems()) {
-            val clipboardManager by context.clipboardManager()
-            val clipboardHistory = clipboardManager.currentHistory.all
-            val clipboardFilesDir = workspace.inputDir.subDir("clipboard")
-            clipboardFilesDir.mkdir()
-            if (backupFilesSelector.clipboardTextItems) {
-                clipboardFilesDir.subFile(Backup.CLIPBOARD_TEXT_ITEMS_JSON_NAME)
-                    .writeJson(clipboardHistory.filter { it.type == ItemType.TEXT })
-            }
-            if (backupFilesSelector.clipboardImageItems) {
-                clipboardFilesDir.subFile(Backup.CLIPBOARD_IMAGES_JSON_NAME)
-                    .writeJson(clipboardHistory.filter { it.type == ItemType.IMAGE })
-                for (item in clipboardHistory.filter { it.type == ItemType.IMAGE }) {
-                    val id = ContentUris.parseId(item.uri!!)
-                    ClipboardFileStorage.getFileForId(context, id).copyTo(
-                        clipboardFilesDir.subFile("${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$id")
-                    )
+            if (backupFilesSelector.provideClipboardItems()) {
+                val clipboardManager by context.clipboardManager()
+                val clipboardHistory = clipboardManager.currentHistory.all
+                val clipboardFilesDir = workspace.inputDir.subDir("clipboard")
+                clipboardFilesDir.mkdir()
+                if (backupFilesSelector.clipboardTextItems) {
+                    clipboardFilesDir.subFile(Backup.CLIPBOARD_TEXT_ITEMS_JSON_NAME)
+                        .writeJson(clipboardHistory.filter { it.type == ItemType.TEXT })
+                }
+                if (backupFilesSelector.clipboardImageItems) {
+                    clipboardFilesDir.subFile(Backup.CLIPBOARD_IMAGES_JSON_NAME)
+                        .writeJson(clipboardHistory.filter { it.type == ItemType.IMAGE })
+                    for (item in clipboardHistory.filter { it.type == ItemType.IMAGE }) {
+                        // DRS v1.20.0: one broken/missing media URI must not abort the
+                        // whole backup — skip the broken item and keep the archive.
+                        val id = item.uri?.let { runCatching { ContentUris.parseId(it) }.getOrNull() } ?: continue
+                        runCatching {
+                            ClipboardFileStorage.getFileForId(context, id).copyTo(
+                                clipboardFilesDir.subFile("${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$id")
+                            )
+                        }
+                    }
+                }
+                if (backupFilesSelector.clipboardVideoItems) {
+                    clipboardFilesDir.subFile(Backup.CLIPBOARD_VIDEO_JSON_NAME)
+                        .writeJson(clipboardHistory.filter { it.type == ItemType.VIDEO })
+                    for (item in clipboardHistory.filter { it.type == ItemType.VIDEO }) {
+                        val id = item.uri?.let { runCatching { ContentUris.parseId(it) }.getOrNull() } ?: continue
+                        runCatching {
+                            ClipboardFileStorage.getFileForId(context, id).copyTo(
+                                clipboardFilesDir.subFile("${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$id")
+                            )
+                        }
+                    }
                 }
             }
-            if (backupFilesSelector.clipboardVideoItems) {
-                clipboardFilesDir.subFile(Backup.CLIPBOARD_VIDEO_JSON_NAME)
-                    .writeJson(clipboardHistory.filter { it.type == ItemType.VIDEO })
-                for (item in clipboardHistory.filter { it.type == ItemType.VIDEO }) {
-                    val id = ContentUris.parseId(item.uri!!)
-                    ClipboardFileStorage.getFileForId(context, id).copyTo(
-                        clipboardFilesDir.subFile("${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$id")
-                    )
-                }
-            }
+            workspace.metadata = Backup.Metadata(
+                packageName = BuildConfig.APPLICATION_ID,
+                versionCode = BuildConfig.VERSION_CODE,
+                versionName = BuildConfig.VERSION_NAME,
+                timestamp = System.currentTimeMillis(),
+            )
+            workspace.inputDir.subFile(Backup.METADATA_JSON_NAME).writeJson(workspace.metadata)
+            workspace.zipFile = workspace.outputDir.subFile(Backup.defaultFileName(workspace.metadata))
+            ZipUtils.zip(workspace.inputDir, workspace.zipFile)
+            backupWorkspace = workspace
         }
-        workspace.metadata = Backup.Metadata(
-            packageName = BuildConfig.APPLICATION_ID,
-            versionCode = BuildConfig.VERSION_CODE,
-            versionName = BuildConfig.VERSION_NAME,
-            timestamp = System.currentTimeMillis(),
-        )
-        workspace.inputDir.subFile(Backup.METADATA_JSON_NAME).writeJson(workspace.metadata)
-        workspace.zipFile = workspace.outputDir.subFile(Backup.defaultFileName(workspace.metadata))
-        ZipUtils.zip(workspace.inputDir, workspace.zipFile)
-        backupWorkspace = workspace
     }
 
     suspend fun prepareAndPerformBackup() {

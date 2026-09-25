@@ -16,7 +16,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emoticons</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Preferred emoji skin tone</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Preferred emoji hair style</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Emoji history</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Enable emoji history</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Retain recently used emojis for quick access</string>
@@ -532,11 +531,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Disabled system-wide. No red lines will appear in text fields for incorrect words. Tap to change.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">No inline text spell checker service set. Tap to change.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Languages</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Use names from contacts</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Look up names from your contact list</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Use user dictionary entries</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Look up entries from the user dictionaries</string>
-
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">User dictionaries</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Enable system user dictionary</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Suggest words stored in the system user dictionary</string>
@@ -2595,4 +2589,7 @@
     <string name="settings__udm__clear_dictionary_confirm">Every personal learned word will be permanently wiped from the app\'s internal dictionary. This cannot be undone — continue?</string>
     <string name="settings__udm__clear_dictionary_success">Internal dictionary cleared</string>
     <string name="enum__swipe_action__show_subtype_picker">Show subtype picker</string>
+    <string name="editor__cut_failed">Failed to cut the selected text: either the selection state is invalid or an error occurred within the input connection.</string>
+    <string name="editor__copy_failed">Failed to copy the selected text: either the selection state is invalid or an error occurred within the input connection.</string>
+    <string name="ime__voice_ime_not_found">Failed to find a voice keyboard, do you have one installed?</string>
 </resources>

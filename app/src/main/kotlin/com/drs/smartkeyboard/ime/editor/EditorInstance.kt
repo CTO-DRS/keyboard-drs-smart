@@ -135,7 +135,13 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
             IncognitoMode.FORCE_OFF -> false
             IncognitoMode.FORCE_ON -> true
             IncognitoMode.DYNAMIC_ON_OFF -> {
-                editorInfo.imeOptions.flagNoPersonalizedLearning || prefs.suggestion.forceIncognitoModeFromDynamic.get()
+                // DRS v1.20.0: password fields force no-learning even when the editor
+                // does not advertise IME_FLAG_NO_PERSONALIZED_LEARNING — Gboard/SwiftKey
+                // treat every password field as private, and so does the indicator that
+                // users rely on to trust the keyboard.
+                editorInfo.imeOptions.flagNoPersonalizedLearning ||
+                    activeState.keyVariation == KeyVariation.PASSWORD ||
+                    prefs.suggestion.forceIncognitoModeFromDynamic.get()
             }
         }
         // DRS: derive the adaptive context mode (normal/chat/numbers/password/...)
@@ -450,7 +456,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         if (text != null) {
             clipboardManager.addNewPlaintext(text.toString())
         } else {
-            appContext.showShortToastSync("Failed to retrieve selected text requested to cut: Eiter selection state is invalid or an error occurred within the input connection.")
+            appContext.showShortToastSync(R.string.editor__cut_failed)
         }
         return deleteBackwards(OperationUnit.CHARACTERS)
     }
@@ -468,7 +474,7 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         if (text != null) {
             clipboardManager.addNewPlaintext(text.toString())
         } else {
-            appContext.showShortToastSync("Failed to retrieve selected text requested to copy: Eiter selection state is invalid or an error occurred within the input connection.")
+            appContext.showShortToastSync(R.string.editor__copy_failed)
         }
         val activeSelection = activeContent.selection
         return setSelection(activeSelection.end, activeSelection.end)

@@ -25,6 +25,8 @@ import com.drs.smartkeyboard.ime.keyboard.KeyData
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import com.drs.smartkeyboard.ime.text.keyboard.TextKey
 import com.drs.smartkeyboard.nlpManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.text.Normalizer
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -45,7 +47,10 @@ private fun TextKey.baseCode(): Int {
  *
  * Check out Étienne Desticourt's excellent write up at https://github.com/AnySoftKeyboard/AnySoftKeyboard/pull/1870
  */
-class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier {
+class StatisticalGlideTypingClassifier(
+    context: Context,
+    private val initScope: CoroutineScope,
+) : GlideTypingClassifier {
     private val nlpManager by context.nlpManager()
 
     private val gesture = Gesture()
@@ -53,9 +58,9 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
     private var words: List<String> = emptyList()
     private var keys: ArrayList<TextKey> = arrayListOf()
     private lateinit var pruner: Pruner
-    private var wordDataSubtype: Subtype? = null
-    private var layoutSubtype: Subtype? = null
-    private var currentSubtype: Subtype? = null
+    @Volatile private var wordDataSubtype: Subtype? = null
+    @Volatile private var layoutSubtype: Subtype? = null
+    @Volatile private var currentSubtype: Subtype? = null
     val ready: Boolean
         get() = currentSubtype == layoutSubtype && wordDataSubtype == layoutSubtype && wordDataSubtype != null
     private val prunerCache = LruCache<Subtype, Pruner>(PRUNER_CACHE_SIZE)
@@ -117,7 +122,6 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
     }
 
     override fun setLayout(keyViews: List<TextKey>, subtype: Subtype) {
-        setWordData(subtype)
         // stop duplicate calls
         if (layoutSubtype == subtype && keys == keyViews) {
             return
@@ -136,15 +140,25 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
         distanceThresholdSquared = (keyViews.first().visibleBounds.width / 4).toInt()
         distanceThresholdSquared *= distanceThresholdSquared
 
-        if (
-            (wordDataSubtype == layoutSubtype)
-            || layoutChanged // should force a re-initialize
-        ) {
-            initializePruner(layoutChanged)
+        // DRS v1.20.0: word-data loading (a runBlocking dictionary access plus a
+        // 50k-entry list allocation) and Pruner construction (a pass over every word)
+        // used to run synchronously right here on the composition thread — the first
+        // layout of a subtype could freeze the keyboard for hundreds of milliseconds
+        // or trip ANR watchers. Both are pure background work: they now run on the
+        // classifier's init scope, and the existing `ready` gate keeps suggestions
+        // disabled until they finish.
+        initScope.launch {
+            setWordDataInternal(subtype)
+            if (
+                (wordDataSubtype == layoutSubtype)
+                || layoutChanged // should force a re-initialize
+            ) {
+                initializePruner(layoutChanged)
+            }
         }
     }
 
-    override fun setWordData(subtype: Subtype) {
+    private fun setWordDataInternal(subtype: Subtype) {
         // stop duplicate calls..
         if (wordDataSubtype == subtype) {
             return
@@ -153,9 +167,6 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
         this.words = nlpManager.getListOfWords(subtype)
 
         this.wordDataSubtype = subtype
-        if (wordDataSubtype == layoutSubtype) {
-            initializePruner(false)
-        }
     }
 
     /**
@@ -353,8 +364,8 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
             val userLength = userGesture.getLength()
             for (word in words) {
                 val idealGestures = Gesture.generateIdealGestures(word, keysByCharacter)
-                for (idealGesture in idealGestures) {
-                    val wordIdealLength = getCachedIdealLength(word, idealGesture)
+                for ((variantIndex, idealGesture) in idealGestures.withIndex()) {
+                    val wordIdealLength = getCachedIdealLength(word, variantIndex, idealGesture)
                     if (abs(userLength - wordIdealLength) < lengthThreshold * radius) {
                         remainingWords.add(word)
                     }
@@ -364,8 +375,14 @@ class StatisticalGlideTypingClassifier(context: Context) : GlideTypingClassifier
         }
 
         private val cachedIdealLength = ConcurrentHashMap<String, Float>()
-        private fun getCachedIdealLength(word: String, idealGesture: Gesture): Float {
-            return cachedIdealLength.getOrPut(word) { idealGesture.getLength() }
+
+        // DRS v1.20.0: this cache used to be keyed by the WORD only, while
+        // generateIdealGestures yields TWO variants for words with repeated letters
+        // (plain + loops). The loop variant was answered with the plain variant's
+        // cached length, mis-pruning exactly the double-letter words the loop gesture
+        // exists to help (pool, letter, …). Key by word AND variant.
+        private fun getCachedIdealLength(word: String, variantIndex: Int, idealGesture: Gesture): Float {
+            return cachedIdealLength.getOrPut("$word#$variantIndex") { idealGesture.getLength() }
         }
 
         companion object {

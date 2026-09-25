@@ -173,22 +173,10 @@ fun TypingScreen() = DrsScreen {
                 summary = stringRes(R.string.pref__spelling__typo_flagging_enabled__summary),
                 enabledIf = { drsSpellCheckerEnabled.value },
             )
-            SwitchPreference(
-                prefs.spelling.useContacts,
-                icon = Icons.Default.Contacts,
-                title = stringRes(R.string.pref__spelling__use_contacts__label),
-                summary = stringRes(R.string.pref__spelling__use_contacts__summary),
-                enabledIf = { drsSpellCheckerEnabled.value },
-                visibleIf = { false }, // For now
-            )
-            SwitchPreference(
-                prefs.spelling.useUdmEntries,
-                icon = Icons.AutoMirrored.Filled.LibraryBooks,
-                title = stringRes(R.string.pref__spelling__use_udm_entries__label),
-                summary = stringRes(R.string.pref__spelling__use_udm_entries__summary),
-                enabledIf = { drsSpellCheckerEnabled.value },
-                visibleIf = { false }, // For now
-            )
+            // DRS v1.20.0: the visibleIf=false stubs for "use contacts" / "use user
+            // dictionary entries" are gone together with their dead prefs — no contacts
+            // integration exists in the IME, and hidden switches that promise behavior
+            // nothing implements are removed, not shipped disabled.
         }
 
         PreferenceGroup(title = stringRes(R.string.settings__dictionary__title)) {

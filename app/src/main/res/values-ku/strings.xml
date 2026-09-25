@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Hestnîşan</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Tona çermê emojî ya tercîhkirî</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Tercîha porê emojî</string>
     <!-- Emoji strings -->
     <string name="emoji__category__smileys_emotion" comment="Emoji category name">Pêkenok &amp; Heskirin</string>
     <string name="emoji__category__people_body" comment="Emoji category name">Xelk &amp; Beden</string>

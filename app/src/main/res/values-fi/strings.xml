@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Hymiöt</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomojit</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Emojien oletusihonväri</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Emojien oletushiustyyli</string>
     <!-- Emoji strings -->
     <string name="emoji__category__smileys_emotion" comment="Emoji category name">Hymiöt &amp; tunteet</string>
     <string name="emoji__category__people_body" comment="Emoji category name">Ihmiset &amp; keho</string>
@@ -187,10 +186,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Poissa käytössä koko järjestelmässä. Punaisia viivoja ei näytetä tekstikentässä ilmaisemaan virheellisiä sanoja. Napauta muuttaaksesi.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Tekstin oikeinkirjoituksen tarkistusta ei ole asetettu. Napauta muuttaaksesi.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Kielet</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Käytä nimiä yhteystiedoista</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Hae nimiä laitteen yhteystiedoista</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Käytä käyttäjän sanakirjan kohteita</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Hae kohteita sanakirjoista</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Käyttäjän sanakirjat</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Ota käyttöön järjestelmän käyttäjän sanakirja</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Ehdota sanoja, jotka ovat järjestelmän käyttäjän sanakirjassa</string>

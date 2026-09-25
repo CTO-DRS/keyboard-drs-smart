@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emotikony</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomodži</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Preferovaný tón pleti emodži</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Preferované vlasy emodži</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">História emodži</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Povoliť históriu emodži</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Bude uchovávať nedávno použité emodži, aby k nim bol rýchly prístup</string>

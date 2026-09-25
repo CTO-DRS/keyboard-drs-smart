@@ -44,7 +44,7 @@ import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
 import com.drs.smartkeyboard.ime.keyboard.SplitMode
 import com.drs.smartkeyboard.ime.landscapeinput.LandscapeInputUiMode
 import com.drs.smartkeyboard.app.settings.DrsSearchHistory
-import com.drs.smartkeyboard.ime.media.emoji.EmojiHairStyle
+// DRS v1.20.0: EmojiHairStyle import removed with the dead emoji__preferred_hair_style pref.
 import com.drs.smartkeyboard.ime.media.emoji.EmojiHistory
 import com.drs.smartkeyboard.ime.media.emoji.EmojiSkinTone
 import com.drs.smartkeyboard.ime.media.emoji.EmojiSuggestionType
@@ -353,10 +353,9 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "emoji__size_percent",
             default = ImeWindowSpec.EMOJI_SCALE_DEFAULT_PERCENT,
         )
-        val preferredHairStyle = enum(
-            key = "emoji__preferred_hair_style",
-            default = EmojiHairStyle.DEFAULT,
-        )
+        // DRS v1.20.0: `emoji__preferred_hair_style` removed — hair style is derived
+        // from the emoji's own code points at parse time (Emoji.kt), so the pref was
+        // declared but never read by anything, a dead setting.
         val historyEnabled = boolean(
             key = "emoji__history_enabled",
             default = true,
@@ -596,10 +595,8 @@ abstract class DrsPreferenceModel : PreferenceModel() {
 
     val internal = Internal()
     inner class Internal {
-        val homeIsBetaToolboxCollapsed = boolean(
-            key = "internal__home_is_beta_toolbox_collapsed_040a01",
-            default = false,
-        )
+        // DRS v1.20.0: `internal__home_is_beta_toolbox_collapsed_040a01` removed —
+        // declared but never read anywhere, a leftover migration marker.
         val isImeSetUp = boolean(
             key = "internal__is_ime_set_up",
             default = false,
@@ -943,14 +940,11 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "spelling__typo_flagging_enabled",
             default = true,
         )
-        val useContacts = boolean(
-            key = "spelling__use_contacts",
-            default = true,
-        )
-        val useUdmEntries = boolean(
-            key = "spelling__use_udm_entries",
-            default = true,
-        )
+        // DRS v1.20.0: `spelling__use_contacts` / `spelling__use_udm_entries` removed —
+        // they were declared and UI-stubbed with visibleIf=false but no contacts
+        // integration exists anywhere in the IME; a setting that promises a behavior
+        // nothing implements is a false promise. (Contacts lookups would also need
+        // READ_CONTACTS; if that feature ever lands, the prefs come back wired.)
     }
 
     val suggestion = Suggestion()

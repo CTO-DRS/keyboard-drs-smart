@@ -78,8 +78,11 @@ class EmojiSuggestionProvider(private val context: Context) : SuggestionProvider
                     emoji to (nameWeight * 0.7 + keywordWeight * 0.3)
                 }
                 .sorted { (_, a), (_, b) -> b.compareTo(a) }
-                .limit(maxCandidateCount.toLong())
+                // DRS v1.20.0: the zero-weight cut used to run AFTER the limit, so when
+                // some of the top-N scored 0 the caller silently got fewer than N emoji
+                // even though real matches existed further down. Filter first, then cut.
                 .filter { (_, a) -> a > 0 }
+                .limit(maxCandidateCount.toLong())
                 .map { (emoji, _) ->
                     EmojiSuggestionCandidate(
                         emoji = emoji,

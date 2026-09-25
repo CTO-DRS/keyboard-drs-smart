@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,9 +63,9 @@ import org.drs.jetpref.datastore.ui.Preference
 import java.io.FileNotFoundException
 import java.text.DateFormat
 import java.util.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.drs.lib.android.readToFile
 import org.drs.lib.android.showLongToast
 import org.drs.lib.android.showLongToastSync
@@ -96,9 +97,11 @@ fun RestoreScreen() = DrsScreen {
 
     val restoreFilesSelector = remember { Backup.FilesSelector() }
     var importStrategy by remember { mutableStateOf(ImportStrategy.Merge) }
-    // TODO: rememberCoroutineScope() is unusable because it provides the scope in a cancelled state, which does
-    //  not make sense at all. I suspect that this is a bug and once it is resolved we can use it here again.
-    val restoreScope = remember { CoroutineScope(Dispatchers.Main) }
+    // DRS v1.20.0: this used to be `remember { CoroutineScope(Dispatchers.Main) }` —
+    // a scope that is never cancelled when the screen goes away, leaking every job
+    // launched through it. rememberCoroutineScope is the correct compose-scoped
+    // cancellation-aware equivalent.
+    val restoreScope = rememberCoroutineScope()
     var restoreWorkspace by remember {
         mutableStateOf<CacheManager.BackupAndRestoreWorkspace?>(null)
     }
@@ -107,128 +110,141 @@ fun RestoreScreen() = DrsScreen {
         contract = ActivityResultContracts.GetContent(),
         onResult = { uri ->
             if (uri == null) return@rememberLauncherForActivityResult
-            runCatching {
-                restoreWorkspace?.close()
-                restoreWorkspace = null
-                val workspace = cacheManager.backupAndRestore.new()
-                workspace.zipFile = workspace.inputDir.subFile(Restore.BACKUP_ARCHIVE_FILE_NAME)
-                context.contentResolver.readToFile(uri, workspace.zipFile)
-                ZipUtils.unzip(workspace.zipFile, workspace.outputDir)
-                workspace.metadata = try {
-                    workspace.outputDir.subFile(Backup.METADATA_JSON_NAME).readJson()
-                } catch (e: FileNotFoundException) {
-                    error("Invalid archive: either backup_metadata.json is missing or file is not a ZIP archive.")
-                }
-                workspace.restoreWarningId = when {
-                    workspace.metadata.versionCode != BuildConfig.VERSION_CODE -> {
-                        R.string.backup_and_restore__restore__metadata_warn_different_version
+            restoreScope.launch {
+                // DRS v1.20.0: reading the archive through the SAF and unzipping it
+                // (potentially hundreds of MB of media) used to run synchronously on
+                // the main thread inside this callback.
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        restoreWorkspace?.close()
+                        restoreWorkspace = null
+                        val workspace = cacheManager.backupAndRestore.new()
+                        workspace.zipFile = workspace.inputDir.subFile(Restore.BACKUP_ARCHIVE_FILE_NAME)
+                        context.contentResolver.readToFile(uri, workspace.zipFile)
+                        ZipUtils.unzip(workspace.zipFile, workspace.outputDir)
+                        workspace.metadata = try {
+                            workspace.outputDir.subFile(Backup.METADATA_JSON_NAME).readJson()
+                        } catch (e: FileNotFoundException) {
+                            error("Invalid archive: either backup_metadata.json is missing or file is not a ZIP archive.")
+                        }
+                        workspace.restoreWarningId = when {
+                            workspace.metadata.versionCode != BuildConfig.VERSION_CODE -> {
+                                R.string.backup_and_restore__restore__metadata_warn_different_version
+                            }
+                            !workspace.metadata.packageName.startsWith(Restore.PACKAGE_NAME) -> {
+                                R.string.backup_and_restore__restore__metadata_warn_different_vendor
+                            }
+                            else -> null
+                        }
+                        workspace.restoreErrorId = when {
+                            workspace.metadata.packageName.isBlank() || workspace.metadata.versionCode < Restore.MIN_VERSION_CODE -> {
+                                R.string.backup_and_restore__restore__metadata_error_invalid_metadata
+                            }
+                            else -> null
+                        }
+                        restoreWorkspace = workspace
                     }
-                    !workspace.metadata.packageName.startsWith(Restore.PACKAGE_NAME) -> {
-                        R.string.backup_and_restore__restore__metadata_warn_different_vendor
-                    }
-                    else -> null
+                }.onFailure { error ->
+                    context.showLongToastSync(
+                        R.string.backup_and_restore__restore__failure,
+                        "error_message" to error.localizedMessage,
+                    )
                 }
-                workspace.restoreErrorId = when {
-                    workspace.metadata.packageName.isBlank() || workspace.metadata.versionCode < Restore.MIN_VERSION_CODE -> {
-                        R.string.backup_and_restore__restore__metadata_error_invalid_metadata
-                    }
-                    else -> null
-                }
-                restoreWorkspace = workspace
-            }.onFailure { error ->
-                context.showLongToastSync(
-                    R.string.backup_and_restore__restore__failure,
-                    "error_message" to error.localizedMessage,
-                )
             }
         },
     )
 
     suspend fun performRestore() {
-        val workspace = restoreWorkspace!!
-        val shouldReset = importStrategy == ImportStrategy.Erase
-        if (restoreFilesSelector.jetprefDatastore) {
-            val file = workspace.outputDir
-                .subDir(AndroidAppDataStorage.JETPREF_DIR_NAME)
-                .subFile("${DrsPreferenceModel.NAME}.${AndroidAppDataStorage.JETPREF_FILE_EXT}")
-            if (file.exists()) {
-                val fileBasedStorage = FileBasedStorage(file.path)
-                DrsPreferenceStore.import(importStrategy, fileBasedStorage).getOrThrow()
-            }
-        }
-        val workspaceFilesDir = workspace.outputDir.subDir("files")
-        if (restoreFilesSelector.imeKeyboard) {
-            val srcDir = workspaceFilesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH)
-            val dstDir = context.filesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH)
-            if (shouldReset) {
-                dstDir.deleteContentsRecursively()
-            }
-            if (srcDir.exists()) {
-                srcDir.copyRecursively(dstDir, overwrite = true)
-            }
-        }
-        if (restoreFilesSelector.imeTheme) {
-            val srcDir = workspaceFilesDir.subDir(ExtensionManager.IME_THEME_PATH)
-            val dstDir = context.filesDir.subDir(ExtensionManager.IME_THEME_PATH)
-            if (shouldReset) {
-                dstDir.deleteContentsRecursively()
-            }
-            if (srcDir.exists()) {
-                srcDir.copyRecursively(dstDir, overwrite = true)
-            }
-        }
-        val clipboardManager = context.clipboardManager().value
-        if (shouldReset) {
-            clipboardManager.clearFullHistory()
-            ClipboardFileStorage.resetClipboardFileStorage(context)
-        }
-
-        if (restoreFilesSelector.provideClipboardItems()) {
-            val clipboardFilesDir = workspace.outputDir.subDir("clipboard")
-
-            if (restoreFilesSelector.clipboardTextItems) {
-                val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_TEXT_ITEMS_JSON_NAME)
-                if (clipboardItems.exists()) {
-                    val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
-                    clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.TEXT })
+        // DRS v1.20.0: the whole restore (JSON parsing, recursive copies, database
+        // writes) used to run on the main dispatcher — a jank/ANR source on large
+        // archives. Pure heavy IO belongs on IO.
+        withContext(Dispatchers.IO) {
+            val workspace = restoreWorkspace!!
+            val shouldReset = importStrategy == ImportStrategy.Erase
+            if (restoreFilesSelector.jetprefDatastore) {
+                val file = workspace.outputDir
+                    .subDir(AndroidAppDataStorage.JETPREF_DIR_NAME)
+                    .subFile("${DrsPreferenceModel.NAME}.${AndroidAppDataStorage.JETPREF_FILE_EXT}")
+                if (file.exists()) {
+                    val fileBasedStorage = FileBasedStorage(file.path)
+                    DrsPreferenceStore.import(importStrategy, fileBasedStorage).getOrThrow()
                 }
             }
-            if (restoreFilesSelector.clipboardImageItems) {
-                val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_IMAGES_JSON_NAME)
-                if (clipboardItems.exists()) {
-                    val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
-                    for (item in clipboardItemsList.filter { it.type == ItemType.IMAGE }) {
-                        ClipboardFileStorage.insertFileFromBackupIfNotExisting(
-                            context,
-                            clipboardFilesDir.subFile(
-                                relPath = "${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/${
-                                    item.uri!!.path!!.split(
-                                        '/'
-                                    ).last()
-                                }"
-                            )
-                        )
-                    }
-                    clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.IMAGE })
+            val workspaceFilesDir = workspace.outputDir.subDir("files")
+            if (restoreFilesSelector.imeKeyboard) {
+                val srcDir = workspaceFilesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH)
+                val dstDir = context.filesDir.subDir(ExtensionManager.IME_KEYBOARD_PATH)
+                if (shouldReset) {
+                    dstDir.deleteContentsRecursively()
+                }
+                if (srcDir.exists()) {
+                    srcDir.copyRecursively(dstDir, overwrite = true)
                 }
             }
-            if (restoreFilesSelector.clipboardVideoItems) {
-                val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_VIDEO_JSON_NAME)
-                if (clipboardItems.exists()) {
-                    val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
-                    for (item in clipboardItemsList.filter { it.type == ItemType.VIDEO }) {
-                        ClipboardFileStorage.insertFileFromBackupIfNotExisting(
-                            context,
-                            clipboardFilesDir.subFile(
-                                relPath = "${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/${
-                                    item.uri!!.path!!.split(
-                                        '/'
-                                    ).last()
-                                }"
-                            )
-                        )
+            if (restoreFilesSelector.imeTheme) {
+                val srcDir = workspaceFilesDir.subDir(ExtensionManager.IME_THEME_PATH)
+                val dstDir = context.filesDir.subDir(ExtensionManager.IME_THEME_PATH)
+                if (shouldReset) {
+                    dstDir.deleteContentsRecursively()
+                }
+                if (srcDir.exists()) {
+                    srcDir.copyRecursively(dstDir, overwrite = true)
+                }
+            }
+            val clipboardManager = context.clipboardManager().value
+            if (shouldReset) {
+                clipboardManager.clearFullHistory()
+                ClipboardFileStorage.resetClipboardFileStorage(context)
+            }
+
+            if (restoreFilesSelector.provideClipboardItems()) {
+                val clipboardFilesDir = workspace.outputDir.subDir("clipboard")
+
+                if (restoreFilesSelector.clipboardTextItems) {
+                    val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_TEXT_ITEMS_JSON_NAME)
+                    if (clipboardItems.exists()) {
+                        val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
+                        clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.TEXT })
                     }
-                    clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.VIDEO })
+                }
+                if (restoreFilesSelector.clipboardImageItems) {
+                    val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_IMAGES_JSON_NAME)
+                    if (clipboardItems.exists()) {
+                        val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
+                        for (item in clipboardItemsList.filter { it.type == ItemType.IMAGE }) {
+                            // DRS v1.20.0: one broken/missing media URI must not abort a
+                            // restore midway and leave the user with partial state —
+                            // resolve the file name defensively and skip broken items.
+                            val fileName = item.uri?.path?.substringAfterLast('/') ?: continue
+                            runCatching {
+                                ClipboardFileStorage.insertFileFromBackupIfNotExisting(
+                                    context,
+                                    clipboardFilesDir.subFile(
+                                        relPath = "${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$fileName"
+                                    )
+                                )
+                            }
+                        }
+                        clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.IMAGE })
+                    }
+                }
+                if (restoreFilesSelector.clipboardVideoItems) {
+                    val clipboardItems = clipboardFilesDir.subFile(Backup.CLIPBOARD_VIDEO_JSON_NAME)
+                    if (clipboardItems.exists()) {
+                        val clipboardItemsList = clipboardItems.readJson<List<ClipboardItem>>()
+                        for (item in clipboardItemsList.filter { it.type == ItemType.VIDEO }) {
+                            val fileName = item.uri?.path?.substringAfterLast('/') ?: continue
+                            runCatching {
+                                ClipboardFileStorage.insertFileFromBackupIfNotExisting(
+                                    context,
+                                    clipboardFilesDir.subFile(
+                                        relPath = "${ClipboardFileStorage.CLIPBOARD_FILES_PATH}/$fileName"
+                                    )
+                                )
+                            }
+                        }
+                        clipboardManager.restoreHistory(items = clipboardItemsList.filter { it.type == ItemType.VIDEO })
+                    }
                 }
             }
         }

@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emoticons</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Bevorzugte Emoji-Hautfarbe</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Bevorzugte Emoji-Haarfarbe</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Emoji-Historie</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Aktiviere Emoji-Historie</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Behalte kürzlich genutzte Emojis für einen schnellen Zugriff</string>
@@ -369,10 +368,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Systemweit deaktiviert. Es werden keine roten Linien in Textfeldern für falsche Wörter angezeigt. Zum Ändern antippen.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Keinen Inline-Rechtschreibprüfungs-Service eingestellt. Zum Ändern antippen.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Sprachen</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Namen aus Kontakten verwenden</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Nach Namen in der Kontaktliste Suchen</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Benutzerwörterbücher verwenden</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Nach Einträgen in den Benutzerwörterbüchern suchen</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Benutzerwörterbücher</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">System-Wörterbuch aktivieren</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Wörter vorschlagen, die im System-Benutzerwörterbuch gespeichert sind</string>

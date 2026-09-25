@@ -39,6 +39,7 @@ import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.json.Json
 import org.drs.lib.android.readText
 import org.drs.lib.kotlin.guardedByLock
+import java.util.PriorityQueue
 
 private const val CORRECTION_MIN_LENGTH = 3
 private const val CORRECTION_MAX_LENGTH = 12
@@ -49,6 +50,12 @@ private const val USER_WORDS_TTL_MS = 15_000L
 private const val USER_WORDS_MAX = 4000
 private const val LEARNED_INSERT_FREQ_FROM_SUGGESTION = 160
 private const val LEARNED_INSERT_FREQ_TYPED = 120
+
+/** DRS v1.20.0: frequency drained from a personally learned word per rejected (reverted) suggestion. */
+private const val REVERT_DEMOTE_STEP = 64
+
+/** DRS v1.20.0: characters after which the next word starts a new sentence (Latin + Arabic marks). */
+private val SENTENCE_TERMINATORS = charArrayOf('.', '!', '?', '…', '؟', '۔')
 
 /** All single-character deletion variants of [word] (deduplicated). */
 private fun delete1Variants(word: String): Set<String> {
@@ -124,84 +131,8 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
     private val appContext by context.appContext()
     private val prefs by DrsPreferenceStore
 
-    /**
-     * One dictionary entry, pre-normalized at load time for fast prefix lookups.
-     * [norm] is the normalized form of [word] used for matching only; suggestions
-     * are always returned in their original (correct) spelling.
-     */
-    private class DictEntry(val norm: String, val word: String, val freq: Int)
-
-    /** A language dictionary: entries sorted lexicographically by [DictEntry.norm]. */
-    private class DictIndex(val entries: List<DictEntry>) {
-        val words: Map<String, Int> by lazy { entries.associate { it.word to it.freq } }
-
-        /**
-         * Delete-1 neighborhood index for "did you mean?" corrections, built lazily
-         * on first use and bounded to the [CORRECTION_INDEX_LIMIT] most frequent words
-         * to keep memory usage predictable.
-         */
-        val correctionIndex: Map<String, List<Int>> by lazy {
-            val cutoff = entries.asSequence()
-                .map { it.freq }
-                .sortedDescending()
-                .drop(CORRECTION_INDEX_LIMIT - 1)
-                .firstOrNull() ?: 0
-            val map = HashMap<String, MutableList<Int>>()
-            fun addKey(key: String, index: Int) {
-                map.getOrPut(key) { ArrayList(2) }.add(index)
-            }
-            for (i in entries.indices) {
-                val entry = entries[i]
-                if (entry.freq < cutoff || entry.norm.length !in CORRECTION_MIN_LENGTH..CORRECTION_MAX_LENGTH) continue
-                addKey(entry.norm, i) // catches user typed an extra char (delete1(s) == w)
-                for (t in delete1Variants(entry.norm)) {
-                    addKey(t, i) // catches substitutions and user dropped a char
-                }
-            }
-            map
-        }
-
-        /**
-         * Collects up to [limit] dictionary entries within edit distance 1 of [norm]
-         * (single substitution, insertion or deletion), ranked by frequency.
-         */
-        fun corrections(norm: String, limit: Int): List<DictEntry> {
-            if (norm.length < CORRECTION_MIN_LENGTH) return emptyList()
-            val candidateIdx = HashSet<Int>()
-            correctionIndex[norm]?.let { candidateIdx.addAll(it) }
-            for (t in delete1Variants(norm)) {
-                correctionIndex[t]?.let { candidateIdx.addAll(it) }
-            }
-            return candidateIdx.asSequence()
-                .map { entries[it] }
-                .filter { it.norm != norm && isEditDistanceAtMostOne(it.norm, norm) }
-                .sortedByDescending { it.freq }
-                .take(limit)
-                .toList()
-        }
-
-        /**
-         * Collects up to [limit] entries whose normalized form starts with [prefix],
-         * using a binary search over the sorted entries (O(log n + k)).
-         */
-        fun findByPrefix(prefix: String, limit: Int): List<DictEntry> {
-            if (prefix.isEmpty()) return emptyList()
-            var lo = 0
-            var hi = entries.size
-            while (lo < hi) {
-                val mid = (lo + hi) ushr 1
-                if (entries[mid].norm < prefix) lo = mid + 1 else hi = mid
-            }
-            val out = ArrayList<DictEntry>(limit)
-            for (i in lo until entries.size) {
-                val entry = entries[i]
-                if (!entry.norm.startsWith(prefix)) break
-                out.add(entry)
-                if (out.size >= limit) break
-            }
-            return out
-        }
-    }
+    // DRS v1.20.0: DictEntry/DictIndex moved to file top-level as `internal` so the
+    // prefix-ranking contracts (findByPrefix / findTopByPrefix) are JVM-testable.
 
     private val json = Json { ignoreUnknownKeys = true }
     private val wordDataSerializer = MapSerializer(String.serializer(), Int.serializer())
@@ -335,11 +266,9 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         val normInDict = norm.isNotEmpty() && norm != raw &&
             dict.findByPrefix(norm, limit = 1).firstOrNull()?.norm == norm
         if (exactInDict || normInDict) return SpellingResult.validWord()
-        val isArabic = raw.any { it in ARABIC_SCRIPT_START..ARABIC_SCRIPT_END }
         val inUserWords = userDataFor(subtype).any { entry ->
             entry.word == raw ||
-                (isArabic && normalize(entry.word) == norm) ||
-                (!isArabic && entry.word.lowercase() == raw.lowercase())
+                normalize(entry.word) == norm
         }
         if (inUserWords) return SpellingResult.validWord()
         val corrections = dict.corrections(norm, maxSuggestionCount.coerceIn(1, 5))
@@ -394,7 +323,10 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         val userMatches = userWordMatchesFor(subtype, prefix, isArabic, raw, maxCandidateCount)
 
         // Gather a wider slice next so we can rank the best matches by frequency.
-        val dictMatches = index.findByPrefix(prefix, limit = maxCandidateCount * 6)
+        // DRS v1.20.0: findTopByPrefix ranks the WHOLE matching range by frequency
+        // (bounded heap) instead of truncating lexicographically first — productive
+        // prefixes no longer lose their most frequent words to an arbitrary cut.
+        val dictMatches = index.findTopByPrefix(prefix, limit = maxCandidateCount * 6)
             .filter { it.word != raw }
             .sortedByDescending { it.freq }
 
@@ -468,7 +400,7 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
 
         return nexts.take(maxCandidateCount).map { (word, score) ->
             WordSuggestionCandidate(
-                text = displayCase(word, word, isArabic),
+                text = nextWordDisplayCase(word, before, isArabic),
                 confidence = score / 99.0,
                 sourceProvider = this,
             )
@@ -508,7 +440,11 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         return userDataFor(subtype).mapNotNull { entry ->
             val word = entry.word
             if (word == raw || word.length > MAX_WORD_LENGTH || word.any { it.isDigit() }) return@mapNotNull null
-            val normWord = if (isArabic) normalize(word) else word.lowercase()
+            // DRS v1.20.0: match through the SAME normalization pipeline as the typed
+            // prefix (Arabic unification + Latin accent folding) for BOTH scripts —
+            // the old code lowercased Latin user words without folding, so a learned
+            // «élève» was unreachable by typing "eleve" while dictionary words matched.
+            val normWord = normalize(word)
             if (normWord.startsWith(prefix)) word to entry.freq else null
         }.sortedByDescending { it.second }.take(limit)
     }
@@ -551,6 +487,18 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
 
     override suspend fun notifySuggestionReverted(subtype: Subtype, candidate: SuggestionCandidate) {
         flogDebug { candidate.toString() }
+        // DRS v1.20.0: a REJECTED suggestion used to keep sitting in the personal
+        // dictionary at full strength — reverting an auto-correct left the unwanted
+        // word learned forever. Demote it; when its frequency is drained to zero the
+        // entry is deleted entirely. Private sessions never learned anything anyway.
+        if (lastSuggestWasPrivate) return
+        if (candidate !is WordSuggestionCandidate) return
+        val word = candidate.text.toString().trim()
+        if (word.length !in 2..MAX_WORD_LENGTH) return
+        val changed = runCatching {
+            DictionaryManager.default().demoteUserWord(word, subtype.primaryLocale, REVERT_DEMOTE_STEP)
+        }.getOrElse { false }
+        if (changed) invalidateUserDataCache()
     }
 
     override suspend fun removeSuggestion(subtype: Subtype, candidate: SuggestionCandidate): Boolean {
@@ -590,5 +538,133 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         isArabic -> word
         typed.first().isUpperCase() -> word.replaceFirstChar { it.uppercaseChar() }
         else -> word
+    }
+}
+
+/**
+ * DRS v1.20.0: casing for NEXT-WORD predictions. The previous heuristic compared the
+ * prediction against the previous word's own case — which is wrong in both directions
+ * ("Hello " would capitalize the next word; "Hi. " would not). What actually decides
+ * capitalization is whether the word being predicted starts a NEW SENTENCE: that is
+ * when the last meaningful character before the cursor is a sentence terminator.
+ * Arabic is returned unchanged (no case).
+ */
+internal fun nextWordDisplayCase(word: String, beforeCursor: String, isArabic: Boolean): String {
+    if (isArabic) return word
+    val lastMeaningful = beforeCursor.trimEnd().lastOrNull() ?: return word
+    return if (lastMeaningful in SENTENCE_TERMINATORS) {
+        word.replaceFirstChar { it.uppercaseChar() }
+    } else {
+        word
+    }
+}
+
+/**
+ * One dictionary entry, pre-normalized at load time for fast prefix lookups.
+ * [norm] is the normalized form of [word] used for matching only; suggestions
+ * are always returned in their original (correct) spelling.
+ */
+internal class DictEntry(val norm: String, val word: String, val freq: Int)
+
+/** A language dictionary: entries sorted lexicographically by [DictEntry.norm]. */
+internal class DictIndex(val entries: List<DictEntry>) {
+    val words: Map<String, Int> by lazy { entries.associate { it.word to it.freq } }
+
+    /**
+     * Delete-1 neighborhood index for "did you mean?" corrections, built lazily
+     * on first use and bounded to the [CORRECTION_INDEX_LIMIT] most frequent words
+     * to keep memory usage predictable.
+     */
+    val correctionIndex: Map<String, List<Int>> by lazy {
+        val cutoff = entries.asSequence()
+            .map { it.freq }
+            .sortedDescending()
+            .drop(CORRECTION_INDEX_LIMIT - 1)
+            .firstOrNull() ?: 0
+        val map = HashMap<String, MutableList<Int>>()
+        fun addKey(key: String, index: Int) {
+            map.getOrPut(key) { ArrayList(2) }.add(index)
+        }
+        for (i in entries.indices) {
+            val entry = entries[i]
+            if (entry.freq < cutoff || entry.norm.length !in CORRECTION_MIN_LENGTH..CORRECTION_MAX_LENGTH) continue
+            addKey(entry.norm, i) // catches user typed an extra char (delete1(s) == w)
+            for (t in delete1Variants(entry.norm)) {
+                addKey(t, i) // catches substitutions and user dropped a char
+            }
+        }
+        map
+    }
+
+    /**
+     * Collects up to [limit] dictionary entries within edit distance 1 of [norm]
+     * (single substitution, insertion or deletion), ranked by frequency.
+     */
+    fun corrections(norm: String, limit: Int): List<DictEntry> {
+        if (norm.length < CORRECTION_MIN_LENGTH) return emptyList()
+        val candidateIdx = HashSet<Int>()
+        correctionIndex[norm]?.let { candidateIdx.addAll(it) }
+        for (t in delete1Variants(norm)) {
+            correctionIndex[t]?.let { candidateIdx.addAll(it) }
+        }
+        return candidateIdx.asSequence()
+            .map { entries[it] }
+            .filter { it.norm != norm && isEditDistanceAtMostOne(it.norm, norm) }
+            .sortedByDescending { it.freq }
+            .take(limit)
+            .toList()
+    }
+
+    /**
+     * Collects up to [limit] entries whose normalized form starts with [prefix],
+     * using a binary search over the sorted entries (O(log n + k)).
+     */
+    fun findByPrefix(prefix: String, limit: Int): List<DictEntry> {
+        if (prefix.isEmpty()) return emptyList()
+        var lo = 0
+        var hi = entries.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (entries[mid].norm < prefix) lo = mid + 1 else hi = mid
+        }
+        val out = ArrayList<DictEntry>(limit)
+        for (i in lo until entries.size) {
+            val entry = entries[i]
+            if (!entry.norm.startsWith(prefix)) break
+            out.add(entry)
+            if (out.size >= limit) break
+        }
+        return out
+    }
+
+    /**
+     * DRS v1.20.0: collects the [limit] MOST FREQUENT entries whose normalized form
+     * starts with [prefix], scanning the ENTIRE matching range instead of the first
+     * [limit] lexicographic hits. The old truncation silently dropped frequent words
+     * beyond the cutoff for productive prefixes (like "ال" or "al") — the ranking
+     * happened after the cut, so the cut decided the winners. A bounded min-heap
+     * keeps this O(k · log limit) over the k matching entries.
+     */
+    fun findTopByPrefix(prefix: String, limit: Int): List<DictEntry> {
+        if (prefix.isEmpty() || limit <= 0) return emptyList()
+        var lo = 0
+        var hi = entries.size
+        while (lo < hi) {
+            val mid = (lo + hi) ushr 1
+            if (entries[mid].norm < prefix) lo = mid + 1 else hi = mid
+        }
+        val heap = PriorityQueue<DictEntry>(limit.coerceAtLeast(1), compareBy { it.freq })
+        for (i in lo until entries.size) {
+            val entry = entries[i]
+            if (!entry.norm.startsWith(prefix)) break
+            if (heap.size < limit) {
+                heap.add(entry)
+            } else if (entry.freq > heap.peek().freq) {
+                heap.poll()
+                heap.add(entry)
+            }
+        }
+        val out = heap.sortedByDescending { it.freq }
+        return out
     }
 }

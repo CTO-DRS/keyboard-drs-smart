@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emootikonid</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Eelistatud emoji nahavärv</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Eelistatud emoji soeng</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Emojide ajalugu</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Luba emojide ajalugu</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Säilita hijuti kasutatud emojid kiireks juurdepääsuks</string>

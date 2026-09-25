@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emoticons</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Ngjyra e preferuar e lëkurës</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Modeli i preferuar i flokëve</string>
     <!-- Emoji strings -->
     <string name="emoji__category__smileys_emotion" comment="Emoji category name">Të qeshura &amp; Emocione</string>
     <string name="emoji__category__people_body" comment="Emoji category name">Njerëz &amp; Trupi</string>

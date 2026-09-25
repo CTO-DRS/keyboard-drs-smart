@@ -38,6 +38,12 @@ class DictionaryManager private constructor(context: Context) {
     companion object {
         private var defaultInstance: DictionaryManager? = null
 
+        /**
+         * DRS v1.20.0: pure demotion arithmetic — the new frequency, or null when the
+         * entry must be deleted (drained to zero or below). JVM-tested.
+         */
+        internal fun demoteTarget(freq: Int, by: Int): Int? = (freq - by).takeIf { it > 0 }
+
         fun init(applicationContext: Context): DictionaryManager {
             val instance = DictionaryManager(applicationContext)
             defaultInstance = instance
@@ -153,6 +159,29 @@ class DictionaryManager private constructor(context: Context) {
             }
         } else {
             dao.insert(UserDictionaryEntry(id = 0, word = word, freq = insertFreq, locale = locale.localeTag(), shortcut = null))
+            true
+        }
+    }
+
+    /**
+     * DRS v1.20.0: drains [by] frequency points from a personally learned word after a
+     * REJECTED (reverted) suggestion, and deletes the entry entirely once its frequency
+     * drops to zero — unlearning what the user explicitly refused, instead of keeping
+     * it at full strength forever. Returns true when the dictionary was modified.
+     */
+    fun demoteUserWord(word: String, locale: DrsLocale, by: Int): Boolean {
+        if (by <= 0) return false
+        loadUserDictionariesIfNecessary()
+        val dao = drsUserDictionaryDao() ?: return false
+        val existing = dao.queryExactFuzzyLocale(word, locale).firstOrNull()
+            ?: dao.queryExact(word, null).firstOrNull()
+            ?: return false
+        val target = demoteTarget(existing.freq, by)
+        return if (target == null) {
+            dao.delete(existing)
+            true
+        } else {
+            dao.update(existing.copy(freq = target))
             true
         }
     }

@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Emoticons</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Kaomoji</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Gewenste emoji-huidskleur</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Gewenste emoji-kapsel</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Emoji-geschiedenis</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Emoji-geschiedenis inschakelen</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Recent gebruikte emoji\'s bewaren voor snelle toegang</string>
@@ -381,10 +380,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Systeem-breed uitgeschakeld. Er zullen geen rode lijnen verschijnen in tekstvelden voor incorrecte woorden. Klik om te wijzigen.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Geen inline spellingscontrole ingesteld. Klik om te wijzigen.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Talen</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Gebruik namen van contacten</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Namen opzoeken in je contactenlijst</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Gebruik gebruikerswoordenboekvermeldingen</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Items uit de gebruikerswoordenboeken opzoeken</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Gebruikerswoordenboeken</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Activeer het persoonlijke woordenboek van het systeem</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Stel woorden voor uit het persoonlijke woordenboek van het systeem</string>

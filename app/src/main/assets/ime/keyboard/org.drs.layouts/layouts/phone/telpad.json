@@ -3,7 +3,9 @@
     { "code":   49, "label": "1", "type": "numeric" },
     { "code":   50, "label": "2", "type": "numeric" },
     { "code":   51, "label": "3", "type": "numeric" },
-    { "code":   45, "label": "-" }
+    { "code":   45, "label": "-", "popup": {
+      "main": { "code":   59, "label": "wait", "type": "system_gui" }
+    } }
   ],
   [
     { "code":   52, "label": "4", "type": "numeric" },
@@ -22,7 +24,9 @@
     { "code":   48, "label": "0", "type": "numeric", "popup": {
       "main": { "code":   43, "label": "+" }
     } },
-    { "code":   46, "label": "." },
+    { "code":   46, "label": ".", "popup": {
+      "main": { "code":   44, "label": "," }
+    } },
     { "code":   10, "label": "enter", "type": "enter_editing" }
   ]
 ]

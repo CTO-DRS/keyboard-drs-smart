@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">Емоции</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">Каомоджи</string>
     <string name="prefs__media__emoji_preferred_skin_tone">Предпочитан цвят на кожата за емоции</string>
-    <string name="prefs__media__emoji_preferred_hair_style">Предпочитана прическа за емоции</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">История на емоциите</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">Включване на историята на емоциите</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">Запазване на използваните емоции за по-бърз достъп</string>
@@ -459,10 +458,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">Изключено от системните настройки. Правописмите грешки няма да бъдат подчертавани с червено. Докоснете, за да промените.</string>
     <string name="pref__spelling__active_spellchecker__summary_none">Не е избрана услуга за проверка на правописа в текстови полета. Докоснете, за да промените.</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">Езици</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">Използване на имената от контактите</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">Търси в имената от списъка с контакти</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">Потребителски речнци</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">Търси в потребителските речници</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">Потребителски речници</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">Системен потребителски речник</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">Предлагат се думи от системния потребителски речник</string>

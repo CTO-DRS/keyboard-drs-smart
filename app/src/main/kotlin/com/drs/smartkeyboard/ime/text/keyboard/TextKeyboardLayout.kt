@@ -481,9 +481,14 @@ private class TextKeyboardLayoutController(
         flogDebug { "event=$event" }
         swipeGestureDetector.onTouchEvent(event)
         if (isGlideEnabled && keyboard.mode == KeyboardMode.CHARACTERS) {
-            val glidePointer = pointerMap.findById(0)
-            val isNotBlocked = glidePointer?.hasTriggeredLongPress != true
-            if (isNotBlocked && glideTypingDetector.onTouchEvent(event, glidePointer?.initialKey)) {
+            // DRS v1.20.0: the glide pointer used to be looked up by hardcoded pointer ID 0,
+            // so a glide started by a second finger inherited (or missed) the long-press
+            // blocking state of the FIRST touch. Blocking must consider every active pointer,
+            // and the gesture's initial key comes from the stream's first touch (which is
+            // the pointer the detector actually tracks — it latches the DOWN pointer).
+            val glideInitialKey = pointerMap.firstOrNull()?.initialKey
+            val isNotBlocked = pointerMap.none { it.hasTriggeredLongPress }
+            if (isNotBlocked && glideTypingDetector.onTouchEvent(event, glideInitialKey)) {
                 for (pointer in pointerMap) {
                     if (pointer.activeKey != null) {
                         onTouchCancelInternal(event, pointer)
@@ -1000,10 +1005,14 @@ private class TextKeyboardLayoutController(
                 fadingGlideFraction = it.animatedValue as Float
             }
             animator.start()
-
-            glideDataForDrawing.clear()
-            isGliding = false
         }
+        // DRS v1.20.0: the buffer clear and the state reset previously lived INSIDE the
+        // showTrail gate, so with the trail disabled every gesture kept accumulating
+        // points in glideDataForDrawing for the whole process lifetime and isGliding
+        // stayed true forever after the first glide. The fading animation is cosmetic
+        // and stays gated; the state machine must not be.
+        glideDataForDrawing.clear()
+        isGliding = false
     }
 
     fun drawGlideTrail(

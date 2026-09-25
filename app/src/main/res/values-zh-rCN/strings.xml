@@ -14,7 +14,6 @@
     <string name="media__tab__emoticons" comment="Tab description for emoticons in the media UI">绘文字</string>
     <string name="media__tab__kaomoji" comment="Tab description for kaomoji in the media UI">颜文字</string>
     <string name="prefs__media__emoji_preferred_skin_tone">首选表情符号肤色</string>
-    <string name="prefs__media__emoji_preferred_hair_style">首选表情符号发型</string>
     <string name="prefs__media__emoji_history__title" comment="Preference group title">Emoji表情选择历史</string>
     <string name="prefs__media__emoji_history_enabled" comment="Preference title">开启emoji表情选择历史记录</string>
     <string name="prefs__media__emoji_history_enabled__summary" comment="Preference summary">保留近期使用过的emoji表情以便快速访问</string>
@@ -458,10 +457,6 @@
     <string name="pref__spelling__active_spellchecker__summary_disabled">已在系统范围内禁用。对于不正确的单词，文本框中不会出现红线。点击进行更改。</string>
     <string name="pref__spelling__active_spellchecker__summary_none">未设置内嵌式文本拼写检查服务。点击进行更改。</string>
     <string name="pref__spelling__language_mode__label" comment="Label of Language mode pref">语言</string>
-    <string name="pref__spelling__use_contacts__label" comment="Label of Use contact list pref">使用通讯录姓名</string>
-    <string name="pref__spelling__use_contacts__summary" comment="Summary of Use contact list pref">从您的通讯录中查找姓名</string>
-    <string name="pref__spelling__use_udm_entries__label" comment="Label of Use user dictionary entries pref">使用用户词典条目</string>
-    <string name="pref__spelling__use_udm_entries__summary" comment="Summary of Use user dictionary entries pref">从用户词典中查找条目</string>
     <string name="settings__dictionary__title" comment="Title of the User dictionaries screen">用户词典</string>
     <string name="pref__dictionary__enable_system_user_dictionary__label" comment="Preference title">启用系统用户词典</string>
     <string name="pref__dictionary__enable_system_user_dictionary__summary" comment="Preference summary">建议中使用存储在系统用户词典中的词条</string>

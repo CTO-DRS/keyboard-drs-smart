@@ -18,6 +18,7 @@
     { "code":   -7, "label": "delete", "type": "enter_editing" }
   ],
   [
+    { "code": -201, "label": "view_characters", "type": "system_gui" },
     { "code":   44, "label": "," },
     { "code":   48, "label": "0", "type": "numeric", "popup": {
       "main": { "code":   43, "label": "+" }
