@@ -24,6 +24,7 @@ import com.drs.smartkeyboard.ime.core.Subtype
 import com.drs.smartkeyboard.ime.dictionary.DictionaryManager
 import com.drs.smartkeyboard.ime.dictionary.UserDictionaryEntry
 import com.drs.smartkeyboard.ime.editor.EditorContent
+import com.drs.smartkeyboard.ime.nlp.AutocorrectDecider
 import com.drs.smartkeyboard.ime.nlp.SpellingProvider
 import com.drs.smartkeyboard.ime.nlp.SpellingResult
 import com.drs.smartkeyboard.ime.nlp.SuggestionCandidate
@@ -361,7 +362,29 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
 
         // No word starts with what was typed: offer the nearest known spellings
         // (edit distance <= 1) as "did you mean?" candidates, ranked by frequency.
-        return candidates(index.corrections(prefix, maxCandidateCount))
+        val correctionEntries = index.corrections(prefix, maxCandidateCount)
+        val fallback = candidates(correctionEntries)
+        if (fallback.isEmpty()) return fallback
+        // DRS v1.17.0: TRUE autocorrect — the FIRST high-frequency correction of a
+        // real typo becomes auto-commit eligible, so pressing space silently fixes
+        // the word (backspace reverts). The decider is conservative: the typed
+        // word matched no prefix at all (genuine typo branch), it is long enough,
+        // and only corpus-head frequencies qualify. User-dictionary matches and
+        // normal prefix suggestions never auto-commit.
+        return if (AutocorrectDecider.shouldAutoCommit(
+                typedLength = raw.length,
+                typedIsPrefixMatch = false,
+                correctionFreq = correctionEntries.first().freq,
+                enabled = prefs.suggestion.autocorrectEnabled.get(),
+            )
+        ) {
+            buildList {
+                add(fallback.first().copy(isEligibleForAutoCommit = true))
+                addAll(fallback.drop(1))
+            }
+        } else {
+            fallback
+        }
     }
 
     /**

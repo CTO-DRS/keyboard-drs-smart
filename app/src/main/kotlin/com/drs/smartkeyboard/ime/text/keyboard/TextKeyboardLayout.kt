@@ -55,6 +55,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
@@ -69,6 +73,8 @@ import com.drs.smartkeyboard.ime.keyboard.ComputingEvaluator
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.keyboard.KeyboardMode
 import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
+import com.drs.smartkeyboard.ime.keyboard.computeLabel
+import com.drs.smartkeyboard.ime.keyboard.keyA11yLabelRes
 import com.drs.smartkeyboard.ime.popup.ExceptionsForKeyCodes
 import com.drs.smartkeyboard.ime.popup.PopupUiController
 import com.drs.smartkeyboard.ime.popup.rememberPopupUiController
@@ -347,13 +353,27 @@ private fun TextKeyButton(
     val size = remember(key, desiredKey) {
         key.visibleBounds.size.toDpSize()
     }
+    // DRS v1.17.0: every key finally speaks to TalkBack. Icon-only keys
+    // (shift/backspace/enter/arrows…) get a localized spoken label from
+    // the pure [keyA11yLabelRes] mapping; all other keys fall back to the
+    // evaluator's computed label or the key's own display string.
+    val a11yDescription = remember(key.computedData, key.label) {
+        val spoken = keyA11yLabelRes(key.computedData.code)?.let { evaluator.context()?.getString(it) }
+        spoken
+            ?: evaluator.computeLabel(key.computedData)
+            ?: key.computedData.asString(isForDisplay = true)
+    }
     SnyggBox(
         DrsImeUi.Key.elementName,
         attributes = attributes,
         selector = selector,
         modifier = Modifier
             .requiredSize(size)
-            .absoluteOffset { key.visibleBounds.topLeft.toIntOffset() },
+            .absoluteOffset { key.visibleBounds.topLeft.toIntOffset() }
+            .semantics {
+                role = Role.Button
+                contentDescription = a11yDescription
+            },
     ) {
         val isTelPadKey = key.computedData.type == KeyType.NUMERIC && evaluator.keyboard.mode == KeyboardMode.PHONE
         key.label?.let { label ->

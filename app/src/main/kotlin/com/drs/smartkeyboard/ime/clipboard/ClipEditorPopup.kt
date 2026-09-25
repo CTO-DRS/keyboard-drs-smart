@@ -89,6 +89,7 @@ import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardItem
 import com.drs.smartkeyboard.ime.clipboard.provider.ItemType
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.drs.jetpref.datastore.model.collectAsState
@@ -431,8 +432,21 @@ class ClipEditorPopupActivity : ComponentActivity() {
             }
         }
 
-        val matches = remember(text, findQuery, matchCase) {
-            ClipSearchEngine.findMatches(text, findQuery, ignoreCase = !matchCase)
+        // DRS v1.17.0: the match scan moved OFF the main thread behind a
+        // short debounce — a 500,000-char field no longer rescans
+        // synchronously on every keystroke while typing the query or
+        // editing the text; results arrive a frame later, indistinguishably.
+        var matches by remember { mutableStateOf(emptyList<ClipMatch>()) }
+        LaunchedEffect(text, findQuery, matchCase) {
+            if (findQuery.isEmpty()) {
+                matches = emptyList()
+                return@LaunchedEffect
+            }
+            delay(150)
+            val snapshot = text
+            matches = withContext(Dispatchers.Default) {
+                ClipSearchEngine.findMatches(snapshot, findQuery, ignoreCase = !matchCase)
+            }
         }
         val activeIndex = if (matches.isEmpty()) -1 else activeMatch.coerceIn(0, matches.size - 1)
 

@@ -95,6 +95,21 @@ enum class HarakaInsertMode {
  */
 object HarakatSmartInsert {
 
+    /**
+     * DRS v1.17.0: haraka-first backspace — true when the delete key may
+     * peel ONE diacritic off the letter before the cursor instead of
+     * deleting the whole ICU grapheme cluster (letter + all marks) in a
+     * single tap. Repeated taps therefore remove شدة then the haraka then
+     * the letter, giving the typist full control over the smart stacking
+     * this panel produces. Pure and unit-tested; the editor consults it
+     * before its cluster delete path.
+     */
+    fun shouldStripBeforeDelete(textBeforeCursor: String, enabled: Boolean): Boolean {
+        if (!enabled) return false
+        val last = textBeforeCursor.lastOrNull() ?: return false
+        return DrsHarakat.isCombiningMark(last)
+    }
+
     fun decide(previous: Char?, haraka: Char, smartReplace: Boolean): HarakaInsertMode {
         if (!smartReplace) return HarakaInsertMode.APPEND
         val prev = previous ?: return HarakaInsertMode.APPEND

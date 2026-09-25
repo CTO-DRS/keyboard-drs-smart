@@ -749,6 +749,15 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "keyboard__space_bar_switches_to_characters",
             default = true,
         )
+        /**
+         * DRS v1.17.0: haraka-first backspace — deleting peels the diacritic
+         * off the letter first (one mark per tap) instead of the ICU
+         * grapheme cluster (letter + all its marks in one tap).
+         */
+        val backspaceStripsHarakat = boolean(
+            key = "keyboard__backspace_strips_harakat",
+            default = true,
+        )
         val incognitoDisplayMode = enum(
             key = "keyboard__incognito_indicator",
             default = IncognitoDisplayMode.DISPLAY_BEHIND_KEYBOARD,
@@ -950,6 +959,16 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         // of the prefix suggestions themselves.
         val nextWordEnabled = boolean(
             key = "suggestion__next_word_enabled",
+            default = true,
+        )
+        /**
+         * DRS v1.17.0: TRUE autocorrect — when the typed word matches NO
+         * dictionary prefix and a very common word sits within edit
+         * distance 1, space silently commits the fix (backspace reverts).
+         * Gated by [com.drs.smartkeyboard.ime.nlp.AutocorrectDecider].
+         */
+        val autocorrectEnabled = boolean(
+            key = "suggestion__autocorrect_enabled",
             default = true,
         )
         val incognitoMode = enum(

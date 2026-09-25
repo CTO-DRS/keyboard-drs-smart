@@ -79,6 +79,8 @@ import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -540,6 +542,9 @@ private fun EmojiKey(
     SnyggBox(DrsImeUi.MediaEmojiKey.elementName,
         modifier = Modifier
             .aspectRatio(1f)
+            // DRS v1.17.0: the emoji itself is its own spoken label —
+            // TalkBack resolves emoji characters to localized names.
+            .semantics { contentDescription = base.value }
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {

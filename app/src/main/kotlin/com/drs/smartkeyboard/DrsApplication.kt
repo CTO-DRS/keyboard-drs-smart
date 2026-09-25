@@ -23,6 +23,7 @@ import android.content.ContextWrapper
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Handler
+import android.os.StrictMode
 import android.util.Log
 import androidx.core.os.UserManagerCompat
 import com.drs.smartkeyboard.app.DrsPreferenceModel
@@ -87,6 +88,26 @@ class DrsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         DrsApplicationReference = WeakReference(this)
+        if (BuildConfig.DEBUG) {
+            // DRS v1.17.0: strict mode in debug builds only — an app whose
+            // core promise is never dropping a keystroke must never
+            // silently do disk I/O on the main thread during development.
+            StrictMode.setThreadPolicy(
+                StrictMode.ThreadPolicy.Builder()
+                    .detectDiskReads()
+                    .detectDiskWrites()
+                    .detectNetwork()
+                    .penaltyLog()
+                    .build(),
+            )
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
+                    .detectLeakedClosableObjects()
+                    .detectActivityLeaks()
+                    .penaltyLog()
+                    .build(),
+            )
+        }
         try {
             Flog.install(
                 context = this,

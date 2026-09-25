@@ -708,15 +708,19 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     /**
      * Handles a [KeyCode.TOGGLE_AUTOCORRECT] event.
      *
-     * DRS v1.3.0: REAL toggle — flips the suggestion engine pref
-     * (suggestion__enabled), the same preference the settings screen and
-     * the profile suggestion switch drive, so the change takes effect on
-     * the very next keystroke (candidates/corrections stop or resume),
-     * with a toast confirming the new state.
+     * DRS v1.3.0: REAL toggle — flips an engine pref the settings screen
+     * and the profile switch drive too, so the change takes effect on the
+     * very next keystroke, with a toast confirming the new state.
+     * DRS v1.17.0: flips suggestion__autocorrect_enabled — whether space
+     * may silently fix a typo — while the suggestion row stays available.
      */
     private suspend fun handleToggleAutocorrect() {
-        prefs.suggestion.enabled.set(!prefs.suggestion.enabled.get())
-        val newState = prefs.suggestion.enabled.get()
+        // DRS v1.17.0: the toggle now flips the REAL autocorrect behavior
+        // (whether a space can silently fix a typo) instead of the old
+        // misnomer of hiding the whole suggestion row. The row itself stays
+        // available; only auto-commit stops happening when off.
+        prefs.suggestion.autocorrectEnabled.set(!prefs.suggestion.autocorrectEnabled.get())
+        val newState = prefs.suggestion.autocorrectEnabled.get()
         lastToastReference.get()?.cancel()
         lastToastReference = WeakReference(
             if (newState) {

@@ -29,7 +29,6 @@
     <locale android:name="ku"/>
     <locale android:name="lv-LV"/>
     <locale android:name="mk"/>
-    <locale android:name="nds-DE"/>
     <locale android:name="nl"/>
     <locale android:name="no"/>
     <locale android:name="pl"/>
@@ -43,7 +42,6 @@
     <locale android:name="sv"/>
     <locale android:name="tr"/>
     <locale android:name="uk"/>
-    <locale android:name="ur-PK"/>
     <locale android:name="zgh"/>
     <locale android:name="zh-CN"/>
 </locale-config>

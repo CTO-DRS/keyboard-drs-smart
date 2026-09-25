@@ -594,7 +594,9 @@ fun ClipboardInputLayout(
                     Image(
                         modifier = Modifier.fillMaxWidth(),
                         bitmap = bitmap.getOrThrow(),
-                        contentDescription = null,
+                        // DRS v1.17.0: media tiles speak — TalkBack announces
+                        // what the tile holds instead of skipping it.
+                        contentDescription = stringRes(R.string.clipboard__a11y_image_tile),
                         contentScale = ContentScale.FillWidth,
                     )
                 } else {
@@ -627,7 +629,8 @@ fun ClipboardInputLayout(
                     Image(
                         modifier = Modifier.fillMaxWidth(),
                         bitmap = bitmap.getOrThrow(),
-                        contentDescription = null,
+                        // DRS v1.17.0: media tiles speak — see image twin above.
+                        contentDescription = stringRes(R.string.clipboard__a11y_video_tile),
                         contentScale = ContentScale.FillWidth,
                     )
                     Icon(
@@ -670,7 +673,8 @@ fun ClipboardInputLayout(
                         .padding(4.dp)
                         .background(Color.White, CircleShape),
                     imageVector = Icons.Outlined.PushPin,
-                    contentDescription = null,
+                    // DRS v1.17.0: the pinned badge is spoken too.
+                    contentDescription = stringRes(R.string.clipboard__a11y_pinned_badge),
                     tint = Color.Black,
                 )
             }
@@ -1258,8 +1262,19 @@ fun ClipboardInputLayout(
     // save-as-file — all on top of the same engine-owned pure core.
     @Composable
     fun ClipEditorScreen() {
-        val matches = remember(editingText, findQuery, matchCase) {
-            ClipSearchEngine.findMatches(editingText, findQuery, ignoreCase = !matchCase)
+        // DRS v1.17.0: same background-debounced scan as the popup window —
+        // huge texts no longer rescan synchronously per keystroke.
+        var matches by remember { mutableStateOf(emptyList<ClipMatch>()) }
+        LaunchedEffect(editingText, findQuery, matchCase) {
+            if (findQuery.isEmpty()) {
+                matches = emptyList()
+                return@LaunchedEffect
+            }
+            delay(150)
+            val snapshot = editingText
+            matches = withContext(Dispatchers.Default) {
+                ClipSearchEngine.findMatches(snapshot, findQuery, ignoreCase = !matchCase)
+            }
         }
         val activeIndex = if (matches.isEmpty()) -1 else activeMatch.coerceIn(0, matches.size - 1)
 

@@ -75,6 +75,14 @@ fun TypingScreen() = DrsScreen {
                 title = stringRes(R.string.pref__suggestion__enabled__label),
                 summary = stringRes(R.string.pref__suggestion__enabled__summary),
             )
+            // DRS v1.17.0: the REAL autocorrect — space may silently fix a
+            // genuine typo when a very common word sits within edit distance 1.
+            SwitchPreference(
+                prefs.suggestion.autocorrectEnabled,
+                title = stringRes(R.string.pref__suggestion__autocorrect_enabled__label),
+                summary = stringRes(R.string.pref__suggestion__autocorrect_enabled__summary),
+                enabledIf = { prefs.suggestion.enabled isEqualTo true },
+            )
             SwitchPreference(
                 prefs.suggestion.nextWordEnabled,
                 title = stringRes(R.string.pref__suggestion__next_word_enabled__label),

@@ -168,6 +168,13 @@ fun KeyboardScreen() = DrsScreen {
                 title = stringRes(R.string.pref__keyboard__space_bar_switches_to_characters__label),
                 summary = stringRes(R.string.pref__keyboard__space_bar_switches_to_characters__summary),
             )
+            // DRS v1.17.0: haraka-first backspace — the delete key peels
+            // diacritics off letter by letter instead of one cluster tap.
+            SwitchPreference(
+                prefs.keyboard.backspaceStripsHarakat,
+                title = stringRes(R.string.pref__keyboard__backspace_strips_harakat__label),
+                summary = stringRes(R.string.pref__keyboard__backspace_strips_harakat__summary),
+            )
         }
     }
 }

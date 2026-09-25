@@ -29,6 +29,7 @@ import com.drs.smartkeyboard.DrsImeService
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.drs.DrsRuntimeState
+import com.drs.smartkeyboard.drs.HarakatSmartInsert
 import com.drs.smartkeyboard.drs.DrsTextTool
 import com.drs.smartkeyboard.drs.DrsTextTools
 import com.drs.smartkeyboard.appContext
@@ -365,6 +366,17 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         phantomSpace.setInactive()
         return if (content.selection.isSelectionMode) {
             commitText("")
+        } else if (unit == OperationUnit.CHARACTERS &&
+            HarakatSmartInsert.shouldStripBeforeDelete(
+                textBeforeCursor = content.textBeforeSelection.toString(),
+                enabled = prefs.keyboard.backspaceStripsHarakat.get(),
+            )
+        ) {
+            // DRS v1.17.0: haraka-first backspace — peel ONE diacritic off
+            // the letter instead of deleting the whole grapheme cluster
+            // (the helper lives in AbstractEditorInstance beside the
+            // delete path it mirrors).
+            runBlocking { deleteSingleDiacriticBeforeCursor() }
         } else runBlocking {
             deleteAroundCursor(unit, OperationScope.BEFORE_CURSOR, n = 1)
         }

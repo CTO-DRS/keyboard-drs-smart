@@ -438,6 +438,39 @@ abstract class AbstractEditorInstance(context: Context) {
         return true
     }
 
+    /**
+     * DRS v1.17.0: deletes exactly ONE diacritic codepoint before the
+     * cursor — the haraka-first backspace. Mirrors the rich-editor path
+     * of [deleteAroundCursor] with a fixed single-codepoint length; raw
+     * editors and empty text fall back to the full cluster delete.
+     */
+    protected suspend fun deleteSingleDiacriticBeforeCursor(): Boolean {
+        val ic = currentInputConnection()
+            ?: return deleteAroundCursor(OperationUnit.CHARACTERS, OperationScope.BEFORE_CURSOR, n = 1)
+        val content = activeContent
+        val scopeText = content.textBeforeSelection
+        if (scopeText.isNullOrEmpty()) {
+            return deleteAroundCursor(OperationUnit.CHARACTERS, OperationScope.BEFORE_CURSOR, n = 1)
+        }
+        val newContent = content.generateCopy(
+            selection = content.selection.translatedBy(-1),
+            textBeforeSelection = scopeText.dropLast(1),
+        )
+        expectedContentQueue.push(newContent)
+        ic.beginBatchEdit()
+        try {
+            ic.finishComposingText()
+            ic.deleteSurroundingText(1, 0)
+            ic.setComposingRegion(newContent.composing)
+        } finally {
+            try {
+                ic.endBatchEdit()
+            } catch (_: Throwable) {
+            }
+        }
+        return true
+    }
+
     protected suspend fun deleteAroundCursor(unit: OperationUnit, scope: OperationScope, n: Int = 0): Boolean {
         val ic = currentInputConnection()
         if (ic == null || n < 1) return false
