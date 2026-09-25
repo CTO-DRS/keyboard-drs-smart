@@ -27,7 +27,6 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,6 +45,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
@@ -59,6 +62,7 @@ import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
@@ -66,12 +70,16 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.SaveAlt
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FilterListOff
+import androidx.compose.material.icons.filled.FormatLineSpacing
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Notes
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.ToggleOff
@@ -83,6 +91,7 @@ import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.outlined.ContentPasteGo
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.icons.outlined.AlternateEmail
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
@@ -108,7 +117,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
@@ -118,6 +134,19 @@ import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardFileStorage
 import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardItem
 import com.drs.smartkeyboard.ime.clipboard.provider.ItemType
+import com.drs.smartkeyboard.ime.clipboard.ClipCodeDetector
+import com.drs.smartkeyboard.ime.clipboard.ClipCodeLanguage
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySection
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySections
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySorter
+import com.drs.smartkeyboard.ime.clipboard.ClipItemCategory
+import com.drs.smartkeyboard.ime.clipboard.ClipItemCategoryDetector
+import com.drs.smartkeyboard.ime.clipboard.ClipPanelSearchResults
+import com.drs.smartkeyboard.ime.clipboard.ClipPanelResultCard
+import com.drs.smartkeyboard.ime.clipboard.ClipResultPalette
+import com.drs.smartkeyboard.ime.clipboard.ClipResultCard
+import com.drs.smartkeyboard.ime.clipboard.ClipSearchResults
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.media.KeyboardLikeButton
 import com.drs.smartkeyboard.ime.smartbar.AnimationDuration
@@ -181,8 +210,22 @@ fun ClipboardInputLayout(
     var searchQuery by remember { mutableStateOf("") }
     val activeFilterTypes = remember { mutableStateSetOf<ItemType>() }
 
+    // DRS v1.12.0 — the complete smart clipboard system: the persisted
+    // sort order, the editor defaults from the app settings, and the
+    // toggles of the colored search-result cards and code detection.
+    val historySortPref by prefs.clipboard.historySort.collectAsState()
+    val editorLimitPref by prefs.clipboard.editorCharLimit.collectAsState()
+    val searchResultCardsPref by prefs.clipboard.searchResultCards.collectAsState()
+    val autoResultsPref by prefs.clipboard.autoResultsPanel.collectAsState()
+    val codeDetectionPref by prefs.clipboard.codeDetection.collectAsState()
+    val defaultFontPref by prefs.clipboard.editorFont.collectAsState()
+    val defaultFontSizePref by prefs.clipboard.editorFontSize.collectAsState()
+    val defaultMatchCasePref by prefs.clipboard.matchCaseByDefault.collectAsState()
+    val editorLimit = editorLimitPref.effectiveLimit()
+    var resultsPanelShown by remember { mutableStateOf(autoResultsPref) }
+
     val unfilteredHistory by clipboardManager.historyFlow.collectAsState()
-    val filteredHistory = remember(unfilteredHistory, activeFilterTypes.toSet(), searchQuery) {
+    val filteredHistory = remember(unfilteredHistory, activeFilterTypes.toSet(), searchQuery, historySortPref) {
         var items = unfilteredHistory.all
         if (activeFilterTypes.isNotEmpty()) {
             items = items.filter { activeFilterTypes.contains(it.type) }
@@ -190,6 +233,9 @@ fun ClipboardInputLayout(
         if (searchQuery.isNotBlank()) {
             items = items.filter { it.text?.contains(searchQuery, ignoreCase = true) == true }
         }
+        // DRS v1.12.0: the user-chosen sort order of the panel
+        // (newest / oldest / longest / shortest) — pure and persisted.
+        items = ClipHistorySorter.sort(items, historySortPref)
         ClipboardHistory(items)
     }
 
@@ -227,6 +273,159 @@ fun ClipboardInputLayout(
             context.startActivity(
                 Intent.createChooser(send, context.getString(R.string.clip__share_item))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            )
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // DRS v1.12.0 — the complete smart clipboard system helpers.
+    // ------------------------------------------------------------------
+
+    /** The title of a calendar section of the panel. */
+    @StringRes
+    fun sectionTitleRes(section: ClipHistorySection): Int = when (section) {
+        ClipHistorySection.PINNED -> R.string.clipboard__group_pinned
+        ClipHistorySection.TODAY -> R.string.clipboard__group_today
+        ClipHistorySection.YESTERDAY -> R.string.clipboard__group_yesterday
+        ClipHistorySection.THIS_WEEK -> R.string.clipboard__group_this_week
+        ClipHistorySection.THIS_MONTH -> R.string.clipboard__group_this_month
+        ClipHistorySection.OLDER -> R.string.clipboard__group_older
+    }
+
+    /** The badge icon of a smart category (null = no badge for plain text). */
+    fun categoryBadgeIcon(category: ClipItemCategory): ImageVector? = when (category) {
+        ClipItemCategory.URL -> Icons.Default.Link
+        ClipItemCategory.EMAIL -> Icons.Outlined.AlternateEmail
+        ClipItemCategory.PHONE -> Icons.Default.Phone
+        ClipItemCategory.CODE -> Icons.Default.Code
+        ClipItemCategory.TEXT -> null
+    }
+
+    /** The display label of a detected code language. */
+    @Composable
+    fun codeLanguageLabel(language: ClipCodeLanguage): String = stringRes(
+        when (language) {
+            ClipCodeLanguage.KOTLIN_JAVA -> R.string.clip__lang_kotlin_java
+            ClipCodeLanguage.PYTHON -> R.string.clip__lang_python
+            ClipCodeLanguage.JAVASCRIPT -> R.string.clip__lang_javascript
+            ClipCodeLanguage.JSON -> R.string.clip__lang_json
+            ClipCodeLanguage.HTML_XML -> R.string.clip__lang_html_xml
+            ClipCodeLanguage.CSS -> R.string.clip__lang_css
+            ClipCodeLanguage.SQL -> R.string.clip__lang_sql
+            ClipCodeLanguage.C_CPP -> R.string.clip__lang_c_cpp
+            ClipCodeLanguage.BASH -> R.string.clip__lang_bash
+            ClipCodeLanguage.UNKNOWN -> R.string.clip__lang_unknown
+        },
+    )
+
+    /**
+     * One colored search-result card of the panel: the palette color fills
+     * the card border and highlights the matched span inside the preview;
+     * tapping navigates to the item's action ladder, long-press pastes.
+     */
+    @Composable
+    fun PanelResultCardView(card: ClipPanelResultCard) {
+        val color = Color(ClipResultPalette.COLORS[card.colorSlot])
+        val windowStyle = rememberSnyggThemeQuery(DrsImeUi.Window.elementName)
+        val themedForeground = windowStyle.foreground()
+        val cardTextColor = if (themedForeground.isSpecified) {
+            themedForeground
+        } else {
+            windowStyle.background()
+                .takeIf { it.isSpecified }
+                ?.let { readableTextColor(it) }
+                ?: Color.White
+        }
+        val category = remember(card.item.text) { ClipItemCategoryDetector.detect(card.item.text) }
+        val annotated = buildAnnotatedString {
+            if (card.truncatedBefore) append("…")
+            append(card.before)
+            withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                append(card.matched)
+            }
+            append(card.after)
+            if (card.truncatedAfter) append("…")
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+                .background(color.copy(alpha = 0.12f), RoundedCornerShape(10.dp))
+                .border(1.5.dp, if (category != ClipItemCategory.TEXT) color else color.copy(alpha = 0.55f), RoundedCornerShape(10.dp))
+                .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(),
+                    onClick = { popupItem = card.item },
+                    onLongClick = { clipboardManager.pasteItem(card.item) },
+                )
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            val badge = categoryBadgeIcon(category)
+            if (badge != null) {
+                Icon(
+                    imageVector = badge,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.padding(end = 6.dp),
+                )
+            }
+            Text(
+                text = annotated,
+                color = cardTextColor,
+                style = LocalTextStyle.current.copy(fontSize = 13.sp),
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+        }
+    }
+
+    /**
+     * One colored search-result card of the editors: the line number plus
+     * the same-line context with the matched span painted; tapping makes
+     * the match the active one (the counter and the in-text glow follow).
+     */
+    @Composable
+    fun EditorResultCardView(
+        card: ClipResultCard,
+        active: Boolean,
+        onSelect: () -> Unit,
+    ) {
+        val color = Color(ClipResultPalette.COLORS[card.colorSlot])
+        val annotated = buildAnnotatedString {
+            if (card.truncatedBefore) append("…")
+            append(card.before)
+            withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                append(card.matched)
+            }
+            append(card.after)
+            if (card.truncatedAfter) append("…")
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 2.dp)
+                .background(
+                    color.copy(alpha = if (active) 0.30f else 0.12f),
+                    RoundedCornerShape(8.dp),
+                )
+                .border(1.dp, if (active) color else color.copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+                .rippleClickable(onClick = onSelect)
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = stringRes(R.string.clip__result_line, "line" to card.lineNumber),
+                color = color,
+                fontWeight = FontWeight.Bold,
+                fontSize = 11.sp,
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = annotated,
+                style = LocalTextStyle.current.copy(fontSize = 12.sp),
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
         }
     }
@@ -454,6 +653,24 @@ fun ClipboardInputLayout(
                     tint = Color.Black,
                 )
             }
+            // DRS v1.12.0: the smart category badge of text tiles — a link,
+            // an email, a phone number, or a code snippet is flagged on
+            // sight (plain text stays unbadged to avoid noise).
+            if (item.type == ItemType.TEXT) {
+                val category = remember(item.text) { ClipItemCategoryDetector.detect(item.text) }
+                if (category != ClipItemCategory.TEXT) {
+                    Icon(
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp)
+                            .background(Color.White, CircleShape),
+                        // Non-null: every non-TEXT category maps to a badge icon.
+                        imageVector = categoryBadgeIcon(category)!!,
+                        contentDescription = null,
+                        tint = Color.Black,
+                    )
+                }
+            }
         }
     }
 
@@ -600,33 +817,103 @@ fun ClipboardInputLayout(
                             text = "Videos",
                             itemType = ItemType.VIDEO,
                         )
+
+                        // DRS v1.12.0: the sort orders of the panel — a
+                        // persisted choice rendered right beside the type
+                        // filters, so the full organization is one tap deep.
+                        @Composable
+                        fun SortChip(
+                            imageVector: ImageVector,
+                            text: String,
+                            sort: ClipHistorySort,
+                        ) {
+                            val active = historySortPref == sort
+                            val attributes = remember(active) {
+                                mapOf("state" to if (active) "active" else "inactive")
+                            }
+                            SnyggChip(
+                                elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                                attributes = attributes,
+                                onClick = { scope.launch { prefs.clipboard.historySort.set(sort) } },
+                                imageVector = imageVector,
+                                text = text,
+                            )
+                        }
+
+                        SortChip(
+                            imageVector = Icons.Default.Schedule,
+                            text = stringRes(R.string.clip__sort_newest),
+                            sort = ClipHistorySort.NEWEST,
+                        )
+                        SortChip(
+                            imageVector = Icons.Default.History,
+                            text = stringRes(R.string.clip__sort_oldest),
+                            sort = ClipHistorySort.OLDEST,
+                        )
+                        SortChip(
+                            imageVector = Icons.Default.FormatLineSpacing,
+                            text = stringRes(R.string.clip__sort_longest),
+                            sort = ClipHistorySort.LONGEST,
+                        )
+                        SortChip(
+                            imageVector = Icons.Default.Notes,
+                            text = stringRes(R.string.clip__sort_shortest),
+                            sort = ClipHistorySort.SHORTEST,
+                        )
                     }
                 }
-                SnyggBox(DrsImeUi.ClipboardGrid.elementName,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                ) {
-                    LazyVerticalStaggeredGrid(
-                        modifier = Modifier.fillMaxSize(),
-                        state = gridState,
-                        columns = staggeredGridCells,
+                // DRS v1.12.0: while searching with the colored result
+                // cards on, the results render as navigable colored cards
+                // (tap opens the item's action ladder, long-press pastes);
+                // otherwise the organized calendar sections render.
+                if (searchQuery.isNotBlank() && searchResultCardsPref) {
+                    val panelCards = remember(filteredHistory.all, searchQuery) {
+                        ClipPanelSearchResults.buildCards(filteredHistory.all, searchQuery)
+                    }
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 2.dp),
+                            text = stringRes(R.string.clipboard__search_results_count, "count" to panelCards.size),
+                        )
+                        LazyColumn(modifier = Modifier.fillMaxSize()) {
+                            for (card in panelCards) {
+                                item(key = card.item.id) {
+                                    PanelResultCardView(card = card)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    SnyggBox(DrsImeUi.ClipboardGrid.elementName,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
                     ) {
-                        clipboardItems(
-                            items = filteredHistory.pinned,
-                            key = "pinned-header",
-                            title = R.string.clipboard__group_pinned,
-                        )
-                        clipboardItems(
-                            items = filteredHistory.recent,
-                            key = "recent-header",
-                            title = R.string.clipboard__group_recent,
-                        )
-                        clipboardItems(
-                            items = filteredHistory.other,
-                            key = "other-header",
-                            title = R.string.clipboard__group_other,
-                        )
+                        // DRS v1.12.0: the calendar-aware sections (pinned,
+                        // today, yesterday, this week, this month, older)
+                        // replace the old pinned/recent/other split — the
+                        // comprehensive reorganization of the panel.
+                        val sectionGroups = remember(filteredHistory.all) {
+                            ClipHistorySections.group(
+                                filteredHistory.all,
+                                System.currentTimeMillis(),
+                                ZoneId.systemDefault(),
+                            )
+                        }
+                        LazyVerticalStaggeredGrid(
+                            modifier = Modifier.fillMaxSize(),
+                            state = gridState,
+                            columns = staggeredGridCells,
+                        ) {
+                            for (group in sectionGroups) {
+                                clipboardItems(
+                                    items = group.items,
+                                    key = "section-${group.section.name.lowercase()}",
+                                    title = sectionTitleRes(group.section),
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -721,12 +1008,22 @@ fun ClipboardInputLayout(
                                         editingItem = target
                                         editingText = target.text.orEmpty()
                                         editorHistory.clear()
-                                        editorFont = ClipFontOption.DEFAULT
-                                        editorFontSize = ClipFontSizeOption.NORMAL
+                                        // DRS v1.12.0: the editor honors the app
+                                        // settings defaults, and detected code
+                                        // switches to the monospace family once.
+                                        editorFont = if (codeDetectionPref &&
+                                            ClipCodeDetector.analyze(target.text.orEmpty()).isCode
+                                        ) {
+                                            ClipFontOption.MONOSPACE
+                                        } else {
+                                            defaultFontPref
+                                        }
+                                        editorFontSize = defaultFontSizePref
                                         findQuery = ""
                                         replaceQuery = ""
-                                        matchCase = false
+                                        matchCase = defaultMatchCasePref
                                         activeMatch = 0
+                                        resultsPanelShown = autoResultsPref
                                     }
                                 }
                                 PopupAction(
@@ -919,7 +1216,7 @@ fun ClipboardInputLayout(
         fun applyTransform(newText: String) {
             if (newText != editingText) {
                 editorHistory.push(editingText)
-                editingText = ClipboardTextPolicy.truncateForStorage(newText)
+                editingText = ClipboardTextPolicy.truncateForStorage(newText, editorLimit)
             }
         }
 
@@ -984,6 +1281,37 @@ fun ClipboardInputLayout(
                     "lines" to stats.lines,
                 ),
             )
+
+            // DRS v1.12.0: the programming-line badge — when the text is
+            // detected as code (and detection is on), the language, the
+            // code-line share, and the auto monospace family light up.
+            val codeAnalysis = remember(editingText, codeDetectionPref) {
+                if (codeDetectionPref && editingText.length <= ClipCodeDetector.LARGE_TEXT_CHARS) {
+                    ClipCodeDetector.analyze(editingText)
+                } else {
+                    null
+                }
+            }
+            if (codeAnalysis?.isCode == true) {
+                SnyggText(
+                    elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "\uD83D\uDCBB " + stringRes(
+                        R.string.clip__code_badge,
+                        "lang" to codeLanguageLabel(codeAnalysis.language),
+                        "code" to codeAnalysis.codeLines,
+                        "total" to codeAnalysis.totalLines,
+                    ),
+                )
+            }
+            // DRS v1.12.0: the slowdown warning for huge texts.
+            if (editingText.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
+                SnyggText(
+                    elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "⚠ " + stringRes(R.string.clip__large_text_warning),
+                )
+            }
 
             // Find row: query, case toggle, match counter, navigation.
             SnyggRow(
@@ -1127,6 +1455,47 @@ fun ClipboardInputLayout(
                 }
             }
 
+            // DRS v1.12.0: the colored search-result cards — every match
+            // becomes a card with its line number and same-line context;
+            // tapping a card navigates the match counter to it.
+            if (findQuery.isNotEmpty() && searchResultCardsPref && matches.isNotEmpty()) {
+                val resultCards = remember(matches, editingText) {
+                    ClipSearchResults.buildCards(editingText, matches)
+                }
+                SnyggRow(
+                    elementName = DrsImeUi.ClipboardFilterRow.elementName,
+                    modifier = Modifier.fillMaxWidth(),
+                    clickAndSemanticsModifier = Modifier.drsHorizontalScroll(),
+                ) {
+                    SnyggChip(
+                        elementName = DrsImeUi.ClipboardFilterChip.elementName,
+                        attributes = mapOf("state" to if (resultsPanelShown) "active" else "inactive"),
+                        onClick = { resultsPanelShown = !resultsPanelShown },
+                        text = if (resultsPanelShown) {
+                            stringRes(R.string.clip__results_hide)
+                        } else {
+                            stringRes(R.string.clip__results_title, "count" to matches.size)
+                        },
+                    )
+                }
+                if (resultsPanelShown) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 132.dp)
+                            .drsVerticalScroll(),
+                    ) {
+                        for (card in resultCards) {
+                            EditorResultCardView(
+                                card = card,
+                                active = card.matchIndex == activeIndex,
+                                onSelect = { activeMatch = card.matchIndex },
+                            )
+                        }
+                    }
+                }
+            }
+
             // Smart algorithms row: the case family (language-neutral
             // labels), the whitespace/line surgeries, the Arabic-aware
             // normalization, and the smart extractors.
@@ -1168,6 +1537,23 @@ fun ClipboardInputLayout(
                 }
                 EditorChip(stringRes(R.string.clip__transform_reverse)) {
                     applyTransform(ClipTextTransforms.reverseLines(editingText))
+                }
+                // DRS v1.12.0: the line numbering and the code-line
+                // surgery chips (extract keeps only code lines, remove
+                // drops them) — the programming helpers of the editor.
+                EditorChip(stringRes(R.string.clip__transform_number_lines)) {
+                    applyTransform(ClipTextTransforms.numberLines(editingText))
+                }
+                EditorChip(stringRes(R.string.clip__transform_extract_code)) {
+                    val extracted = ClipCodeDetector.extractCodeLines(editingText)
+                    if (extracted.isEmpty()) {
+                        context.showShortToastSync(R.string.clip__extract_none)
+                    } else {
+                        applyTransform(extracted)
+                    }
+                }
+                EditorChip(stringRes(R.string.clip__transform_remove_code)) {
+                    applyTransform(ClipCodeDetector.removeCodeLines(editingText))
                 }
                 EditorChip(stringRes(R.string.clip__transform_no_diacritics)) {
                     applyTransform(ClipTextTransforms.removeArabicDiacritics(editingText))
@@ -1254,14 +1640,47 @@ fun ClipboardInputLayout(
                     .padding(horizontal = 8.dp)
                     .drsVerticalScroll(),
             ) {
+                // DRS v1.12.0: the matches glow inside the text itself —
+                // every match paints its palette color, the active one
+                // strongest, so the cards and the field tell one story.
+                val highlightRanges = remember(matches, activeIndex) {
+                    ClipSearchResults.highlightRanges(matches, activeIndex)
+                }
+                val highlightTransformation = remember(highlightRanges) {
+                    VisualTransformation { fieldText ->
+                        if (highlightRanges.isEmpty()) {
+                            TransformedText(
+                                androidx.compose.ui.text.AnnotatedString(fieldText.text),
+                                OffsetMapping.Identity,
+                            )
+                        } else {
+                            val annotated = buildAnnotatedString {
+                                append(fieldText.text)
+                                for (range in highlightRanges) {
+                                    addStyle(
+                                        SpanStyle(
+                                            background = Color(
+                                                ClipResultPalette.COLORS[range.colorSlot],
+                                            ).copy(alpha = if (range.isActive) 0.55f else 0.22f),
+                                        ),
+                                        range.start,
+                                        range.end,
+                                    )
+                                }
+                            }
+                            TransformedText(annotated, OffsetMapping.Identity)
+                        }
+                    }
+                }
                 BasicTextField(
                     value = editingText,
-                    onValueChange = { editingText = ClipboardTextPolicy.truncateForStorage(it) },
+                    onValueChange = { editingText = ClipboardTextPolicy.truncateForStorage(it, editorLimit) },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = LocalTextStyle.current.copy(
                         fontFamily = editorFontFamily,
                         fontSize = editorFontSize.spValue.sp,
                     ),
+                    visualTransformation = highlightTransformation,
                 )
             }
 
@@ -1272,7 +1691,7 @@ fun ClipboardInputLayout(
                 text = stringRes(
                     R.string.clip__char_limit_counter,
                     "used" to editingText.length,
-                    "max" to ClipboardTextPolicy.MAX_TEXT_CHARS,
+                    "max" to editorLimit,
                 ),
             )
             SnyggRow(DrsImeUi.ClipboardClearAllDialogButtons.elementName) {

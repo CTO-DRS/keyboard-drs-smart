@@ -45,31 +45,34 @@ import kotlinx.serialization.json.jsonPrimitive
 class DrsV190Tests : FunSpec({
 
     // -------------------------------------------------------------
-    // The 50,000-character storage policy
+    // The storage policy cap — DRS v1.12.0 raised it from 50,000 to
+    // 500,000 characters, so the historical contract is re-pinned at
+    // the new boundary (the truncation tests below use the two-arg
+    // overload so they stay true to the truncation behavior itself).
     // -------------------------------------------------------------
 
-    test("the storage policy caps one text at exactly 50000 characters") {
-        ClipboardTextPolicy.MAX_TEXT_CHARS shouldBe 50_000
-        val boundary = "أ".repeat(50_000)
+    test("the storage policy caps one text at exactly 500000 characters") {
+        ClipboardTextPolicy.MAX_TEXT_CHARS shouldBe 500_000
+        val boundary = "أ".repeat(500_000)
         ClipboardTextPolicy.fits(boundary) shouldBe true
         ClipboardTextPolicy.truncateForStorage(boundary) shouldBe boundary
     }
 
-    test("one character over the cap truncates to exactly 50000") {
-        val over = "x".repeat(50_001)
+    test("one character over the cap truncates to exactly 500000") {
+        val over = "x".repeat(500_001)
         ClipboardTextPolicy.fits(over) shouldBe false
         val stored = ClipboardTextPolicy.truncateForStorage(over)
-        stored.length shouldBe 50_000
-        stored shouldBe over.take(50_000)
+        stored.length shouldBe 500_000
+        stored shouldBe over.take(500_000)
     }
 
     test("truncation never splits a surrogate pair at the boundary") {
-        // 49,999 ASCII units then one emoji (a high+low surrogate pair) =
-        // 50,001 units; cutting at 50,000 would strand a lone high surrogate.
-        val text = "a".repeat(49_999) + "😀"
-        text.length shouldBe 50_001
+        // 499,999 ASCII units then one emoji (a high+low surrogate pair) =
+        // 500,001 units; cutting at 500,000 would strand a lone high surrogate.
+        val text = "a".repeat(499_999) + "😀"
+        text.length shouldBe 500_001
         val stored = ClipboardTextPolicy.truncateForStorage(text)
-        stored.length shouldBe 49_999
+        stored.length shouldBe 499_999
         Character.isHighSurrogate(stored.last()) shouldBe false
     }
 
@@ -165,8 +168,8 @@ class DrsV190Tests : FunSpec({
 
     test("the edit plan truncates over-policy input through the same cap") {
         val item = ClipboardItem.text("short")
-        val planned = ClipboardEditPlan.plan(item, "y".repeat(60_000), nowMs = 5L)
-        planned.text!!.length shouldBe 50_000
+        val planned = ClipboardEditPlan.plan(item, "y".repeat(600_000), nowMs = 5L)
+        planned.text!!.length shouldBe 500_000
     }
 
     // -------------------------------------------------------------

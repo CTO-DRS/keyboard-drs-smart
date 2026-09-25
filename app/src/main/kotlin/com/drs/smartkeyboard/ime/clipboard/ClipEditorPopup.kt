@@ -21,6 +21,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -33,6 +34,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -53,6 +55,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,8 +66,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.OffsetMapping
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
@@ -259,16 +269,38 @@ class ClipEditorPopupActivity : ComponentActivity() {
     @Composable
     private fun PopupSurface(pending: PendingClipEdit) {
         val scope = rememberCoroutineScope()
+        // DRS v1.12.0: the editor honors the app settings defaults — the
+        // font family/size, the case matching, the editor character limit
+        // (up to the 500,000 policy cap), the colored result cards, and
+        // the code-line detection.
+        val prefs by DrsPreferenceStore
+        val cardsEnabled = prefs.clipboard.searchResultCards.get()
+        val codeDetection = prefs.clipboard.codeDetection.get()
+        val editorLimit = prefs.clipboard.editorCharLimit.get().effectiveLimit()
         var text by remember { mutableStateOf(pending.text) }
         val history = remember { ClipEditorHistory() }
-        var font by remember { mutableStateOf(ClipFontOption.DEFAULT) }
-        var fontSize by remember { mutableStateOf(ClipFontSizeOption.NORMAL) }
+        var font by remember {
+            mutableStateOf(prefs.clipboard.editorFont.get())
+        }
+        var fontSize by remember { mutableStateOf(prefs.clipboard.editorFontSize.get()) }
         var findQuery by remember { mutableStateOf("") }
         var replaceQuery by remember { mutableStateOf("") }
-        var matchCase by remember { mutableStateOf(false) }
+        var matchCase by remember { mutableStateOf(prefs.clipboard.matchCaseByDefault.get()) }
         var activeMatch by remember { mutableStateOf(0) }
+        var resultsShown by remember { mutableStateOf(prefs.clipboard.autoResultsPanel.get()) }
         var showSaveAsFile by remember { mutableStateOf(false) }
         var saveName by remember { mutableStateOf("") }
+
+        // DRS v1.12.0: detected code switches to the monospace family
+        // once, at open time, when detection is enabled.
+        LaunchedEffect(pending.item.id) {
+            if (codeDetection &&
+                pending.text.length <= ClipCodeDetector.LARGE_TEXT_CHARS &&
+                ClipCodeDetector.analyze(pending.text).isCode
+            ) {
+                font = ClipFontOption.MONOSPACE
+            }
+        }
 
         val matches = remember(text, findQuery, matchCase) {
             ClipSearchEngine.findMatches(text, findQuery, ignoreCase = !matchCase)
@@ -278,7 +310,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
         fun applyTransform(newText: String) {
             if (newText != text) {
                 history.push(text)
-                text = ClipboardTextPolicy.truncateForStorage(newText)
+                text = ClipboardTextPolicy.truncateForStorage(newText, editorLimit)
             }
         }
 
@@ -383,6 +415,39 @@ class ClipEditorPopupActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxWidth(),
                     )
 
+                    // DRS v1.12.0: the programming-line badge — language,
+                    // code-line share, and the auto monospace switch live
+                    // behind the same pure detector as the panel editor.
+                    val codeAnalysis = remember(text, codeDetection) {
+                        if (codeDetection && text.length <= ClipCodeDetector.LARGE_TEXT_CHARS) {
+                            ClipCodeDetector.analyze(text)
+                        } else {
+                            null
+                        }
+                    }
+                    if (codeAnalysis?.isCode == true) {
+                        Text(
+                            text = "\uD83D\uDCBB " + stringRes(
+                                R.string.clip__code_badge,
+                                "lang" to codeLanguageLabel(codeAnalysis.language),
+                                "code" to codeAnalysis.codeLines,
+                                "total" to codeAnalysis.totalLines,
+                            ),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    // DRS v1.12.0: the slowdown warning for huge texts.
+                    if (text.length >= ClipboardTextPolicy.LARGE_TEXT_WARNING_CHARS) {
+                        Text(
+                            text = "⚠ " + stringRes(R.string.clip__large_text_warning),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+
                     // Find row: query, case toggle, match counter, navigation.
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -481,6 +546,42 @@ class ClipEditorPopupActivity : ComponentActivity() {
                         }
                     }
 
+                    // DRS v1.12.0: the colored search-result cards — every
+                    // match becomes a card with its line number and the
+                    // same-line context; tapping a card navigates to it.
+                    if (cardsEnabled && matches.isNotEmpty()) {
+                        val resultCards = remember(matches, text) {
+                            ClipSearchResults.buildCards(text, matches)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            PopupChip(
+                                label = if (resultsShown) {
+                                    stringRes(R.string.clip__results_hide)
+                                } else {
+                                    stringRes(R.string.clip__results_title, "count" to matches.size)
+                                },
+                                active = resultsShown,
+                                onClick = { resultsShown = !resultsShown },
+                            )
+                        }
+                        if (resultsShown) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 132.dp)
+                                    .verticalScroll(rememberScrollState()),
+                            ) {
+                                for (card in resultCards) {
+                                    PopupResultCard(
+                                        card = card,
+                                        active = card.matchIndex == activeIndex,
+                                        onSelect = { activeMatch = card.matchIndex },
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     // Smart algorithms row — the same sixteen chips.
                     Row(
                         modifier = Modifier
@@ -554,6 +655,23 @@ class ClipEditorPopupActivity : ComponentActivity() {
                                 showShortToastSync(R.string.clip__extract_done, "count" to found.size)
                             }
                         }
+                        // DRS v1.12.0: the line numbering and the code-line
+                        // surgery chips — extract keeps only code lines,
+                        // remove drops them; both undoable like the rest.
+                        PopupChip(label = stringRes(R.string.clip__transform_number_lines), active = false) {
+                            applyTransform(ClipTextTransforms.numberLines(text))
+                        }
+                        PopupChip(label = stringRes(R.string.clip__transform_extract_code), active = false) {
+                            val extracted = ClipCodeDetector.extractCodeLines(text)
+                            if (extracted.isEmpty()) {
+                                showShortToastSync(R.string.clip__extract_none)
+                            } else {
+                                applyTransform(extracted)
+                            }
+                        }
+                        PopupChip(label = stringRes(R.string.clip__transform_remove_code), active = false) {
+                            applyTransform(ClipCodeDetector.removeCodeLines(text))
+                        }
                     }
 
                     // Font row: five families + four size steps.
@@ -602,15 +720,48 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             .padding(vertical = 6.dp)
                             .verticalScroll(rememberScrollState()),
                     ) {
+                        // DRS v1.12.0: the matches glow inside the text —
+                        // each match paints its palette color, the active
+                        // one strongest, matching the result cards.
+                        val highlightRanges = remember(matches, activeIndex) {
+                            ClipSearchResults.highlightRanges(matches, activeIndex)
+                        }
+                        val highlightTransformation = remember(highlightRanges) {
+                            VisualTransformation { fieldText ->
+                                if (highlightRanges.isEmpty()) {
+                                    TransformedText(
+                                        androidx.compose.ui.text.AnnotatedString(fieldText.text),
+                                        OffsetMapping.Identity,
+                                    )
+                                } else {
+                                    val annotated = buildAnnotatedString {
+                                        append(fieldText.text)
+                                        for (range in highlightRanges) {
+                                            addStyle(
+                                                SpanStyle(
+                                                    background = Color(
+                                                        ClipResultPalette.COLORS[range.colorSlot],
+                                                    ).copy(alpha = if (range.isActive) 0.55f else 0.22f),
+                                                ),
+                                                range.start,
+                                                range.end,
+                                            )
+                                        }
+                                    }
+                                    TransformedText(annotated, OffsetMapping.Identity)
+                                }
+                            }
+                        }
                         BasicTextField(
                             value = text,
-                            onValueChange = { text = ClipboardTextPolicy.truncateForStorage(it) },
+                            onValueChange = { text = ClipboardTextPolicy.truncateForStorage(it, editorLimit) },
                             modifier = Modifier.fillMaxWidth(),
                             textStyle = TextStyle(
                                 fontFamily = editorFontFamily,
                                 fontSize = fontSize.spValue.sp,
                                 color = MaterialTheme.colorScheme.onSurface,
                             ),
+                            visualTransformation = highlightTransformation,
                         )
                     }
 
@@ -619,7 +770,7 @@ class ClipEditorPopupActivity : ComponentActivity() {
                         text = stringRes(
                             R.string.clip__char_limit_counter,
                             "used" to text.length,
-                            "max" to ClipboardTextPolicy.MAX_TEXT_CHARS,
+                            "max" to editorLimit,
                         ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -824,6 +975,80 @@ class ClipEditorPopupActivity : ComponentActivity() {
                     .clickable(onClick = onClick)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             )
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // DRS v1.12.0 — the complete smart clipboard system helpers.
+    // ------------------------------------------------------------------
+
+    /** The display label of a detected code language. */
+    @Composable
+    private fun codeLanguageLabel(language: ClipCodeLanguage): String = stringRes(
+        when (language) {
+            ClipCodeLanguage.KOTLIN_JAVA -> R.string.clip__lang_kotlin_java
+            ClipCodeLanguage.PYTHON -> R.string.clip__lang_python
+            ClipCodeLanguage.JAVASCRIPT -> R.string.clip__lang_javascript
+            ClipCodeLanguage.JSON -> R.string.clip__lang_json
+            ClipCodeLanguage.HTML_XML -> R.string.clip__lang_html_xml
+            ClipCodeLanguage.CSS -> R.string.clip__lang_css
+            ClipCodeLanguage.SQL -> R.string.clip__lang_sql
+            ClipCodeLanguage.C_CPP -> R.string.clip__lang_c_cpp
+            ClipCodeLanguage.BASH -> R.string.clip__lang_bash
+            ClipCodeLanguage.UNKNOWN -> R.string.clip__lang_unknown
+        },
+    )
+
+    /**
+     * One colored search-result card of the popup editor: the palette
+     * color paints the border and the matched span inside the context;
+     * tapping makes the match the active one (counter + glow follow).
+     */
+    @Composable
+    private fun PopupResultCard(
+        card: ClipResultCard,
+        active: Boolean,
+        onSelect: () -> Unit,
+    ) {
+        val color = Color(ClipResultPalette.COLORS[card.colorSlot])
+        val annotated = buildAnnotatedString {
+            if (card.truncatedBefore) append("…")
+            append(card.before)
+            withStyle(SpanStyle(color = color, fontWeight = FontWeight.Bold)) {
+                append(card.matched)
+            }
+            append(card.after)
+            if (card.truncatedAfter) append("…")
+        }
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = color.copy(alpha = if (active) 0.30f else 0.12f),
+            border = BorderStroke(1.dp, if (active) color else color.copy(alpha = 0.45f)),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp, vertical = 2.dp),
+        ) {
+            Row(
+                modifier = Modifier
+                    .clickable(onClick = onSelect)
+                    .padding(horizontal = 8.dp, vertical = 5.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = stringRes(R.string.clip__result_line, "line" to card.lineNumber),
+                    color = color,
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.labelSmall,
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = annotated,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }

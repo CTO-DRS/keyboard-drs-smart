@@ -25,6 +25,10 @@ import com.drs.smartkeyboard.app.settings.theme.SnyggLevel
 import com.drs.smartkeyboard.app.setup.NotificationPermissionState
 import com.drs.smartkeyboard.app.drsupdater.UpdateCheckMode
 import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
+import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
 import com.drs.smartkeyboard.ime.clipboard.ClipboardSyncBehavior
 import com.drs.smartkeyboard.ime.core.DisplayLanguageNamesIn
 import com.drs.smartkeyboard.ime.core.Subtype
@@ -161,6 +165,43 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val clearPrimaryClipAffectsHistoryIfUnpinned = boolean(
             key = "clipboard__clear_primary_clip_affects_history_if_unpinned",
             default = true,
+        )
+
+        // DRS v1.12.0 — the complete smart clipboard system: the editor
+        // character limit (up to the 500,000 policy cap), the colored
+        // search-result cards with navigation, the code-line detection,
+        // the editor defaults, and the panel sort order.
+        val editorCharLimit = enum(
+            key = "clipboard__editor_char_limit",
+            default = ClipEditorCharLimit.FIVE_HUNDRED_K,
+        )
+        val searchResultCards = boolean(
+            key = "clipboard__search_result_cards",
+            default = true,
+        )
+        val autoResultsPanel = boolean(
+            key = "clipboard__auto_results_panel",
+            default = true,
+        )
+        val codeDetection = boolean(
+            key = "clipboard__code_detection",
+            default = true,
+        )
+        val editorFont = enum(
+            key = "clipboard__editor_font",
+            default = ClipFontOption.DEFAULT,
+        )
+        val editorFontSize = enum(
+            key = "clipboard__editor_font_size",
+            default = ClipFontSizeOption.NORMAL,
+        )
+        val matchCaseByDefault = boolean(
+            key = "clipboard__match_case_by_default",
+            default = false,
+        )
+        val historySort = enum(
+            key = "clipboard__history_sort",
+            default = ClipHistorySort.NEWEST,
         )
     }
 

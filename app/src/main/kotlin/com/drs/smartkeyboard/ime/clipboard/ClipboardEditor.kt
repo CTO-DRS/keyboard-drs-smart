@@ -123,6 +123,17 @@ object ClipTextTransforms {
         return text.lines().asReversed().joinToString("\n")
     }
 
+    /**
+     * DRS v1.12.0: prefixes every line with its 1-based number
+     * (`1. first`) — the code-review and list-editing helper.
+     */
+    fun numberLines(text: String): String {
+        if (text.isEmpty()) return text
+        return text.lines()
+            .mapIndexed { index, line -> "${index + 1}. $line" }
+            .joinToString("\n")
+    }
+
     // Arabic-aware smart normalization ----------------------------------
 
     // Arabic harakat + superscript alef + wasla + small Quranic marks.
@@ -199,7 +210,7 @@ object ClipSearchEngine {
 
     /**
      * The UI renders matches as «active / count»; a runaway query on a
-     * 50,000-character text is bounded so navigation stays meaningful.
+     * 500,000-character text is bounded so navigation stays meaningful.
      */
     const val MAX_MATCHES: Int = 1000
 

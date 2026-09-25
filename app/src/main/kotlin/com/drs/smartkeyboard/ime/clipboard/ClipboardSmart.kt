@@ -41,26 +41,61 @@ import kotlinx.serialization.json.Json
 object ClipboardTextPolicy {
     /**
      * The maximum number of characters one clipboard history entry may
-     * retain. The primary (system) clip is never truncated — the cap
-     * protects the history database and the panel rendering.
+     * retain. DRS v1.12.0 raised the cap from 50,000 to 500,000 at the
+     * user's explicit request («تدعم حتى 500000 الف حرف»). The primary
+     * (system) clip is never truncated — the cap protects the history
+     * database and the panel rendering.
      */
-    const val MAX_TEXT_CHARS: Int = 50_000
+    const val MAX_TEXT_CHARS: Int = 500_000
+
+    /**
+     * The editor shows a slowdown warning at or above this length (the
+     * user-set limit may be lower; the warning is about responsiveness).
+     */
+    const val LARGE_TEXT_WARNING_CHARS: Int = 100_000
 
     fun fits(text: String): Boolean = text.length <= MAX_TEXT_CHARS
 
     /**
-     * Truncates [text] to at most [MAX_TEXT_CHARS] characters. Pure
-     * character counting (String.length, UTF-16 units): the result never
-     * ends with a lone high surrogate, so the boundary between a kept and
-     * a dropped surrogate pair steps back by one character instead of
-     * producing corrupted text.
+     * The effective limit of a user-chosen [requestedLimit]: clamped into
+     * the storage policy's hard cap. A non-positive request falls back to
+     * the hard cap so a broken pref can never zero the editor.
      */
-    fun truncateForStorage(text: String): String {
-        if (text.length <= MAX_TEXT_CHARS) return text
-        var end = MAX_TEXT_CHARS
+    fun effectiveLimit(requestedLimit: Int): Int {
+        return if (requestedLimit <= 0) MAX_TEXT_CHARS else requestedLimit.coerceAtMost(MAX_TEXT_CHARS)
+    }
+
+    /**
+     * Truncates [text] to at most [maxChars] characters (the [effectiveLimit]
+     * of the user choice at the call sites). Pure character counting
+     * (String.length, UTF-16 units): the result never ends with a lone high
+     * surrogate, so the boundary between a kept and a dropped surrogate pair
+     * steps back by one character instead of producing corrupted text.
+     */
+    fun truncateForStorage(text: String, maxChars: Int): String {
+        if (text.length <= maxChars) return text
+        var end = maxChars
         if (Character.isHighSurrogate(text[end - 1])) end -= 1
         return text.substring(0, end)
     }
+
+    fun truncateForStorage(text: String): String = truncateForStorage(text, MAX_TEXT_CHARS)
+}
+
+/**
+ * DRS v1.12.0: the editor character limit the user picks in the app
+ * settings. The default is the full half-million the storage policy now
+ * allows; the effective limit always respects the policy's hard cap.
+ */
+enum class ClipEditorCharLimit(val id: String, val chars: Int) {
+    FIFTY_K("fifty_k", 50_000),
+    HUNDRED_K("hundred_k", 100_000),
+    TWO_FIFTY_K("two_fifty_k", 250_000),
+    FIVE_HUNDRED_K("five_hundred_k", 500_000),
+    ;
+
+    /** The limit this choice actually enforces (never above the policy cap). */
+    fun effectiveLimit(): Int = ClipboardTextPolicy.effectiveLimit(chars)
 }
 
 object ClipFileNamer {

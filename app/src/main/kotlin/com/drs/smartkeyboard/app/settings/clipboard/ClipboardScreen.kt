@@ -28,7 +28,11 @@ import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.enumDisplayEntriesOf
 import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
+import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
 import com.drs.smartkeyboard.ime.clipboard.ClipboardHistoryExport
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
 import com.drs.smartkeyboard.ime.clipboard.ClipboardSyncBehavior
 import com.drs.smartkeyboard.lib.compose.DrsScreen
 import org.drs.jetpref.datastore.ui.DialogSliderPreference
@@ -195,6 +199,53 @@ fun ClipboardScreen() = DrsScreen {
                 title = stringRes(R.string.pref__clipboard__clear_primary_clip_affects_history_if_unpinned__label),
                 summary = stringRes(R.string.pref__clipboard__clear_primary_clip_affects_history_if_unpinned__summary),
                 enabledIf = { prefs.clipboard.historyEnabled isEqualTo true },
+            )
+        }
+
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_smart_editor__label)) {
+            // DRS v1.12.0 — the complete smart clipboard system: every
+            // default the editors honor lives here, in the app, the way
+            // the user asked for («اضف لها اعداداتها في التطبيق»).
+            ListPreference(
+                prefs.clipboard.editorCharLimit,
+                title = stringRes(R.string.pref__clipboard__editor_char_limit__label),
+                entries = enumDisplayEntriesOf(ClipEditorCharLimit::class),
+            )
+            SwitchPreference(
+                prefs.clipboard.searchResultCards,
+                title = stringRes(R.string.pref__clipboard__search_result_cards__label),
+                summary = stringRes(R.string.pref__clipboard__search_result_cards__summary),
+            )
+            SwitchPreference(
+                prefs.clipboard.autoResultsPanel,
+                title = stringRes(R.string.pref__clipboard__auto_results_panel__label),
+                summary = stringRes(R.string.pref__clipboard__auto_results_panel__summary),
+                enabledIf = { prefs.clipboard.searchResultCards isEqualTo true },
+            )
+            SwitchPreference(
+                prefs.clipboard.codeDetection,
+                title = stringRes(R.string.pref__clipboard__code_detection__label),
+                summary = stringRes(R.string.pref__clipboard__code_detection__summary),
+            )
+            ListPreference(
+                prefs.clipboard.editorFont,
+                title = stringRes(R.string.pref__clipboard__editor_font__label),
+                entries = enumDisplayEntriesOf(ClipFontOption::class),
+            )
+            ListPreference(
+                prefs.clipboard.editorFontSize,
+                title = stringRes(R.string.pref__clipboard__editor_font_size__label),
+                entries = enumDisplayEntriesOf(ClipFontSizeOption::class),
+            )
+            SwitchPreference(
+                prefs.clipboard.matchCaseByDefault,
+                title = stringRes(R.string.pref__clipboard__match_case_by_default__label),
+                summary = stringRes(R.string.pref__clipboard__match_case_by_default__summary),
+            )
+            ListPreference(
+                prefs.clipboard.historySort,
+                title = stringRes(R.string.pref__clipboard__history_sort__label),
+                entries = enumDisplayEntriesOf(ClipHistorySort::class),
             )
         }
 

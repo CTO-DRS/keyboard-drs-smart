@@ -21,6 +21,10 @@ import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.settings.theme.DisplayKbdAfterDialogs
 import com.drs.smartkeyboard.app.settings.theme.SnyggLevel
 import com.drs.smartkeyboard.app.drsupdater.UpdateCheckMode
+import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
+import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
+import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
+import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
 import com.drs.smartkeyboard.ime.clipboard.ClipboardSyncBehavior
 import com.drs.smartkeyboard.ime.core.DisplayLanguageNamesIn
 import com.drs.smartkeyboard.ime.input.CapitalizationBehavior
@@ -791,6 +795,90 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             entry(
                 key = UpdateCheckMode.OFF,
                 label = stringRes(R.string.enum__update_check_mode__off),
+            )
+        }
+    },
+    ClipEditorCharLimit::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipEditorCharLimit.FIFTY_K,
+                label = stringRes(R.string.enum__clip_editor_char_limit__fifty_k),
+            )
+            entry(
+                key = ClipEditorCharLimit.HUNDRED_K,
+                label = stringRes(R.string.enum__clip_editor_char_limit__hundred_k),
+            )
+            entry(
+                key = ClipEditorCharLimit.TWO_FIFTY_K,
+                label = stringRes(R.string.enum__clip_editor_char_limit__two_fifty_k),
+            )
+            entry(
+                key = ClipEditorCharLimit.FIVE_HUNDRED_K,
+                label = stringRes(R.string.enum__clip_editor_char_limit__five_hundred_k),
+            )
+        }
+    },
+    ClipHistorySort::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipHistorySort.NEWEST,
+                label = stringRes(R.string.enum__clip_history_sort__newest),
+            )
+            entry(
+                key = ClipHistorySort.OLDEST,
+                label = stringRes(R.string.enum__clip_history_sort__oldest),
+            )
+            entry(
+                key = ClipHistorySort.LONGEST,
+                label = stringRes(R.string.enum__clip_history_sort__longest),
+            )
+            entry(
+                key = ClipHistorySort.SHORTEST,
+                label = stringRes(R.string.enum__clip_history_sort__shortest),
+            )
+        }
+    },
+    ClipFontOption::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipFontOption.DEFAULT,
+                label = stringRes(R.string.clip__font_default),
+            )
+            entry(
+                key = ClipFontOption.SANS_SERIF,
+                label = stringRes(R.string.clip__font_sans),
+            )
+            entry(
+                key = ClipFontOption.SERIF,
+                label = stringRes(R.string.clip__font_serif),
+            )
+            entry(
+                key = ClipFontOption.MONOSPACE,
+                label = stringRes(R.string.clip__font_mono),
+            )
+            entry(
+                key = ClipFontOption.CURSIVE,
+                label = stringRes(R.string.clip__font_cursive),
+            )
+        }
+    },
+    ClipFontSizeOption::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = ClipFontSizeOption.SMALL,
+                label = ClipFontSizeOption.SMALL.spValue.toString(),
+            )
+            entry(
+                key = ClipFontSizeOption.NORMAL,
+                label = ClipFontSizeOption.NORMAL.spValue.toString(),
+            )
+            entry(
+                key = ClipFontSizeOption.LARGE,
+                label = ClipFontSizeOption.LARGE.spValue.toString(),
+            )
+            entry(
+                key = ClipFontSizeOption.EXTRA_LARGE,
+                label = ClipFontSizeOption.EXTRA_LARGE.spValue.toString(),
             )
         }
     },
