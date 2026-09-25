@@ -31,6 +31,7 @@ import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CloseFullscreen
@@ -48,6 +49,7 @@ import androidx.compose.material.icons.filled.Spellcheck
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.filled.FirstPage
+import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowLeft
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
 import androidx.compose.material.icons.filled.KeyboardHide
@@ -65,6 +67,7 @@ import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VerticalAlignBottom
@@ -180,6 +183,10 @@ private fun iconForTool(id: String) = when (id) {
     // DRS v1.8.0: quick actions overflow + the actions editor.
     "quick_actions" -> Icons.Default.Apps
     "actions_editor" -> Icons.Default.Tune
+    // DRS v1.15.0: the three smart panels.
+    "diacritics_panel" -> Icons.Default.TextFormat
+    "smart_symbols" -> Icons.Default.Functions
+    "arabic_letters" -> Icons.Default.Abc
     else -> Icons.Default.Build
 }
 

@@ -124,18 +124,20 @@ class DrsV160Tests : FunSpec({
     }
 
     test("v1.6.0 tools keep the tail-append order contract of the catalogue") {
-        // DRS v1.7.0 appended CLIPBOARD_PIN after the v1.6.0 tail and
-        // DRS v1.8.0 two more, so the v1.6.0 block is now dropLast(3).
-        // The contract itself (stable positions, first tool pinned) is
-        // unchanged.
-        DrsUnifiedTools.ALL.dropLast(3).takeLast(5).map { it.id } shouldBe
+        // DRS v1.7.0 appended CLIPBOARD_PIN after the v1.6.0 tail, DRS
+        // v1.8.0 two more and DRS v1.15.0 three smart panels, so the
+        // v1.6.0 block is now dropLast(6). The contract itself (stable
+        // positions, first tool pinned) is unchanged.
+        DrsUnifiedTools.ALL.dropLast(6).takeLast(5).map { it.id } shouldBe
             listOf(
                 "clipboard_full_clear", "prev_language", "one_handed_left",
                 "one_handed_right", "next_keyboard_app",
             )
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
-        // The v1.5.0 tail is still directly ahead of the new tail.
-        DrsUnifiedTools.ALL.dropLast(8).takeLast(3).map { it.id } shouldBe
+        // The v1.5.0 tail is still directly ahead of the new tail; DRS
+        // v1.15.0 appended three smart panels after the v1.8.0 pair, so
+        // the combined tail after the v1.5.0 block is now 11.
+        DrsUnifiedTools.ALL.dropLast(11).takeLast(3).map { it.id } shouldBe
             listOf("clipboard_history_clear", "next_language", "resize_mode")
     }
 

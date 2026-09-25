@@ -60,6 +60,7 @@ import com.drs.smartkeyboard.drs.DrsUnifiedTools
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
+import org.drs.lib.android.showShortToastSync
 import org.drs.lib.compose.rippleClickable
 import org.drs.lib.compose.stringRes
 import org.drs.lib.snygg.ui.SnyggBox
@@ -108,8 +109,13 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
     var filter by remember { mutableStateOf(DrawerFilter.ALL) }
 
     val view = DrsUnifiedTools.viewForSystem(drsState.userPath, drsState.hybridViewMode)
-    val pinnedIds = drsState.pinnedUnifiedTools.toHashSet()
-    val defaultPinnedIds = DrsUnifiedTools.ALL.filter { it.defaultPinned }.map { it.id }.toSet()
+    // DRS v1.15.0: «المهام المثبتة 10 فقط» — the pinned section mirrors
+    // the CAPPED effective set (explicit pins first in pin order, then the
+    // default pins), so the drawer never shows or creates an 11th pin.
+    val defaultPinnedIds = DrsUnifiedTools.ALL.filter { it.defaultPinned }.map { it.id }
+    val effectivePinnedIds = DrsUnifiedTools
+        .capPinned(drsState.pinnedUnifiedTools, defaultPinnedIds)
+        .toHashSet()
     val hiddenIds = drsState.hiddenUnifiedTools.toHashSet()
 
     // The pinned section mirrors the strip head: explicit pins first, then
@@ -124,7 +130,7 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
             pinned = drsState.pinnedUnifiedTools,
             order = drsState.unifiedToolOrder,
             viewOverrides = drsState.unifiedToolViews,
-        ).filter { it.id in pinnedIds || it.id in defaultPinnedIds }
+        ).filter { it.id in effectivePinnedIds }
     }
 
     val catalogTools = DrsUnifiedTools.ALL.filter { tool ->
@@ -215,12 +221,27 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState()),
             ) {
-                // ----- pinned now (strip head order) -----
-                SnyggText(
-                    elementName = DrsImeUi.ClipboardSubheader.elementName,
-                    modifier = Modifier.padding(start = 16.dp, top = 6.dp, bottom = 2.dp),
-                    text = stringRes(R.string.drs__tools_drawer__pinned_section),
-                )
+                // ----- pinned now (strip head order, capped at 10) -----
+                SnyggRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 16.dp, top = 6.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardSubheader.elementName,
+                        text = stringRes(R.string.drs__tools_drawer__pinned_section),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardItemDescription.elementName,
+                        text = stringRes(
+                            R.string.drs__tools_drawer__pinned_counter,
+                            "count" to pinnedTools.size.toString(),
+                            "max" to DrsUnifiedTools.MAX_PINNED_TOOLS.toString(),
+                        ),
+                    )
+                }
                 if (pinnedTools.isEmpty()) {
                     SnyggText(
                         elementName = DrsImeUi.ClipboardItemDescription.elementName,
@@ -268,7 +289,7 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
                     text = stringRes(R.string.drs__tools_drawer__all_section),
                 )
                 catalogTools.forEach { tool ->
-                    val isPinned = tool.id in pinnedIds || tool.id in defaultPinnedIds
+                    val isPinned = tool.id in effectivePinnedIds
                     DrawerRow(
                         id = tool.id,
                         hidden = tool.id in hiddenIds,
@@ -280,9 +301,13 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
                                     if (isPinned) {
                                         DrsUnified.setToolPinned(tool.id, false)
                                     } else {
-                                        // pin + guarantee visibility on the
-                                        // CURRENT level (the v1.8.0 contract).
-                                        DrsUnified.setToolPinnedEnsureVisible(tool.id, view)
+                                        // Pin + guarantee visibility on the CURRENT
+                                        // level (the v1.8.0 contract); the v1.15.0 cap
+                                        // refuses the 11th pin with an honest toast.
+                                        val applied = DrsUnified.setToolPinnedEnsureVisible(tool.id, view)
+                                        if (!applied) {
+                                            context.showShortToastSync(R.string.drs__tools_drawer__pin_cap_toast)
+                                        }
                                     }
                                 },
                                 modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),

@@ -292,13 +292,14 @@ class DrsUnifiedTest : FunSpec({
 
     test("v1.4.0 tools keep the tail-append order contract of the catalogue") {
         // DRS v1.6.0: the two v1.4.0 tools sit before the v1.5.0 tail (3)
-        // and the v1.6.0 tail (5); v1.7.0 appended one and v1.8.0 two more,
-        // so the combined tail after them is now 11 — same relative order.
-        DrsUnifiedTools.ALL.dropLast(11).takeLast(2).map { it.id } shouldBe
+        // and the v1.6.0 tail (5); v1.7.0 appended one, v1.8.0 two more and
+        // v1.15.0 three (the smart panels) — combined tail after them is
+        // now 14 — same relative order.
+        DrsUnifiedTools.ALL.dropLast(14).takeLast(2).map { it.id } shouldBe
             listOf("floating_mode", "smartbar_toggle")
         // The head and the previous tails are untouched.
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
-        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 14].id shouldBe "voice_input"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 17].id shouldBe "voice_input"
     }
 
     test("v1.5.0 tools exist and dispatch real engine codes") {
@@ -312,9 +313,10 @@ class DrsUnifiedTest : FunSpec({
 
     test("v1.5.0 tools keep the tail-append order contract of the catalogue") {
         // DRS v1.6.0: the v1.5.0 tail of three is now followed by the
-        // v1.6.0 tail of five, the v1.7.0 tool and the two v1.8.0 tools —
-        // same relative order, longer catalogue.
-        DrsUnifiedTools.ALL.dropLast(8).takeLast(3).map { it.id } shouldBe
+        // v1.6.0 tail of five, the v1.7.0 tool, the two v1.8.0 tools and
+        // the three v1.15.0 smart panels — same relative order, longer
+        // catalogue.
+        DrsUnifiedTools.ALL.dropLast(11).takeLast(3).map { it.id } shouldBe
             listOf("clipboard_history_clear", "next_language", "resize_mode")
         DrsUnifiedTools.ALL.first().id shouldBe "emoji"
     }

@@ -879,6 +879,30 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         )
     }
 
+    /**
+     * DRS v1.15.0: the smart panels' behavior switches (لوحة الحركات /
+     * لوحة الرموز الذكية / لوحة الحروف الموسعة). Every default preserves
+     * the smart behavior, and every switch is a real behavior toggle.
+     */
+    val panels = Panels()
+    inner class Panels {
+        /** Smart harakat stacking: a mark over a mark replaces it. */
+        val harakatSmartReplace = boolean(
+            key = "panels__harakat_smart_replace",
+            default = true,
+        )
+        /** Context-aware symbol suggestions row in the smart symbols panel. */
+        val symbolSmartSuggestions = boolean(
+            key = "panels__symbol_smart_suggestions",
+            default = true,
+        )
+        /** The shared most-used recents rows of the three smart panels. */
+        val panelRecents = boolean(
+            key = "panels__recents_enabled",
+            default = true,
+        )
+    }
+
     val spelling = Spelling()
     inner class Spelling {
         val languageMode = enum(

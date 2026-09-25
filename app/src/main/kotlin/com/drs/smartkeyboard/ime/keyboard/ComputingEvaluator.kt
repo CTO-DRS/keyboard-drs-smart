@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.automirrored.outlined.Assignment
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Abc
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentCut
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.DeleteSweep
 import androidx.compose.material.icons.filled.Dialpad
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.FontDownload
+import androidx.compose.material.icons.filled.Functions
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.KeyboardCapslock
@@ -53,6 +55,7 @@ import androidx.compose.material.icons.filled.SentimentSatisfiedAlt
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.SpaceBar
+import androidx.compose.material.icons.filled.TextFormat
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.drs.smartkeyboard.DrsImeService
 import com.drs.smartkeyboard.R
@@ -291,6 +294,16 @@ fun ComputingEvaluator.computeImageVector(data: KeyData): ImageVector? {
         }
         KeyCode.IME_UI_MODE_TEXT_TOOLS -> {
             Icons.Default.Build
+        }
+        // DRS v1.15.0: the three smart panels.
+        KeyCode.IME_UI_MODE_DIACRITICS -> {
+            Icons.Default.TextFormat
+        }
+        KeyCode.IME_UI_MODE_SMART_SYMBOLS -> {
+            Icons.Default.Functions
+        }
+        KeyCode.IME_UI_MODE_ARABIC_LETTERS -> {
+            Icons.Default.Abc
         }
         KeyCode.LANGUAGE_SWITCH -> {
             Icons.Default.Language

@@ -98,5 +98,26 @@ fun SmartbarScreen() = DrsScreen {
                 visibleIf = { prefs.smartbar.layout isEqualTo SmartbarLayout.SUGGESTIONS_ACTIONS_EXTENDED },
             )
         }
+
+        // DRS v1.15.0: the smart panels' behavior switches (لوحة الحركات /
+        // لوحة الرموز الذكية / لوحة الحروف الموسعة). Real behavior toggles
+        // the panels read live — not decoration.
+        PreferenceGroup(title = stringRes(R.string.pref__panels__group__label)) {
+            SwitchPreference(
+                prefs.panels.harakatSmartReplace,
+                title = stringRes(R.string.pref__panels__harakat_smart_replace__label),
+                summary = stringRes(R.string.pref__panels__harakat_smart_replace__summary),
+            )
+            SwitchPreference(
+                prefs.panels.symbolSmartSuggestions,
+                title = stringRes(R.string.pref__panels__symbol_suggestions__label),
+                summary = stringRes(R.string.pref__panels__symbol_suggestions__summary),
+            )
+            SwitchPreference(
+                prefs.panels.panelRecents,
+                title = stringRes(R.string.pref__panels__recents__label),
+                summary = stringRes(R.string.pref__panels__recents__summary),
+            )
+        }
     }
 }

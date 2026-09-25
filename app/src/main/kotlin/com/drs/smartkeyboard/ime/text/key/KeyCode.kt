@@ -118,6 +118,14 @@ object KeyCode {
     // through the existing pref collector. Handled in KeyboardManager.
     const val TOGGLE_NUMBER_ROW =           -217
 
+    // DRS v1.15.0: the three smart panels (لوحة الحركات / لوحة الرموز
+    // الذكية / لوحة الحروف الموسعة). Each is a real ImeUiMode handled in
+    // KeyboardManager + hosted in ImeWindow, and each joins the unified
+    // tool catalogue so it can be pinned among the capped 10 tasks.
+    const val IME_UI_MODE_DIACRITICS =      -218
+    const val IME_UI_MODE_SMART_SYMBOLS =   -219
+    const val IME_UI_MODE_ARABIC_LETTERS =  -220
+
     const val SYSTEM_INPUT_METHOD_PICKER =  -221
     const val SYSTEM_PREV_INPUT_METHOD =    -222
     const val SYSTEM_NEXT_INPUT_METHOD =    -223

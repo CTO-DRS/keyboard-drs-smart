@@ -953,6 +953,20 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 exitMediaSearch()
                 activeState.imeUiMode = ImeUiMode.TEXT_TOOLS
             }
+            // DRS v1.15.0: the three smart panels (الحركات/الرموز/الحروف)
+            // open through the same path as every other UI mode.
+            KeyCode.IME_UI_MODE_DIACRITICS -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.DIACRITICS
+            }
+            KeyCode.IME_UI_MODE_SMART_SYMBOLS -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.SMART_SYMBOLS
+            }
+            KeyCode.IME_UI_MODE_ARABIC_LETTERS -> {
+                exitMediaSearch()
+                activeState.imeUiMode = ImeUiMode.ARABIC_LETTERS
+            }
             in DrsTextTool.CODE_RANGE -> {
                 DrsTextTool.fromCode(data.code)?.let { editorInstance.performTextTool(it) }
             }

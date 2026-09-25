@@ -141,6 +141,10 @@ data class TextKeyData(
                 IME_UI_MODE_MEDIA,
                 IME_UI_MODE_CLIPBOARD,
                 IME_UI_MODE_TEXT_TOOLS,
+                // DRS v1.15.0: the three smart panels resolve as internal keys.
+                IME_UI_MODE_DIACRITICS,
+                IME_UI_MODE_SMART_SYMBOLS,
+                IME_UI_MODE_ARABIC_LETTERS,
                 // DRS v1.0.6: every technical text tool code is internal.
                 *DrsTextTool.entries.map { tool ->
                     TextKeyData(type = KeyType.FUNCTION, code = tool.code, label = "drs_text_tool")
@@ -508,6 +512,28 @@ data class TextKeyData(
             type = KeyType.SYSTEM_GUI,
             code = KeyCode.IME_UI_MODE_TEXT_TOOLS,
             label = "ime_ui_mode_text_tools",
+        )
+
+        // DRS v1.15.0: the three smart panels join the internal keys so
+        // they resolve everywhere a tool code does (most-used tiles, the
+        // unified strip, the quick actions editor).
+        /** DRS v1.15.0: predefined key data for [KeyCode.IME_UI_MODE_DIACRITICS] */
+        val IME_UI_MODE_DIACRITICS = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.IME_UI_MODE_DIACRITICS,
+            label = "ime_ui_mode_diacritics",
+        )
+        /** DRS v1.15.0: predefined key data for [KeyCode.IME_UI_MODE_SMART_SYMBOLS] */
+        val IME_UI_MODE_SMART_SYMBOLS = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.IME_UI_MODE_SMART_SYMBOLS,
+            label = "ime_ui_mode_smart_symbols",
+        )
+        /** DRS v1.15.0: predefined key data for [KeyCode.IME_UI_MODE_ARABIC_LETTERS] */
+        val IME_UI_MODE_ARABIC_LETTERS = TextKeyData(
+            type = KeyType.SYSTEM_GUI,
+            code = KeyCode.IME_UI_MODE_ARABIC_LETTERS,
+            label = "ime_ui_mode_arabic_letters",
         )
 
         /** Predefined key data for [KeyCode.SYSTEM_INPUT_METHOD_PICKER] */

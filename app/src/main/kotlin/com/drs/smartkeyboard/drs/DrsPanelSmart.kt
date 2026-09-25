@@ -1,0 +1,212 @@
+/*
+ * Copyright (C) 2025-2026 The DRS Smart Keyboard Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.drs.smartkeyboard.drs
+
+/**
+ * DRS v1.15.0 — الأنظمة الذكية للوحات الجديدة (لوحة الحركات، لوحة الرموز
+ * الذكية، لوحة الحروف الموسعة).
+ *
+ * This file is the PURE logic core of the three new smart panels: the
+ * harakat catalogue and the smart-stacking insert decision, the
+ * context-aware symbol suggestions, and the shared "most used" recents
+ * engine. Nothing here touches Android UI or Context, so every contract
+ * is covered by JVM unit tests exactly like the rest of the DRS layer.
+ *
+ * الأنظمة الذكية الثلاثة:
+ *  1. الدمج الذكي للحركات: حركة جديدة فوق حركة تستبدلها بدل أن تتراكم،
+ *     مع استثناء صادق لزوج الشدة (ّ + حركة) لأنه تركيب مشروع.
+ *  2. اقتراحات الرموز السياقية: النص قبل المؤشر يحدد صف الرموز المقترحة
+ *     (أرقام → ٪ ° ÷، حروف عربية → ـ ، ؛، سياق كود → أقواس …).
+ *  3. الأكثر استخدامًا المشترك: عدّادات محلية خالصة لكل لوحة، الأعلى
+ *      استخدامًا يطفو أولًا مع كسر تعادل بترتيب الكتالوج.
+ */
+
+/** The Arabic harakat (تشكيل) catalogue shared by the smart insert engine. */
+object DrsHarakat {
+    const val FATHA = '\u064E'          // َ
+    const val DAMMA = '\u064F'          // ُ
+    const val KASRA = '\u0650'          // ِ
+    const val SUKUN = '\u0652'          // ْ
+    const val SHADDA = '\u0651'         // ّ
+    const val FATHATAN = '\u064B'       // ً
+    const val DAMMATAN = '\u064C'       // ٌ
+    const val KASRATAN = '\u064D'       // ٍ
+    const val SUPERSCRIPT_ALEF = '\u0670' // ٰ
+    const val TATWEEL = '\u0640'        // ـ (extension, not a combining mark)
+
+    /** The nine combining marks — a new mark may smartly replace one of these. */
+    val MARKS: List<Char> = listOf(
+        FATHA, DAMMA, KASRA, SUKUN, SHADDA,
+        FATHATAN, DAMMATAN, KASRATAN, SUPERSCRIPT_ALEF,
+    )
+
+    private val MARK_SET: Set<Char> = MARKS.toHashSet()
+
+    /** Panel display order: the nine marks then the stretching tatweel. */
+    val GRID: List<Char> = MARKS + TATWEEL
+
+    /** True for the nine combining harakat; the tatweel is NOT a mark. */
+    fun isCombiningMark(c: Char): Boolean = c in MARK_SET
+
+    /** True for the whole panel grid (marks + tatweel). */
+    fun isHarakatTile(c: Char): Boolean = c in MARK_SET || c == TATWEEL
+
+    /** Shadda + haraka pairs that commit two characters in one tap. */
+    val COMBOS: List<String> = listOf(
+        "$SHADDA$FATHA", // شَّ
+        "$SHADDA$DAMMA", // شُّ
+        "$SHADDA$KASRA", // شِّ
+        "$SHADDA$SUKUN", // شّْ
+    )
+}
+
+/** How the smart insert engine applies the tapped haraka. */
+enum class HarakaInsertMode {
+    /** Commit the haraka after the cursor (normal insertion). */
+    APPEND,
+
+    /** Delete the single haraka before the cursor, then commit the new one. */
+    REPLACE_PREVIOUS,
+}
+
+/**
+ * The smart stacking engine (الدمج الذكي للحركات). Typing a haraka right
+ * after another haraka replaces it instead of stacking two marks that can
+ * never render sanely — with two honest exceptions:
+ *  - re-tapping the SAME mark is idempotent (replace, not double);
+ *  - shadda followed by a vowel mark is a legitimate combo and appends.
+ * With [smartReplace] off the engine always appends (classic behavior).
+ */
+object HarakatSmartInsert {
+
+    fun decide(previous: Char?, haraka: Char, smartReplace: Boolean): HarakaInsertMode {
+        if (!smartReplace) return HarakaInsertMode.APPEND
+        val prev = previous ?: return HarakaInsertMode.APPEND
+        if (!DrsHarakat.isCombiningMark(prev)) return HarakaInsertMode.APPEND
+        if (prev == haraka) return HarakaInsertMode.REPLACE_PREVIOUS
+        if (prev == DrsHarakat.SHADDA && haraka != DrsHarakat.SHADDA) {
+            return HarakaInsertMode.APPEND
+        }
+        return HarakaInsertMode.REPLACE_PREVIOUS
+    }
+}
+
+/**
+ * The context-aware symbol suggestions (اقتراحات الرموز الذكية). Pure:
+ * the text before the cursor decides which six symbols lead the smart
+ * symbols panel — digits suggest percent/degree/currency, Arabic letters
+ * suggest tatweel and Arabic punctuation, math context extends the
+ * relation, open brackets suggest their closer, and a code-ish window
+ * suggests brackets. Everything is honest, deterministic, offline.
+ */
+object SymbolSmartSuggestor {
+
+    const val MAX_SUGGESTIONS = 6
+
+    /** The default row when nothing about the context is known. */
+    val DEFAULT: List<String> = listOf("@", "#", "%", "&", "*", "«")
+
+    private val ARABIC_INDIC_DIGITS = '٠'..'٩'
+
+    private val CODE_CONTEXT_CHARS = "{}[]<>=;&|".toSet()
+
+    fun suggest(textBeforeCursor: String): List<String> {
+        val ch = textBeforeCursor.lastOrNull() ?: return DEFAULT
+        return when {
+            ch.isDigit() || ch in ARABIC_INDIC_DIGITS -> listOf("%", "°", "÷", "×", "$", "﷼")
+            ch == '=' -> listOf("≠", "≈", "≤", "≥", "+", "−")
+            ch == '<' -> listOf("≤", ">", "≥", "⇐", "→", "«")
+            ch == '>' -> listOf("≥", "<", "≤", "⇒", "←", "»")
+            isArabicLetter(ch) -> listOf("ـ", "،", "؛", "؟", "«", "»")
+            ch == '(' || ch == '[' || ch == '{' ->
+                listOf(closerFor(ch), "(", ")", "[", "]", "{")
+            textBeforeCursor.takeLast(8).any { it in CODE_CONTEXT_CHARS } ->
+                listOf("{", "}", "(", ")", "<", "=")
+            else -> DEFAULT
+        }.take(MAX_SUGGESTIONS)
+    }
+
+    /** The matching closer for the common openers (identity otherwise). */
+    fun closerFor(open: Char): String = when (open) {
+        '(' -> ")"
+        '[' -> "]"
+        '{' -> "}"
+        '«' -> "»"
+        else -> open.toString()
+    }
+
+    /**
+     * True for Arabic block letters only — not the Arabic-Indic digits,
+     * not the combining harakat, not the tatweel.
+     */
+    fun isArabicLetter(ch: Char): Boolean {
+        if (ch.code !in 0x0600..0x06FF) return false
+        if (!Character.isLetter(ch)) return false
+        if (ch in ARABIC_INDIC_DIGITS) return false
+        if (DrsHarakat.isCombiningMark(ch)) return false
+        if (ch == DrsHarakat.TATWEEL) return false
+        return true
+    }
+}
+
+/**
+ * The shared «الأكثر استخدامًا» recents engine for the new panels. Pure:
+ * callers own the persisted Map<String, Int> (tile key -> use count) and
+ * this object only grows it, trims it and reads the top row back. Counts
+ * only — never text, never timestamps; the keys are the panel tiles
+ * themselves.
+ */
+object PanelUsageTracker {
+
+    const val MAX_RECENTS = 6
+    private const val MAX_ENTRIES = 64
+
+    /** Records one use of [key], keeping the map bounded. */
+    fun record(counts: Map<String, Int>, key: String): Map<String, Int> {
+        val grown = counts + (key to ((counts[key] ?: 0) + 1))
+        if (grown.size <= MAX_ENTRIES) return grown
+        // Evict the least-used (ties break towards the catalogue tail —
+        // i.e. the largest catalogue index) so hot tiles always survive.
+        val evictable = grown.entries
+            .sortedWith(
+                compareBy<Map.Entry<String, Int>> { it.value }
+                    .thenByDescending { it.key },
+            )
+            .take(grown.size - MAX_ENTRIES)
+            .map { it.key }
+            .toHashSet()
+        return grown.filterKeys { it !in evictable }
+    }
+
+    /**
+     * The recents row: used tiles only, most-used first, ties broken by
+     * catalogue order so the row is stable, capped at [n].
+     */
+    fun topRecents(counts: Map<String, Int>, catalogueOrder: List<String>, n: Int = MAX_RECENTS): List<String> {
+        if (n <= 0) return emptyList()
+        val index = catalogueOrder.withIndex().associate { (i, id) -> id to i }
+        return counts.asSequence()
+            .filter { (key, count) -> count > 0 && index.containsKey(key) }
+            .sortedWith(
+                compareByDescending<Map.Entry<String, Int>> { it.value }
+                    .thenBy { index[it.key]!! },
+            )
+            .take(n)
+            .map { it.key }
+            .toList()
+    }
+}

@@ -192,6 +192,10 @@ val SmartToolCodes = setOf(
     KeyCode.TEXT_TOOL_STRIP_EMOJI,
     KeyCode.TEXT_TOOL_URL_ENCODE,
     KeyCode.TEXT_TOOL_URL_DECODE,
+    // DRS v1.15.0: the three smart panels count as tool presses too.
+    KeyCode.IME_UI_MODE_DIACRITICS,
+    KeyCode.IME_UI_MODE_SMART_SYMBOLS,
+    KeyCode.IME_UI_MODE_ARABIC_LETTERS,
 )
 
 @Composable
@@ -256,6 +260,10 @@ fun QuickAction.computeDisplayName(evaluator: ComputingEvaluator): String {
             KeyCode.SHOW_SUBTYPE_PICKER -> R.string.quick_action__show_subtype_picker
             KeyCode.TOGGLE_ACTIONS_EDITOR -> R.string.quick_action__toggle_actions_editor
             KeyCode.CLIPBOARD_PIN_ACTIVE -> R.string.quick_action__clipboard_pin_active
+            // DRS v1.15.0: the three smart panels.
+            KeyCode.IME_UI_MODE_DIACRITICS -> R.string.quick_action__ime_ui_mode_diacritics
+            KeyCode.IME_UI_MODE_SMART_SYMBOLS -> R.string.quick_action__ime_ui_mode_smart_symbols
+            KeyCode.IME_UI_MODE_ARABIC_LETTERS -> R.string.quick_action__ime_ui_mode_arabic_letters
             // DRS v1.5.0: text tools show their real panel titles instead
             // of the invalid-fatal placeholder.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
@@ -331,6 +339,10 @@ fun QuickAction.computeTooltip(evaluator: ComputingEvaluator): String {
             KeyCode.SHOW_SUBTYPE_PICKER -> R.string.quick_action__show_subtype_picker__tooltip
             KeyCode.TOGGLE_ACTIONS_EDITOR -> R.string.quick_action__toggle_actions_editor__tooltip
             KeyCode.CLIPBOARD_PIN_ACTIVE -> R.string.quick_action__clipboard_pin_active__tooltip
+            // DRS v1.15.0: the three smart panels.
+            KeyCode.IME_UI_MODE_DIACRITICS -> R.string.quick_action__ime_ui_mode_diacritics__tooltip
+            KeyCode.IME_UI_MODE_SMART_SYMBOLS -> R.string.quick_action__ime_ui_mode_smart_symbols__tooltip
+            KeyCode.IME_UI_MODE_ARABIC_LETTERS -> R.string.quick_action__ime_ui_mode_arabic_letters__tooltip
             // DRS v1.5.0: text tools show their real panel descriptions.
             in DrsTextTool.CODE_RANGE -> DrsTextTool.fromCode(data.code)
                 ?.let { textToolDescRes(it) }

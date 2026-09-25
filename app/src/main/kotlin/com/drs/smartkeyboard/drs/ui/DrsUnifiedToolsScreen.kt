@@ -438,6 +438,10 @@ fun toolTitle(id: String): String = when (id) {
     // DRS v1.8.0
     "quick_actions" -> stringRes(R.string.drs__unified__tool_quick_actions)
     "actions_editor" -> stringRes(R.string.drs__unified__tool_actions_editor)
+    // DRS v1.15.0
+    "diacritics_panel" -> stringRes(R.string.drs__unified__tool_diacritics_panel)
+    "smart_symbols" -> stringRes(R.string.drs__unified__tool_smart_symbols)
+    "arabic_letters" -> stringRes(R.string.drs__unified__tool_arabic_letters)
     else -> id
 }
 
@@ -497,5 +501,9 @@ fun toolDesc(id: String): String = when (id) {
     // DRS v1.8.0
     "quick_actions" -> stringRes(R.string.drs__unified__tool_quick_actions_desc)
     "actions_editor" -> stringRes(R.string.drs__unified__tool_actions_editor_desc)
+    // DRS v1.15.0
+    "diacritics_panel" -> stringRes(R.string.drs__unified__tool_diacritics_panel_desc)
+    "smart_symbols" -> stringRes(R.string.drs__unified__tool_smart_symbols_desc)
+    "arabic_letters" -> stringRes(R.string.drs__unified__tool_arabic_letters_desc)
     else -> ""
 }

@@ -164,10 +164,12 @@ class DrsV180Tests : FunSpec({
             .shouldNotBeNull()
     }
 
-    test("the catalogue tail-append contract holds at 44 tools") {
-        DrsUnifiedTools.ALL.size shouldBe 44
-        DrsUnifiedTools.ALL.last().id shouldBe "actions_editor"
-        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 2].id shouldBe "quick_actions"
+    test("the catalogue tail-append contract holds at 47 tools") {
+        // DRS v1.15.0 appended the three smart panels after the pair.
+        DrsUnifiedTools.ALL.size shouldBe 47
+        DrsUnifiedTools.ALL.last().id shouldBe "arabic_letters"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 5].id shouldBe "quick_actions"
+        DrsUnifiedTools.ALL[DrsUnifiedTools.ALL.size - 4].id shouldBe "actions_editor"
         val ids = DrsUnifiedTools.ALL.map { it.id }
         ids.size shouldBe ids.toSet().size
     }

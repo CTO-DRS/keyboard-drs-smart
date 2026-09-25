@@ -61,6 +61,9 @@ import com.drs.smartkeyboard.app.devtools.DevtoolsOverlay
 import com.drs.smartkeyboard.ime.ImeUiMode
 import com.drs.smartkeyboard.ime.clipboard.ClipboardInputLayout
 import com.drs.smartkeyboard.drs.ui.DrsTextToolsPanel
+import com.drs.smartkeyboard.drs.ui.DrsDiacriticsPanel
+import com.drs.smartkeyboard.drs.ui.DrsSmartSymbolsPanel
+import com.drs.smartkeyboard.drs.ui.DrsArabicLettersPanel
 import com.drs.smartkeyboard.ime.input.LocalInputFeedbackController
 import com.drs.smartkeyboard.ime.keyboard.ProvideKeyboardRowBaseHeight
 import com.drs.smartkeyboard.ime.media.MediaInputLayout
@@ -229,6 +232,10 @@ private fun ImeInnerWindow() {
                 ImeUiMode.MEDIA -> ProvideActualLayoutDirection { MediaInputLayout() }
                 ImeUiMode.CLIPBOARD -> ProvideActualLayoutDirection { ClipboardInputLayout() }
                 ImeUiMode.TEXT_TOOLS -> ProvideActualLayoutDirection { DrsTextToolsPanel() }
+                // DRS v1.15.0: the three smart panels.
+                ImeUiMode.DIACRITICS -> ProvideActualLayoutDirection { DrsDiacriticsPanel() }
+                ImeUiMode.SMART_SYMBOLS -> ProvideActualLayoutDirection { DrsSmartSymbolsPanel() }
+                ImeUiMode.ARABIC_LETTERS -> ProvideActualLayoutDirection { DrsArabicLettersPanel() }
             }
             ImeSystemUiFloating()
         }

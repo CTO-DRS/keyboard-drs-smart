@@ -136,6 +136,14 @@ data class DrsUnifiedTool(
  */
 object DrsUnifiedTools {
 
+    /**
+     * DRS v1.15.0: the hard cap of the tasks bar's pinned head — «المهام
+     * المثبتة 10 فقط». The user's explicit pins always win (in pin order)
+     * and the default pins fill the remaining slots; anything beyond the
+     * cap stays in the catalogue and in the strip tail, never lost.
+     */
+    const val MAX_PINNED_TOOLS = 10
+
     val EMOJI = DrsUnifiedTool(
         id = "emoji",
         code = KeyCode.IME_UI_MODE_MEDIA,
@@ -660,6 +668,53 @@ object DrsUnifiedTools {
         group = DrsToolGroup.TOOLS,
     )
 
+    /**
+     * DRS v1.15.0: opens the smart harakat panel (لوحة الحركات) through
+     * the REAL engine action (KeyCode.IME_UI_MODE_DIACRITICS — handled in
+     * KeyboardManager). The panel's smart stacking replaces a tap on a
+     * mark with a mark instead of stacking, and shadda combos commit
+     * two characters in one tap.
+     */
+    val DIACRITICS_PANEL = DrsUnifiedTool(
+        id = "diacritics_panel",
+        code = KeyCode.IME_UI_MODE_DIACRITICS,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.15.0: opens the context-aware smart symbols panel (لوحة
+     * الرموز الذكية) through the REAL engine action
+     * (KeyCode.IME_UI_MODE_SMART_SYMBOLS). The suggestions row reads the
+     * text before the cursor and leads with the symbols the context
+     * actually asks for.
+     */
+    val SMART_SYMBOLS = DrsUnifiedTool(
+        id = "smart_symbols",
+        code = KeyCode.IME_UI_MODE_SMART_SYMBOLS,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
+    /**
+     * DRS v1.15.0: opens the extended Arabic letters panel (لوحة الحروف
+     * الموسعة) through the REAL engine action
+     * (KeyCode.IME_UI_MODE_ARABIC_LETTERS) — hamza variants and the
+     * Persian/Urdu/Kurdish letters the base layout has no room for.
+     */
+    val ARABIC_LETTERS = DrsUnifiedTool(
+        id = "arabic_letters",
+        code = KeyCode.IME_UI_MODE_ARABIC_LETTERS,
+        type = KeyType.SYSTEM_GUI,
+        scope = DrsSettingScope.BASIC,
+        defaultView = DrsToolView.BOTH,
+        group = DrsToolGroup.TOOLS,
+    )
+
     /** The full basic/shared catalogue in default display order. */
     val ALL: List<DrsUnifiedTool> = listOf(
         EMOJI, CLIPBOARD, TEXT_TOOLS, NUMBERS, SYMBOLS, LANGUAGE,
@@ -686,6 +741,8 @@ object DrsUnifiedTools {
         CLIPBOARD_PIN,
         // DRS v1.8.0: same tail-append contract for the new tools.
         QUICK_ACTIONS, ACTIONS_EDITOR,
+        // DRS v1.15.0: same tail-append contract for the new tools.
+        DIACRITICS_PANEL, SMART_SYMBOLS, ARABIC_LETTERS,
     )
 
     private val BY_ID = ALL.associateBy { it.id }
@@ -748,10 +805,41 @@ object DrsUnifiedTools {
     }
 
     /**
+     * DRS v1.15.0: the capped effective pinned set — «المهام المثبتة 10
+     * فقط». The user's explicit pins keep their order and always win;
+     * the [defaultPinnedIds] fill the remaining slots only. Pure and
+     * deterministic: the same inputs always resolve the same 10 (or less).
+     */
+    fun capPinned(userPinned: List<String>, defaultPinnedIds: List<String>): List<String> {
+        val capped = ArrayList<String>(MAX_PINNED_TOOLS)
+        for (id in userPinned) {
+            if (capped.size >= MAX_PINNED_TOOLS) break
+            if (id !in capped) capped += id
+        }
+        for (id in defaultPinnedIds) {
+            if (capped.size >= MAX_PINNED_TOOLS) break
+            if (id !in capped) capped += id
+        }
+        return capped
+    }
+
+    /**
+     * DRS v1.15.0: whether one more user pin still fits under the cap —
+     * the user's own pins are capped at [MAX_PINNED_TOOLS]; the default
+     * pins only fill the remaining rendered slots. The tools drawer uses
+     * this to refuse the 11th pin with an honest message instead of a
+     * silent no-op.
+     */
+    fun canPinMore(userPinned: List<String>): Boolean {
+        return userPinned.distinct().size < MAX_PINNED_TOOLS
+    }
+
+    /**
      * Full resolution of the unified strip content for one display level:
      * filters by visibility + hidden list, then applies order and pins.
      * Tools marked [DrsUnifiedTool.defaultPinned] float to the head unless
-     * the user explicitly unpinned them. Pure and side-effect free - the
+     * the user explicitly unpinned them, and the pinned head is capped at
+     * [MAX_PINNED_TOOLS] since v1.15.0. Pure and side-effect free - the
      * same function feeds the IME strip, the tools manager preview and the
      * unit tests.
      */
@@ -764,7 +852,7 @@ object DrsUnifiedTools {
     ): List<DrsUnifiedTool> {
         val hiddenSet = hidden.toHashSet()
         val defaultPinnedIds = ALL.filter { it.defaultPinned }.map { it.id }
-        val effectivePinned = (pinned + defaultPinnedIds).distinct()
+        val effectivePinned = capPinned(pinned, defaultPinnedIds)
         val visible = ALL.filter { tool ->
             tool.id !in hiddenSet &&
                 isVisibleIn(tool, view, viewOverrides[tool.id])
@@ -892,10 +980,23 @@ object DrsUnified {
      * the drawer while on the simple level used to swallow the pin
      * silently (pinned but never rendered); now the same update also
      * widens the per-tool view override so the pin really shows up.
+     *
+     * DRS v1.15.0: the pin is refused honestly (returns false) once the
+     * user already holds [DrsUnifiedTools.MAX_PINNED_TOOLS] pins — the
+     * drawer tells the user to unpin one first. Unpinning frees a slot.
      */
-    fun setToolPinnedEnsureVisible(id: String, view: DrsHybridViewMode) {
-        val tool = DrsUnifiedTools.byId(id) ?: return
+    fun setToolPinnedEnsureVisible(id: String, view: DrsHybridViewMode): Boolean {
+        val tool = DrsUnifiedTools.byId(id) ?: return false
+        var applied = false
         DrsStore.update { state ->
+            if (state.pinnedUnifiedTools.contains(id)) {
+                applied = true
+                return@update state
+            }
+            if (!DrsUnifiedTools.canPinMore(state.pinnedUnifiedTools)) {
+                return@update state
+            }
+            applied = true
             val newOverride = DrsUnifiedTools.ensureVisibleOverride(
                 tool = tool,
                 view = view,
@@ -910,6 +1011,7 @@ object DrsUnified {
                 },
             )
         }
+        return applied
     }
 
     /** Shows/hides one tool (hiding never deletes the customization). */
@@ -926,18 +1028,35 @@ object DrsUnified {
         }
     }
 
-    /** Pins/unpins one tool; pinned tools float to the strip head. */
-    fun setToolPinned(id: String, pinned: Boolean) {
-        if (DrsUnifiedTools.byId(id) == null) return
+    /**
+     * Pins/unpins one tool; pinned tools float to the strip head under the
+     * v1.15.0 cap of [DrsUnifiedTools.MAX_PINNED_TOOLS] — the 11th pin is
+     * refused honestly (returns false), unpinning always works.
+     */
+    fun setToolPinned(id: String, pinned: Boolean): Boolean {
+        if (DrsUnifiedTools.byId(id) == null) return false
+        var applied = false
         DrsStore.update { state ->
             state.copy(
                 pinnedUnifiedTools = if (pinned) {
-                    (state.pinnedUnifiedTools + id).distinct()
+                    if (state.pinnedUnifiedTools.contains(id)) {
+                        applied = true
+                        state.pinnedUnifiedTools
+                    } else {
+                        if (!DrsUnifiedTools.canPinMore(state.pinnedUnifiedTools)) {
+                            state.pinnedUnifiedTools
+                        } else {
+                            applied = true
+                            (state.pinnedUnifiedTools + id).distinct()
+                        }
+                    }
                 } else {
+                    applied = state.pinnedUnifiedTools.contains(id)
                     state.pinnedUnifiedTools - id
                 },
             )
         }
+        return applied
     }
 
     /** Overrides which level(s) a tool appears in. */
