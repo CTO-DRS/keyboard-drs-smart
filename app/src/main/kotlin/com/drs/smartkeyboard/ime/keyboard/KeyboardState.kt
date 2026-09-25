@@ -18,6 +18,7 @@ package com.drs.smartkeyboard.ime.keyboard
 
 import androidx.compose.ui.unit.LayoutDirection
 import com.drs.smartkeyboard.ime.ImeUiMode
+import com.drs.smartkeyboard.ime.input.InputModifierState
 import com.drs.smartkeyboard.ime.input.InputShiftState
 import com.drs.smartkeyboard.ime.sheet.isAnyBottomSheetVisible
 import com.drs.smartkeyboard.ime.text.key.KeyVariation
@@ -55,6 +56,8 @@ import kotlin.properties.Delegates
  *          | 1        |          |          | Is Kana small
  *      111 |          |          |          | Ime Ui Mode
  *     1    |          |          |          | Layout Direction (0=LTR, 1=RTL)
+ *       11 |          |          |          | DRS v1.22.0: InputModifierState (CTRL latch, bits 18-19)
+ *     11   |          |          |          | DRS v1.22.0: InputModifierState (ALT latch, bits 28-29)
  *
  * <Byte 7> | <Byte 6> | <Byte 5> | <Byte 4> | Description
  * ---------|----------|----------|----------|---------------------------------
@@ -75,6 +78,14 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
         const val O_KEY_VARIATION: Int =                    4
         const val M_INPUT_SHIFT_STATE: ULong =              0x03u
         const val O_INPUT_SHIFT_STATE: Int =                8
+        // DRS v1.22.0: the revived CTRL/ALT latch states (3 values each —
+        // OFF/LATCHED/LOCKED). Free bit pairs: 18-19 (between the actions
+        // flags and the composing flag) and 28-29 (above the RTL flag at
+        // bit 27); bits 24-26 are the ImeUiMode region.
+        const val M_INPUT_CTRL_STATE: ULong =               0x03u
+        const val O_INPUT_CTRL_STATE: Int =                 18
+        const val M_INPUT_ALT_STATE: ULong =                0x03u
+        const val O_INPUT_ALT_STATE: Int =                  28
         const val M_IME_UI_MODE: ULong =                    0x07u
         const val O_IME_UI_MODE: Int =                      24
 
@@ -153,6 +164,16 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
     var inputShiftState: InputShiftState
         get() = InputShiftState.fromInt(getRegion(M_INPUT_SHIFT_STATE, O_INPUT_SHIFT_STATE))
         set(v) { setRegion(M_INPUT_SHIFT_STATE, O_INPUT_SHIFT_STATE, v.toInt()) }
+
+    // DRS v1.22.0: the revived CTRL/ALT modifier latches — the input
+    // pipeline arms/consumes them, the tech toolbar tile shows the truth.
+    var inputCtrlState: InputModifierState
+        get() = InputModifierState.fromInt(getRegion(M_INPUT_CTRL_STATE, O_INPUT_CTRL_STATE))
+        set(v) { setRegion(M_INPUT_CTRL_STATE, O_INPUT_CTRL_STATE, v.toInt()) }
+
+    var inputAltState: InputModifierState
+        get() = InputModifierState.fromInt(getRegion(M_INPUT_ALT_STATE, O_INPUT_ALT_STATE))
+        set(v) { setRegion(M_INPUT_ALT_STATE, O_INPUT_ALT_STATE, v.toInt()) }
 
     var imeUiMode: ImeUiMode
         get() = ImeUiMode.fromInt(getRegion(M_IME_UI_MODE, O_IME_UI_MODE))

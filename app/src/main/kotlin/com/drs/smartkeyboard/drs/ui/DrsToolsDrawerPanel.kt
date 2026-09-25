@@ -18,6 +18,7 @@
 package com.drs.smartkeyboard.drs.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGesturesAfterLongPress
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,12 +44,18 @@ import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.drs.smartkeyboard.R
@@ -150,6 +157,43 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
 
     fun close() {
         keyboardManager.activeState.isToolsDrawerVisible = false
+    }
+
+    // ---------------------------------------------------------
+    // DRS v1.22.0: «إعادة الترتيب بالسحب» — long-press on a pinned
+    // row then drag; crossing another pinned row swaps them through
+    // DrsUnified.reorderPinnedTool, the same persisted store every
+    // other control writes, so the dragged order survives restarts.
+    // The up/down buttons stay for TalkBack and precise nudging.
+    // The gesture detector is keyed on the display level only — the
+    // live pinned ORDER flows through a stable ref so an ongoing
+    // drag is never cancelled by a mid-drag recomposition.
+    // ---------------------------------------------------------
+    var draggingId by remember { mutableStateOf<String?>(null) }
+    var dragFingerRootY by remember { mutableStateOf(0f) }
+    val pinnedRowBounds = remember { mutableStateMapOf<String, LayoutCoordinates>() }
+    var dragHostRootY by remember { mutableStateOf(0f) }
+    val pinnedOrderRef = remember {
+        java.util.concurrent.atomic.AtomicReference<List<String>>(emptyList())
+    }
+    androidx.compose.runtime.SideEffect { pinnedOrderRef.set(pinnedTools.map { it.id }) }
+
+    fun pinnedCenterY(id: String): Float? = pinnedRowBounds[id]?.let {
+        it.positionInRoot().y + it.size.height / 2f
+    }
+
+    fun pinnedIndexUnderRootY(rootY: Float): Int {
+        var best = -1
+        var bestDist = Float.MAX_VALUE
+        pinnedOrderRef.get().forEachIndexed { index, id ->
+            val cy = pinnedCenterY(id) ?: return@forEachIndexed
+            val dist = kotlin.math.abs(cy - rootY)
+            if (dist < bestDist) {
+                bestDist = dist
+                best = index
+            }
+        }
+        return best
     }
 
     SnyggColumn(
@@ -291,37 +335,105 @@ fun DrsToolsDrawerPanel(modifier: Modifier = Modifier) {
                         text = stringRes(R.string.drs__tools_drawer__pinned_empty),
                     )
                 }
-                pinnedTools.forEach { tool ->
-                    DrawerRow(
-                        id = tool.id,
-                        hidden = tool.id in hiddenIds,
-                        pinned = true,
-                        trailing = {
-                            SnyggIconButton(
-                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
-                                onClick = { DrsUnified.moveTool(tool.id, up = true) },
-                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
-                            ) {
-                                SnyggIcon(imageVector = Icons.Default.KeyboardArrowUp)
-                            }
-                            SnyggIconButton(
-                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
-                                onClick = { DrsUnified.moveTool(tool.id, up = false) },
-                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
-                            ) {
-                                SnyggIcon(imageVector = Icons.Default.KeyboardArrowDown)
-                            }
-                            SnyggIconButton(
-                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
-                                onClick = { DrsUnified.setToolPinned(tool.id, false) },
-                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
-                            ) {
-                                SnyggIcon(
-                                    imageVector = Icons.Filled.PushPin,
-                                )
-                            }
-                        },
+                // DRS v1.22.0: the drag hint appears only where the drag
+                // actually works — two or more pinned rows.
+                if (pinnedTools.size >= 2) {
+                    SnyggText(
+                        elementName = DrsImeUi.ClipboardItemDescription.elementName,
+                        modifier = Modifier.padding(start = 20.dp, bottom = 2.dp),
+                        text = stringRes(R.string.drs__tools_drawer__drag_hint),
                     )
+                }
+                if (pinnedTools.isNotEmpty()) {
+                    // The drag host: a long-press anywhere on a pinned row
+                    // starts the reorder; the finger's root-Y decides which
+                    // row it is over, and every crossing is a real swap.
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onGloballyPositioned { dragHostRootY = it.positionInRoot().y }
+                            .pointerInput(view) {
+                                detectDragGesturesAfterLongPress(
+                                    onDragStart = { start ->
+                                        val ids = pinnedOrderRef.get()
+                                        val idx = pinnedIndexUnderRootY(
+                                            dragHostRootY + start.y,
+                                        )
+                                        if (idx >= 0 && idx < ids.size) {
+                                            draggingId = ids[idx]
+                                            dragFingerRootY = dragHostRootY + start.y
+                                        }
+                                    },
+                                    onDrag = { change, _ ->
+                                        val id = draggingId ?: return@detectDragGesturesAfterLongPress
+                                        dragFingerRootY = dragHostRootY + change.position.y
+                                        val fromIdx = pinnedOrderRef.get().indexOf(id)
+                                        val targetIdx = pinnedIndexUnderRootY(dragFingerRootY)
+                                        if (fromIdx >= 0 && targetIdx >= 0 && targetIdx != fromIdx) {
+                                            DrsUnified.reorderPinnedTool(fromIdx, targetIdx, view)
+                                        }
+                                    },
+                                    onDragEnd = { draggingId = null },
+                                    onDragCancel = { draggingId = null },
+                                )
+                            },
+                    ) {
+                        Column {
+                            pinnedTools.forEach { tool ->
+                                val isDragged = draggingId == tool.id
+                                androidx.compose.foundation.layout.Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .onGloballyPositioned { pinnedRowBounds[tool.id] = it }
+                                        .graphicsLayer {
+                                            translationY = if (isDragged) {
+                                                val center = pinnedRowBounds[tool.id]
+                                                if (center != null) {
+                                                    dragFingerRootY -
+                                                        (center.positionInRoot().y + center.size.height / 2f)
+                                                } else {
+                                                    0f
+                                                }
+                                            } else {
+                                                0f
+                                            }
+                                            alpha = if (isDragged) 0.85f else 1f
+                                        },
+                                ) {
+                                    DrawerRow(
+                                        id = tool.id,
+                                        hidden = tool.id in hiddenIds,
+                                        pinned = true,
+                                        trailing = {
+                                            SnyggIconButton(
+                                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                                                onClick = { DrsUnified.moveTool(tool.id, up = true) },
+                                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
+                                            ) {
+                                                SnyggIcon(imageVector = Icons.Default.KeyboardArrowUp)
+                                            }
+                                            SnyggIconButton(
+                                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                                                onClick = { DrsUnified.moveTool(tool.id, up = false) },
+                                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
+                                            ) {
+                                                SnyggIcon(imageVector = Icons.Default.KeyboardArrowDown)
+                                            }
+                                            SnyggIconButton(
+                                                elementName = DrsImeUi.ClipboardHeaderButton.elementName,
+                                                onClick = { DrsUnified.setToolPinned(tool.id, false) },
+                                                modifier = Modifier.sizeIn(minWidth = 38.dp).height(36.dp),
+                                            ) {
+                                                SnyggIcon(
+                                                    imageVector = Icons.Filled.PushPin,
+                                                )
+                                            }
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
 
                 // ----- the whole catalogue -----

@@ -81,6 +81,20 @@ jobs:
           fi
           ls -la dist/
 
+      # DRS v1.22.0: a manual workflow_dispatch run built signed binaries
+      # and then threw them away with the runner — the only publishing path
+      # was a v* tag. Manual runs now keep the signed APK/AAB as workflow
+      # artifacts (tag runs still publish the real GitHub Release).
+      - name: Upload signed artifacts (manual runs)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: drs-signed-release
+          path: |
+            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/bundle/release/app-release.aab
+          retention-days: 14
+
       - name: Compute SHA-256 checksums
         run: |
           cd dist

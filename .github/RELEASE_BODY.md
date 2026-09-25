@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.21.0
+# DRS Smart Keyboard V 1.22.0
 
-## الجولة الشاملة الحادية والعشرون — السلامة والدقة والوصول: مفتاح ميت يُحيى، نافذة انهيار تُسدّ، ووعد v1.11 يتحقق أخيرًا — نافذة التعديل الإشعارية
+## الجولة الشاملة الثانية والعشرون — الحدود الصادقة: سحب المهام المثبتة، سقف للتثبيتات، بريسيتات لوحات DRS، وإحياء CTRL/ALT الميتة
 
-**Twenty-First Comprehensive Round — Safety, Precision & Accessibility: A Dead Key Revived, A Crash Window Sealed, and the v1.11 Promise Finally Shipped — the Notification-Style Edit Window**
+**Twenty-Second Comprehensive Round — Honest Bounds: Drag-Reorder the Pinned Tasks, a Cap for the Pins, DRS Layout Presets, and the Dead CTRL/ALT Keys Revived**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,123 +20,91 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.21.0 — جولة السلامة والدقة والوصول
+## الجديد في V 1.22.0 — جولة الحدود الصادقة
 
-جولة فحص ثلاثي جديدة (محرك الإدخال واللوحات / الحافظة والإيموجي واللوحات
-الذكية / طبقة التطبيق والإعدادات والنشر) كشفت أخطاءً حقيقية كان الكود
-يكذبنا بوجودها: مفتاح يعلن الحذف ولا يحذف، انهيار يمكن للمستخدم إحداثه
-بنقرتين، وقسيمة وعدٍ من v1.11 لم يصرفها أي إصدار. كل بند أدناه إصلاح
-مُختبر فعليًا، لا لمسة تجميل.
+فحص ثلاثي جديد تحقق فيه من كل ادعاء بالكود الفعلي سطرًا سطرًا: خمسة مرشحات
+مؤكدة أُصلحت حتى النهاية، وادعاء واحد انهار أمام الدليل (ملفات western.json
+نظيفة تمامًا من العربية) فتحول إلى عقد حماية دائم بدل «إصلاح» زائف. كل بند
+أدناه عمل حقيقي مُختبر، لا ترقيم أسطر.
 
-- 🛡️ **وعد v1.11 يتحقق أخيرًا: نافذة الاشعارات المنبثقة الخاصة بالتعديل** —
-  منذ v1.11 والمستخدم يطلب «نافذة الاشعارات المنبثقه الخاصه بالتعديل وليست
-  في اللوحة»، وما كان موجودًا فعلًا سوى نافذة عائمة تُفتح من داخل لوحة
-  الحافظة — ولا أي إشعار في المستودع بأكمله (صفر استخدامات
-  `NotificationCompat`/`Notification` خارج مركز التحديث). الآن: عند التقاط
-  نص جديد يظهر **إشعار فوري (heads-up)** بقناة عالية الأهمية، عنوانه
-  «تعديل النص المنسوخ» ومعاينة النص، وفعل **«تعديل»** يفتح نافذة المحرر
-  العائمة **فوق الشاشة — خارج لوحة المفاتيح** من أي مكان، واللوحة مغلقة
-  أو لا. اللمسات الدقيقة: النص يعبر عبر Intent إضافي فينجو من موت العملية
-  (التسليم الداخلي بالذاكرة كان سيفشل من إشعار لاحق)، النصوص **الحساسة**
-  (كلمات السر المكتشفة) وغير النصية لا تظهر في الإشعارات أبدًا (خصوصية
-  شاشة القفل)، إشعار واحد يُستبدل بجديدك التالي (لا تكدّس)، وفيل الإعداد
-  في شاشة إعدادات الحافظة الشاملة: **«إشعار «تعديل» عند النسخ»**.
+- ↔️ **إعادة ترتيب المهام المثبتة بالسحب** — شريط المهام العشرة كان يُرتَّب
+  بأسهم «أعلى/أسفل» تنقل المهمة خانة واحدة في كل ضغطة عبر قائمة الكتالوج
+  الكاملة (والسحب الموجود في المستودع كان لمحرر الإجراءات السريعة — ميزة
+  أخرى لا علاقة لها). الآن: **اضغط مطولًا على مهمة مثبتة في الدرج واسحبها**
+  — كل تجاوز لمهمة أخرى تبديل حقيقي عبر `reorderPinnedTool`، المرسوم يتبع
+  إصبعك بشفافية خفيفة، والترتيب يكتب في نفس المخزن المحفوظ الذي تكتبه كل
+  عناصر التحكم فيبقى بعد إعادة التشغيل. أزرار الأسهم باقية لـTalkBack
+  وللضبط الدقيق، ولا شيء في المسار يصنع دبوسًا حادي عشر أو خانة مكررة —
+  النواة النقية `reorderPinnedSlots` تقصّ وتنقّي وترفض خارج النطاق بصمت
+  صادق.
 
-- 🔧 **مفتاح الحذف في لوحة الحركات كان ميتًا عند اللمسة السريعة** —
-  مفتاح الحذف بضغطة سريعة أقصر من 400 ميلي ثانية **لم يحذف شيئًا**:
-  النقر كان مستبعدًا صراحة عن مفتاح التكرار، والتأثير المتكرر كان ينام
-  400ms قبل أول حذف — فمفتاح أساسي في لوحة حركات كاملة كان يعمل بالضغط
-  المطول فقط. الآن أول حذف ينطلق لحظة ملامسة الإصبع ثم يتكرر عند
-  الاستمرار — اللمسة السريعة تحذف، والضغط المطول يكنس.
+- 📌 **سقف صادق لتثبيتات الحافظة («سقف التثبيتات»)** — حدّ سجل الحافظة
+  يستثني المثبتة صراحةً (وهذا صحيح — دبابيسك لا تمحوه عمليات التنظيف)، لكن
+  النتيجة أن المثبتة كانت **المخزن الوحيد بلا أي سقف** في الحافظة كلها:
+  `pinClip` كان يكتب في Room بلا سؤال واحد. الآن سقف قابل للضبط
+  (5–200، الافتراضي 50) عبر مفتاح `clipboard__pinned_max_size` في شاشة
+  إعدادات الحافظة: عند بلوغ السقف يُرفض التثبيت الجديد **بتوست صادق**
+  («سقف التثبيتات بلغ حده — ألغِ تثبيت عنصر لإضافة غيره») في اللوحة
+  ومسار «تثبيت العنصر النشط» معًا. والقرار النقي `pinCapAllows` يحفظ
+  الحدود الثلاثة: إعادة تثبيت عنصر مثبت تنجح دائمًا، والتثبيتات الموجودة
+  فوق سقف منخفض **لا تُحذف أبدًا** — السقف يبوّب الجديد فقط.
 
-- 💥 **نافذة انهيار حقيقية في المحرر الذكي — مغلقة** — البحث في المحرر
-  يحسب المطابقات على لقطة نص مؤجلة بـ150ms، لكن النص نفسه ينكمش خلفها
-  (استبدال بنص أقصر، تراجع عن إضافة كبيرة): إعادة التركيب كانت تمرر
-  مطابقات قديمة إلى `text.substring` فتنهار `StringIndexOutOfBounds`
-  فوق بطاقات النتائج أو التوهج داخل النص — بنقرات عادية في المحررين
-  معًا (النافذة العائمة ومحرر اللوحة). الحارس: مُطبِّع نقي يُسقط
-  المطابقات الخارجة كليًا ويقص الجزئية منها، تحته حلقة التوهج تُفلتر
-  مجددًا ضد طول النص الحي لحظة التطبيق، **وكل بطاقة ناجية تحمل فهرسها
-  الأصلي** في قائمة المطابقات فيبقى التنقل (الأسهم والبطاقة النشطة)
-  صاديًا على الهدف الحقيقي.
+- 🗂️ **لوحات DRS تدخل كتالوج البريسيتات أخيرًا** — حزمة
+  `org.drs.layouts.drs` (نمط الحاسوب PC 102، والنمط المغاربي، وصفحة الرموز
+  العربية) كانت تُدمج في محرك التخطيطات وتظهر في محرر الأنواع اليدوي فقط،
+  بينما **قائمة البريسيتات المقترحة لم ترها أبدًا**: صفر إشارة له في 73
+  بريسيتًا. الحزمة تنشر الآن `subtypePresets` خاصة بها: **ar-MA** (المغاربي
+  + الدرهم المغربي + صف أرقام غربي — فالمغرب العربي يكتب بأرقام لاتينية)،
+  **ar-DZ** (المغاربي + الدينار الجزائري + أرقام غربية)، و**ar-SA** (نمط
+  الحاسوب + الريال السعودي + صف الأرقام الهندية). كل مرجع (لوحة، مؤلِّف،
+  عملة، خرائط نوافذ) تحقق يدويًا عبر قراءة الأصول نفسها، وعقد اختبار يمنع
+  أي تصادم وسوم مع كتالوج التوطين ويمنع أي مرجع مكسور مستقبلًا.
 
-- 🚫 **الإنذار الكاذب في كشف الأسطر البرمجية** — سطر يبدأ بـ«*» كان
-  يُحكم «كودًا» فورًا (ظنًّا أنه استمرار توثيق JSDoc) — فالقائمة
-  النقطية الماركداونية بثلاثة أسطر («* عنصر واحد…») كانت تُقلب المحرر
-  كله إلى خط أحادي المسافة بشارة «كود» زائفة. العلامة الغامضة لم تعد
-  تقرر وحدها: تُجرد والسطر الباقي يُقيَّم بقواعده، فالقوائم قوائم
-  (لا كود)، و«* let x = 5;» ما تزال كودًا، و`/**` و`*/` و`//` وshebang
-  تقرر فورًا كما كانت.
+- ⌨️ **مفاتيح CTRL/ALT تنبض بعد 22 جولة من الموت** — منذ اليوم الأول كان
+  الضغط على CTRL أو ALT (إن أعلنهما تخطيط ما) يسقط في فرع «مفتاح مجهول»:
+  `flogError("Received unknown key")` ورسم فقط — لا حالة موديفاير في
+  `KeyboardState` إطلاقًا. الإحياء الكامل: حالة لمبة جديدة
+  (`InputModifierState`: OFF/LATCHED/LOCKED) في منطقتي بتتين حرتين من سجل
+  الحالة، ونابض يقلّب الضغطة عاديًا (لمسة = لمبة واحدة تنطفي بعد الاستهلاك،
+  لمستان = قفل يبقى حتى لمسة ثالثة، وأكواد `CTRL_LOCK/ALT_LOCK` تقفل مباشرة)،
+  والاستهلاك الحقيقي: **سهم مع CTRL = قفزة كلمة**، **سهم مع ALT = قفزة
+  سطر/صفحة** (نفس دلالات META_CTRL_ON/META_ALT_ON التي كان المحرك يحملها
+  لمفاتيح قفز الكلمات الصريحة)، و**حذف مع CTRL = حذف كلمة** للأمام والخلف،
+  بينما أي مفتاح آخر يستهلك اللمبة فلا تفاجئك لاحقًا. والمفاتيح أصبحت
+  **قابلة للوصول**: مدخلان جديدان في كتالوج شريط التقني (`Ctrl`/`Alt`)
+  مع نقطة الحالة الحية التي تقرأ اللمبة الفعلية — الحقيقة على البلاطة
+  لا اختصار مجاني.
 
-- 🕌 **طمس التشكيل صار واحدًا** — محرر الحافظة كان يُبقي علامات ضبط
-  المصحف الصغيرة (U+06D6–U+06ED) بينما لوحة أدوات النص تنزعها — نفس
-  الأداة باسمين وسلوكين. الاثنان يشاركان تعريفًا واحدًا الآن: «طمس
-  التشكيل» يعني الشيء نفسه في كل مكان.
+- 🧪 **الحماية قبل الانهيار: عقد western.json النظيف** — ادعاء الفحص «تسميات
+  عربية RTL في western.json» **انهار أمام المسح**: الملفان نظيفان 100% من
+  أي محرف عربي (المقاطع `rtl` الموجودة هي انعكاس أقواس ترقيم مشروع، والمحرف
+  العربي الوحيد في العائلة «٪» داخل western_samsung.json المقصود تصميمًا
+  للمستخدم العربي المفضل للنمط الغربي). الادعاء المرفوض صار **عقد بنية
+  أصول دائمًا**: إن تسللت تسمية عربية إلى صفحتي الرموز الغربية يومًا فالبناء
+  سيسقط قبل النشر — لا صمت إصدارًا.
 
-- 🌗 **حارس نافذة «تتبع الوقت» المعكوسة** — من يضبط شروقًا 22:00 وغروبًا
-  06:00 (جدول ليلي) كان يجبر الثيم الليلي **إلى الأبد** لأن المدى
-  `current in sunrise..sunset` ينهار إلى فراغ. نافذة النهار تلتف حول
-  منتصف الليل الآن، والزوج المنحل (شروق = غروب) يعود إلى النهار.
+- 🏗️ **التشغيل اليدوي للنشر لا يرمي أثره** — `workflow_dispatch` في مسار
+  الإصدار كان يبني APK وAAB موقّعين ثم يرميهما مع الـrunner: لا نشر (النشر
+  حكر على وسم) ولا رفع أرتيفاكت أصلًا. التشغيل اليدوي يحتفظ الآن بالثنائيات
+  الموقعة كأرتيفاكت مسار (`drs-signed-release`، صلاحية 14 يومًا).
 
-- ✍️ **16 حرفًا عربيًا نالت حركاتها** — التاء والثاء والحاء والخاء والدال
-  والذال والراء والسين والصاد والضاد والطاء والظاء والعين والغين والميم
-  والنون كانت **بلا أي ضغطة مطولة** في خريطة النوافذ العربية — أبرز أحرف
-  الكتابة اليومية بلا طريق إلى حركاتها! كل واحدة تحمل الآن الحركات
-  الخمس (َ ُ ِ ّ ْ) بضغطة مطولة. والفاصلة العربية «،» التي كانت غائبة
-  كليًا من لوحة الرموز الشرقية (بينما «؛» موجودة!) أصبحت الضغطة المطولة
-  على «؛» مع التطويل «ـ» بجوارها.
+- 🧹 **TODO رامٍ يُحذف** — `getLanguagePackIdPref(): Nothing = TODO(...)` في
+  شاشة مدير حزم اللغات كان قنبلة تتهدد أي استدعاء مستقبلي — دالة ميتة
+  بموت مؤكد إن دُعيت. حُذفت.
 
-- 🧭 **أربع أدوات إدراج علامات الاتجاه والوصل** — قسم جديد في لوحة أدوات
-  النص: **RLM** و**LRM** (تثبيت اتجاه النيُترالات بين النصوص المختلطة)،
-  **ZWJ** (واصل الحروف والإيموجي المركبة)، و**ZWNJ** — نصف المسافة —
-  (فاصل الاتصال بلا مسافة). الإدراج عند المؤشر مباشرة، يعمل على حقل فارغ،
-  ولا يبديل أي حرف — كانت أدوات الإزالة موجودة منذ v1.5 والإدراج غير
-  موجود في المستودع كله.
+- 🧪 **23 اختبار وحدة جديدًا (544 ناجحة، كانت 521)** — عقود `reorderPinnedSlots`
+  الكاملة (الأمام والخلف وخارج النطاق واللامعمل وعدم تلفيق دبابيس أو تكرارات
+  فوق سقف العشرة)، عقود `pinCapAllows` الأربعة (تحت السقف، عند السقف، إعادة
+  التثبيت، السقف المنخفض لا يدمّر)، دورة النابض الكاملة باتجاهها الثلاثة
+  والقفل المباشر والاستهلاك الصادق، `fromInt` ذهابًا وإيابًا مع الرداءة
+  للقيم الفاسدة، **عقد عدم تصادم بتّي** في سجل الحالة (CTRL/ALT/SHIFT
+  تعيش معًا)، كتالوج شريط التقني بأكواده الحقيقية وفرادة معرّفاته، خريطة
+  `toggleStateOf` للنقطة الحية، و**عقود الأصول الثلاثة**: بريسيتات DRS
+  (بنيتها ومراجعها المدمجة وفرادة وسومها) وwestern.json النظيف من العربية.
 
-- 👋 **منتقي لون البشرة داخل لوحة الإيموجي** — تغيير لون البشرة كان
-  يتطلب الخروج من الكيبورد إلى إعدادات التطبيق (الإعداد موجود منذ بداية
-  المشروع لكن بلا أي وصول من اللوحة!). نقطة ملونة في الصف السفلي تدور
-  الستة ألوان (DEFAULT → LIGHT → … → DARK → DEFAULT) بألوان عيّنة twemoji
-  الحقيقية، ومع تسمية وصولية عربية.
-
-- 🗣️ **TalkBack يتكلم حيث كان صامتًا** — تبويبات الإيموجي العشر كانت
-  أيقونات معلنة `Tab` بلا نص: «بلا تسمية». كل تبويب ينطق اسم فئته
-  العربية الآن، وزرا «مسح البحث» في شاشتي الإضافات (أزرار فعلية بلا
-  وصف) يُعلنان وظيفتهما، وزر لون البشرة ينطق «اختيار لون البشرة».
-
-- 🎨 **صف بحث الإيموجي يلتزم ثيم لوحة المفاتيح** — كان يلوّن نفسه من
-  `MaterialTheme` الافتراضي بينما كل لوحات أخرى تقرأ ثيم snygg الفعّال —
-  نفس عائلة الخلل الذي أُصلح لبحث الحافظة في v1.7 ولم يصل إلى الإيموجي.
-  يقرأ ألوان النافذة المُهيمنة الآن مع تدرج قراءة من الإضاءة.
-
-- 💾 **قاموس المستخدم يسافر في النسخة الاحتياطية أخيرًا** — الكلمات
-  المتعلمة (قلب التخصيص!) كانت **الشيء الوحيد المهم خارج الأرشيف**:
-  إعادة ضبط المصنع كانت تمحوها ولا شيء يعيدها. خيار جديد «قاموس المستخدم
-  (الكلمات المتعلمة)» في شاشة النسخ يصدّرها بصيغة القائمة المدمجة
-  المعيارية (نفسها التي يقرأها الاستيراد اليدوي)، والاستعادة تدمجها بذكاء
-  (تحديث الموجود، إدخال الجديد، دمج أو مسح-ثم-استيراد حسب استراتيجيتك)
-  مع تجاهل صادق للأسطر التالفة.
-
-- 🏗️ **خطوة lint في مسار النشر** — خط أنابيب الإصدار كان يشغّل 521
-  اختبارًا وبوابة الوسم ثم ينشر، دون أي فحص ثابت. `lintRelease` يجري
-  الآن مع كل إصدار (غير مانع أثناء الضجيج الحالي، لكنه مُنتَج للمراجعة).
-
-- 🧹 **نظافة** — `RELEASE_BODY.md` الجذري كان نسخة ميتة من v1.16 تعارض
-  نسخة `.github/` التي تستخدمها CI فعلًا — حُذف. وتعليق «50,000 حرف»
-  القديم فوق ثابت 500,000 صار صادقًا. **التوازي الآن 2,390 مفتاحًا
-  لكل لغة (AR/EN)**.
-
-- 🧪 **20 اختبار وحدة جديدًا (521 ناجحة)** — عقود حارس المطابقات
-  (`normalizeAgainst`/`buildCards`/`inBounds` بإسقاطها وقصّها وصمد
-  فهارسها الأصلية)، عقود كشف الكود (القوائم ليست كودًا، النجم المتبوع
-  بكود يظل كودًا، العلامات الواضحة تقرر)، طمس ضبط المصحف، نافذة
-  FOLLOW_TIME بحالاتها الأربع (المعتاد، المعكوس، المنحل، الحواف الشاملة)،
-  دورة لون البشرة وألوان العيّن، عقد سلسلة قاموس المستخدم (ذهابًا
-  وإيابًا، locale فارغة، تلف وفكرة)، بوابة الإشعار بحالاتها الست
-  (مفعّل/حساس/غير نصي/فراغ/إعداد/سجل) ومعاينتها، خرائط علامات الإدراج
-  ونطاق التوزيع الممتد (-657)، و**عقد بنية الأصول**: الـ16 حرفًا بحركاتها
-  في ar.json والفاصلة العربية والتطويل في الرموز الشرقية — الأصول
-  التي تخدم أصابعك محروسة كالكود.
+- 🌐 **التوازي الآن 2,393 مفتاحًا لكل لغة (AR/EN)** — أربعة مفاتيح جديدة
+  (توست السقف، عنوان الإعداد، تلميح السحب) عبر سكربت `add_v1220_strings.py`
+  بالنمط المرجعي v1210: idempotent مع بوابة توازٍ تسقط عند أي انفراد.
 
 </div>
 
@@ -151,138 +119,110 @@ thoughtful Arabic layouts and Arabic suggestions/correction, with English
 as a complete second option. Everything stays on your device: no accounts,
 no tracking, no ads.
 
-## What's new in V 1.21.0 — The Safety, Precision & Accessibility Round
+## What's new in V 1.22.0 — The Honest Bounds Round
 
-A fresh tri-front audit (input engine & layouts / clipboard, emoji & smart
-panels / app layer, settings & release) found defects the code kept
-denying: a key that claims to delete but doesn't, a crash any user could
-trigger in two taps, and a v1.11 promise no release ever cashed. Every
-item below is a real, tested fix — no polish passes.
+A fresh tri-front audit verified every claim against the actual code,
+line by line: five candidates confirmed and fixed to the end, and one
+claim that collapsed under evidence (the western.json files are 100%
+free of Arabic labels) — turned into a permanent asset contract instead
+of a fake "fix". Every item below is real, tested work.
 
-- 🛡️ **The v1.11 promise finally shipped: the notification-style edit
-  window** — since v1.11 the user asked for «نافذة الاشعارات المنبثقه
-  الخاصه بالتعديل — وليست في اللوحة», and what shipped back then was a
-  floating window reachable only from inside the clipboard panel — the
-  repo had **zero notifications** outside the update center. Now: when a
-  new text clip is captured, a **heads-up notification** (HIGH-importance
-  channel) appears — "Edit the copied text", a preview, and an **«تعديل»
-  action that opens the floating editor OVER the screen, outside the
-  keyboard**, from anywhere, panel open or not. The details: the text
-  rides intent extras so the popup survives process death (the in-memory
-  handoff would fail from a later notification), **sensitive** clips
-  (detected passwords) and non-text items never surface (lock-screen
-  privacy), one notification replaces the previous (no stacking), and a
-  switch in the comprehensive clipboard settings: **"«Edit» notification
-  on copy"**.
+- ↔️ **Drag to reorder the pinned tasks** — the ten-slot tasks bar was
+  reorderable only by one-slot up/down nudges routed through the whole
+  catalogue order (and the drag that existed in the repo belonged to the
+  quick-actions editor — a different feature). Now: **long-press a pinned
+  task in the drawer and drag** — every crossing is a real swap through
+  `reorderPinnedTool`, the dragged row follows your finger with a subtle
+  translucency, and the order is written to the same persisted store every
+  other control uses, surviving restarts. The up/down buttons stay for
+  TalkBack and precise nudging, and nothing in the path can fabricate an
+  11th pin or a duplicate slot — the pure core `reorderPinnedSlots`
+  dedupes, caps and refuses out-of-range moves.
 
-- 🔧 **The harakat keyboard's delete key was dead on quick taps** — a tap
-  shorter than 400 ms deleted **nothing**: clicks were explicitly excluded
-  from the repeat key while the repeat effect slept 400 ms before its
-  first deletion — a primary key on a shipped panel worked only by holding.
-  The first delete now fires the instant the finger lands, then repeats on
-  hold — quick tap deletes, long-press sweeps.
+- 📌 **An honest cap for clipboard pins («سقف التثبيتات»)** — the history
+  size limit explicitly exempts pinned items (by design — your pins must
+  survive cleanup), but the consequence was that pinned items were **the
+  only unbounded store in the entire clipboard**: `pinClip` wrote to Room
+  without asking a single question. The cap is now configurable
+  (5–200, default 50) via `clipboard__pinned_max_size` in the clipboard
+  settings screen: at the cap a new pin is refused **with an honest
+  toast** ("Pin cap reached — unpin an item to pin another") from both
+  the panel popup and the pin-active path. The pure decision
+  `pinCapAllows` keeps all three bounds: re-pinning an already-pinned
+  item always succeeds, existing pins above a lowered cap are **never
+  auto-destroyed**, and only new pins are gated.
 
-- 💥 **A real crash window in the smart editor — sealed** — editor search
-  computes matches on a text snapshot debounced by 150 ms, while the text
-  itself shrinks underneath (replace-with-shorter, undo a big insert):
-  recomposition handed the stale matches to `text.substring`, throwing
-  `StringIndexOutOfBounds` over the result cards or the in-text glow —
-  reachable with ordinary taps in BOTH editors (the popup and the panel
-  one). The guard: a pure normalizer drops wholly-out matches and clamps
-  partial ones, the highlight loop re-filters against the live field text
-  length at apply time, and **every surviving card keeps its ORIGINAL
-  match-list index** so navigation (arrows, active card) stays honest.
+- 🗂️ **DRS layouts finally join the preset catalog** — the
+  `org.drs.layouts.drs` package (PC 102, Maghreb, and the Arabic symbols
+  page) was merged into the layout engine and reachable through the manual
+  subtype editor, but the **suggested presets list never saw it**: zero
+  references across all 73 presets. The package now publishes its own
+  `subtypePresets`: **ar-MA** (Maghreb layout + Moroccan dirham + a
+  western digit row — the Maghreb writes in Latin digits), **ar-DZ**
+  (Maghreb + Algerian dinar + western digits), and **ar-SA** (PC 102 +
+  Saudi riyal + the Eastern Arabic numeral row). Every reference (layout,
+  composer, currency set, popup mapping) was verified by reading the
+  assets themselves, and a test contract prevents tag collisions with the
+  localization catalog or broken references forever.
 
-- 🚫 **The false positive in code-line detection** — a line starting with
-  `*` was instantly labeled code (assumed a JSDoc continuation), so a
-  three-line Markdown bullet list flipped the whole editor to monospace
-  with a bogus "code" badge. The ambiguous marker no longer decides alone:
-  it is stripped and the remainder scored by the normal rules — bullets
-  are bullets, `* let x = 5;` is still code, and `/**`, `*/`, `//` and
-  shebangs still decide immediately.
+- ⌨️ **CTRL/ALT keys pulse again after 22 dead rounds** — since day one,
+  pressing CTRL or ALT (should any layout declare them) fell into the
+  "unknown key" branch: `flogError("Received unknown key")` and nothing
+  else — no modifier state existed anywhere in `KeyboardState`. The full
+  revival: a new latch state (`InputModifierState`: OFF/LATCHED/LOCKED)
+  in two free 2-bit regions of the state register, a cycle like shift
+  (tap = one-shot latch consumed by the next key, tap again = lock until
+  a third tap, `CTRL_LOCK/ALT_LOCK` codes jump straight to lock), and the
+  real consumption: **CTRL + arrow = word jump**, **ALT + arrow =
+  line/page jump** (the same META_CTRL_ON/META_ALT_ON semantics the
+  engine already carried for the explicit word-jump keys), and
+  **CTRL + delete = word deletion** in both directions — while any other
+  key consumes a one-shot latch so it can never surprise you later. The
+  keys are now **reachable**: two new entries in the tech-toolbar
+  catalogue (`Ctrl`/`Alt`) with a live active dot reading the actual
+  latch — the truth on the tile, not a free pass.
 
-- 🕌 **One tashkeel strip to rule them both** — the clipboard editor kept
-  the small Quranic annotation marks (U+06D6–U+06ED) while the text-tools
-  panel stripped them — one tool, two names, two behaviors. Both now share
-  a single definition: "remove diacritics" means the same thing everywhere.
+- 🧪 **Protection before the crash: the western.json contract** — the
+  audit claim "Arabic RTL labels in western.json" **collapsed under the
+  scan**: both files are 100% free of Arabic characters (the `rtl`
+  segments present are proper bracket-mirroring selectors, and the only
+  Arabic char in the family is the «٪» popup inside western_samsung.json —
+  deliberate design for the Arabic user preferring the western layout).
+  The refuted claim is now a **permanent asset-structure contract**: if
+  an Arabic label ever sneaks into the western symbol pages, the build
+  drops before release — no silent regressions.
 
-- 🌗 **A guard for the inverted FOLLOW_TIME window** — setting sunrise
-  22:00 and sunset 06:00 (a night shift) forced the night theme **forever**
-  because `current in sunrise..sunset` collapses to an empty range. The
-  day window now wraps midnight, and the degenerate pair (sunrise ==
-  sunset) falls back to day.
+- 🏗️ **Manual release runs keep their artifacts** — `workflow_dispatch`
+  in the release path built a signed APK and AAB and then threw both away
+  with the runner: no publish (that is tag-only) and no artifact upload
+  at all. Manual runs now keep the signed binaries as workflow artifacts
+  (`drs-signed-release`, 14-day retention).
 
-- ✍️ **16 bare Arabic letters got their harakat** — ت ث ح خ د ذ ر س ص ض ط
-  ظ ع غ م ن had **no long-press at all** in the Arabic popup mappings —
-  the workhorse letters of daily writing had no path to their diacritics!
-  Each now carries the five core harakat (َ ُ ِ ّ ْ) on long-press. And
-  the Arabic comma «،» — entirely absent from the eastern symbols page
-  while «؛» sat right there — is now the long-press on «؛», with the
-  tatweel «ـ» beside it.
+- 🧹 **A live TODO removed** — `getLanguagePackIdPref(): Nothing =
+  TODO(...)` in the language-pack manager screen was a bomb aimed at any
+  future caller — a dead function with a guaranteed death if invoked.
+  Removed.
 
-- 🧭 **Four directional/joining mark insertion tools** — a new section in
-  the text-tools panel: **RLM** and **LRM** (pin neutral characters
-  between mixed-direction runs), **ZWJ** (join letters and emoji into
-  compound sequences), and **ZWNJ** — نصف المسافة — (break the cursive
-  join with no visible space). They commit straight at the cursor, work
-  on an empty field, and replace nothing — the removal tool existed since
-  v1.5 while insertion was absent from the entire repo.
+- 🧪 **23 new unit tests (544 passing, was 521)** — the full
+  `reorderPinnedSlots` contracts (forward/backward, out-of-range, no-op,
+  no fabricated pins or duplicates above the cap of ten), the four
+  `pinCapAllows` contracts (under cap, at cap, re-pin, lowered cap never
+  destroys), the full latch cycle in all three directions plus direct
+  lock and honest consumption, `fromInt` round-trips with garbage
+  fallback, a **no-bit-collision contract** in the state register
+  (CTRL/ALT/SHIFT coexist), the tech-toolbar catalogue with real codes
+  and unique ids, the `toggleStateOf` live-dot map, and **three asset
+  contracts**: the DRS presets (structure, merged references, unique
+  tags) and the Arabic-free western symbol pages.
 
-- 👋 **An in-palette skin-tone selector** — changing the skin tone used to
-  require leaving the keyboard for the app settings (the preference has
-  existed all along with zero access from the palette!). A colored dot in
-  the bottom row cycles the six tones (DEFAULT → LIGHT → … → DARK →
-  DEFAULT) with real twemoji swatches and an Arabic accessibility label.
-
-- 🗣️ **TalkBack speaks where it was silent** — the ten emoji tabs were
-  icon-only `Tab`s: announced as unlabeled. Each tab now announces its
-  Arabic category name, the clear-search buttons in the two extension
-  screens (actionable icons with no description) announce their job, and
-  the skin-tone dot announces "choose skin tone".
-
-- 🎨 **The emoji search row follows the keyboard theme** — it painted
-  itself from the default `MaterialTheme` while every other panel reads
-  the active snygg keyboard theme — the same defect family fixed for the
-  clipboard search back in v1.7 that never reached the emoji palette. It
-  reads the themed window colors now with a luminance-derived fallback.
-
-- 💾 **The user dictionary finally rides the backup** — your learned
-  words (the heart of personalization!) were the one important thing
-  outside the archive: a factory reset erased them and nothing brought
-  them back. A new "User dictionary (learned words)" selector in the
-  backup screen exports them in the standard combined-list format (the
-  same one the manual import path reads), and restore merges them
-  intelligently (update existing, insert new, merge or erase-then-import
-  by your chosen strategy) while honestly skipping malformed lines.
-
-- 🏗️ **A lint step in the release path** — the pipeline ran 521 unit
-  tests and the tag gate, then published without any static analysis.
-  `lintRelease` now runs with every release (non-fatal while the existing
-  baseline is noisy, but produced for review).
-
-- 🧹 **Hygiene** — the stale root `RELEASE_BODY.md` (a frozen v1.16 copy
-  diverging from the `.github/` one CI actually uses) is deleted, and the
-  old "50,000 characters" comment above the 500,000 constant now tells
-  the truth. **Exact parity: 2,390 keys per language (AR/EN)**.
-
-- 🧪 **20 new unit tests (521 passing)** — the match-guard contracts
-  (`normalizeAgainst`/`buildCards`/`inBounds` with drop, clamp and
-  preserved original indexes), code-detection contracts (bullets are not
-  code, a star followed by code still is, unambiguous markers decide),
-  the Quranic-mark strip, the FOLLOW_TIME window in all four states
-  (normal, inverted, degenerate, inclusive edges), the skin-tone cycle
-  and swatches, the user-dictionary format round trip (word+freq+locale+
-  shortcut, literal-null global entries, malformed and out-of-range
-  honesty), the notification gate in all its states and the preview
-  capping, the insertion-mark maps and the extended dispatch range
-  (-657), and — new this round — **asset-structure contracts**: the 16
-  letters with their harakat in ar.json and the Arabic comma + tatweel in
-  the eastern symbols page. The data serving your fingers is guarded like
-  the code.
+- 🌐 **Parity is now 2,393 keys per language (AR/EN)** — four new keys
+  (cap toast, setting title, drag hint) via the v1210-reference-pattern
+  `add_v1220_strings.py`: idempotent with a parity gate that fails on any
+  orphan.
 
 ## Install
 
-1. Download `DRS-Smart-Keyboard-v1.21.0.apk` below.
+1. Download `DRS-Smart-Keyboard-v1.22.0.apk` below.
 2. Install it (allow unknown sources when prompted).
 3. Open Settings → System → Languages & input → enable the keyboard.
 4. Pick it as your default keyboard and start typing.

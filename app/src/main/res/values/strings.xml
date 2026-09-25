@@ -2526,4 +2526,9 @@
     <string name="emoji__skin_tone__cd" comment="Accessibility label of the skin tone selector">اختيار لون البشرة</string>
     <string name="emoji__search__clear" comment="Accessibility label of the emoji search clear button">مسح البحث</string>
 
+    <string name="clipboard__pin_cap_toast" comment="Toast shown when a new pin exceeds the pinned items cap">سقف التثبيتات بلغ حده — ألغِ تثبيت عنصر لإضافة غيره</string>
+    <string name="pref__clipboard__pinned_max_size__label" comment="Preference title">سقف العناصر المثبتة</string>
+    <string name="drs__tools_drawer__drag_hint" comment="Hint under the pinned tasks section of the tools drawer">اضغط مطولًا على مهمة واسحبها لإعادة ترتيبها</string>
+
+
 </resources>

@@ -89,8 +89,6 @@ fun LanguagePackManagerScreen(action: LanguagePackManagerScreenAction?) = DrsScr
         }.mapValues { (_, configs) -> configs.sortedBy { it.label } }
     }
 
-    fun getLanguagePackIdPref(): Nothing = TODO("Not implemented yet")
-
     fun setLanguagePack(extId: String, componentId: String) {
         val extComponentName = ExtensionComponentName(extId, componentId)
         when (action) {

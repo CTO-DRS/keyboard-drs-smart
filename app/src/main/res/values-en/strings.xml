@@ -2609,4 +2609,9 @@
     <string name="emoji__skin_tone__cd" comment="Accessibility label of the skin tone selector">Choose skin tone</string>
     <string name="emoji__search__clear" comment="Accessibility label of the emoji search clear button">Clear search</string>
 
+    <string name="clipboard__pin_cap_toast" comment="Toast shown when a new pin exceeds the pinned items cap">Pin cap reached — unpin an item to pin another</string>
+    <string name="pref__clipboard__pinned_max_size__label" comment="Preference title">Pinned items cap</string>
+    <string name="drs__tools_drawer__drag_hint" comment="Hint under the pinned tasks section of the tools drawer">Long-press a task and drag to reorder</string>
+
+
 </resources>

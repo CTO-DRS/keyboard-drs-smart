@@ -64,6 +64,14 @@ object DrsTechToolbarKeys {
         DrsTechToolbarKey("caret", "^", '^'.code, KeyType.CHARACTER),
         DrsTechToolbarKey("amp", "&", '&'.code, KeyType.CHARACTER),
         DrsTechToolbarKey("asterisk", "*", '*'.code, KeyType.CHARACTER),
+        // DRS v1.22.0: the revived modifier latches — until this round the
+        // CTRL/ALT codes were drawn-but-dead (they fell into the unknown-key
+        // branch). They now latch like shift (tap = one-shot, tap again =
+        // lock, third tap = release) and arm word/line/page navigation and
+        // word deletion. The live active dot comes from the same
+        // ToggleStates the other toggle tools use.
+        DrsTechToolbarKey("ctrl", "Ctrl", KeyCode.CTRL, KeyType.MODIFIER),
+        DrsTechToolbarKey("alt", "Alt", KeyCode.ALT, KeyType.MODIFIER),
     )
 
     private val BY_ID = ALL.associateBy { it.id }

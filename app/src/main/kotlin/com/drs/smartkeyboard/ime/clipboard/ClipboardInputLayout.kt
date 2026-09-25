@@ -1028,8 +1028,11 @@ fun ClipboardInputLayout(
                             ) {
                                 if (popupItem!!.isPinned) {
                                     clipboardManager.unpinClip(popupItem!!)
-                                } else {
-                                    clipboardManager.pinClip(popupItem!!)
+                                } else if (!clipboardManager.pinClip(popupItem!!)) {
+                                    // DRS v1.22.0: the honest pin cap —
+                                    // «سقف التثبيتات بلغ حده» instead of a
+                                    // silent no-op.
+                                    context.showShortToastSync(R.string.clipboard__pin_cap_toast)
                                 }
                                 popupItem = null
                             }

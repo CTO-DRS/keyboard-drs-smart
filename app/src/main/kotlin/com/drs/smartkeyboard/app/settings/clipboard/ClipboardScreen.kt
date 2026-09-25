@@ -185,6 +185,19 @@ fun ClipboardScreen() = DrsScreen {
                 stepIncrement = 5,
                 enabledIf = { prefs.clipboard.historyEnabled isEqualTo true && prefs.clipboard.historySizeLimitEnabled isEqualTo true },
             )
+            // DRS v1.22.0 — «سقف التثبيتات»: pinned items were the one
+            // unbounded clipboard store; the cap now gates new pins with
+            // an honest toast, and pins above a lowered cap are never
+            // auto-destroyed.
+            DialogSliderPreference(
+                prefs.clipboard.pinnedMaxSize,
+                title = stringRes(R.string.pref__clipboard__pinned_max_size__label),
+                valueLabel = { pluralsRes(R.plurals.unit__items__written, it, "v" to it) },
+                min = 5,
+                max = 200,
+                stepIncrement = 5,
+                enabledIf = { prefs.clipboard.historyEnabled isEqualTo true },
+            )
 
             SwitchPreference(
                 prefs.clipboard.historyHideOnPaste,

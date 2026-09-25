@@ -158,6 +158,16 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "clipboard__history_size_limit",
             default = 20,
         )
+        // DRS v1.22.0: the honest ceiling of the PINNED clipboard items —
+        // «سقف التثبيتات». Pinned items were the one unbounded store in
+        // the clipboard (history limits explicitly exempt them), so the
+        // cap refuses a new pin with an honest toast instead of silently
+        // growing the Room table forever. Existing pins above a lowered
+        // cap are never auto-destroyed.
+        val pinnedMaxSize = int(
+            key = "clipboard__pinned_max_size",
+            default = 50,
+        )
         val historyHideOnPaste = boolean(
             key = "clipboard__history_hide_on_paste",
             default = false,

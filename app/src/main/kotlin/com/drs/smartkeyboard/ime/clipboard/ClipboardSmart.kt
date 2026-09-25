@@ -80,6 +80,18 @@ object ClipboardTextPolicy {
     }
 
     fun truncateForStorage(text: String): String = truncateForStorage(text, MAX_TEXT_CHARS)
+
+    /**
+     * DRS v1.22.0: the pure pin-cap decision — «سقف التثبيتات». A pin is
+     * allowed when the item is already pinned (idempotent re-pin) or the
+     * pinned store still has room under [cap]. A cap of zero refuses every
+     * new pin; the pins that already exist are never auto-destroyed by a
+     * lowered cap — enforcement happens on new pins only.
+     */
+    fun pinCapAllows(alreadyPinned: Boolean, pinnedCount: Int, cap: Int): Boolean {
+        if (alreadyPinned) return true
+        return pinnedCount < cap
+    }
 }
 
 /**

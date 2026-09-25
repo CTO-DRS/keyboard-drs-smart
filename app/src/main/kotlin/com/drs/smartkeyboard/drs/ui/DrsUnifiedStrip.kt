@@ -229,6 +229,8 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
         keyboardManager.activeState.isIncognitoMode,
         suggestionEnabled, numberRowEnabled, smartbarEnabled,
         windowSpec,
+        keyboardManager.activeState.inputCtrlState,
+        keyboardManager.activeState.inputAltState,
     ) {
         DrsUnifiedTools.ToggleStates(
             incognito = keyboardManager.activeState.isIncognitoMode,
@@ -236,6 +238,11 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
             numberRow = numberRowEnabled,
             smartbarVisible = smartbarEnabled,
             floatingWindow = windowSpec.props is ImeWindowSpec.Floating,
+            // DRS v1.22.0: the revived CTRL/ALT latches show the truth —
+            // the tile dot reads the same latch state the input pipeline
+            // arms and consumes.
+            ctrlArmed = keyboardManager.activeState.inputCtrlState.isArmed,
+            altArmed = keyboardManager.activeState.inputAltState.isArmed,
         )
     }
     // Accent for the active dot, from the active user system's palette
@@ -383,6 +390,14 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
 
         // 2) the user's technical keys (advanced/dual levels only).
         techKeys.forEach { key ->
+            // DRS v1.22.0: the modifier latch keys show their live armed
+            // state the same way the toggle tools do — the tile shows the
+            // truth, LATCHED and LOCKED alike.
+            val latchOn = when (key.id) {
+                "ctrl" -> toggleStates.ctrlArmed
+                "alt" -> toggleStates.altArmed
+                else -> null
+            }
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarActionKey.elementName,
                 onClick = {
@@ -393,11 +408,25 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
                 },
                 modifier = Modifier.sizeIn(minWidth = 38.dp).height(stripHeight),
             ) {
-                Text(
-                    text = key.label,
-                    fontSize = 14.sp,
-                    maxLines = 1,
-                )
+                androidx.compose.foundation.layout.Box(
+                    contentAlignment = androidx.compose.ui.Alignment.Center,
+                ) {
+                    Text(
+                        text = key.label,
+                        fontSize = 14.sp,
+                        maxLines = 1,
+                    )
+                    if (latchOn == true) {
+                        androidx.compose.foundation.layout.Box(
+                            modifier = Modifier
+                                .align(androidx.compose.ui.Alignment.TopEnd)
+                                .padding(top = 6.dp, end = 5.dp)
+                                .size(6.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(accentColor),
+                        )
+                    }
+                }
             }
         }
     }

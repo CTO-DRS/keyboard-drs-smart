@@ -886,6 +886,21 @@ object DrsUnifiedTools {
     }
 
     /**
+     * DRS v1.22.0: the pure core of «إعادة الترتيب بالسحب» — moving the
+     * task at [from] to [to] inside the pinned head. Out-of-range indexes
+     * and no-op moves return the input unchanged; the result stays
+     * deduplicated and capped so a malformed drag can never fabricate an
+     * 11th pin or a duplicate slot.
+     */
+    fun reorderPinnedSlots(slots: List<String>, from: Int, to: Int): List<String> {
+        if (from !in slots.indices || to !in slots.indices || from == to) return slots
+        val mutable = slots.toMutableList()
+        val moved = mutable.removeAt(from)
+        mutable.add(to, moved)
+        return mutable.distinct().take(MAX_PINNED_TOOLS)
+    }
+
+    /**
      * DRS v1.16.0: the pure core of «إمكانية تغيير المهام» — replacing
      * the tool at slot [index] with [newId] in the CURRENT slots list.
      * The result is the materialized pinned list (every slot becomes an
@@ -986,6 +1001,10 @@ object DrsUnifiedTools {
         val numberRow: Boolean = false,
         val smartbarVisible: Boolean = true,
         val floatingWindow: Boolean = false,
+        // DRS v1.22.0: the revived CTRL/ALT modifier latches (شريط التقني)
+        // — the dot shows the truth, LOCKED and LATCHED alike.
+        val ctrlArmed: Boolean = false,
+        val altArmed: Boolean = false,
     )
 
     /**
@@ -999,6 +1018,9 @@ object DrsUnifiedTools {
         "number_row" -> states.numberRow
         "smartbar_toggle" -> states.smartbarVisible
         "floating_mode" -> states.floatingWindow
+        // DRS v1.22.0: the modifier latch toggles of the tech toolbar.
+        "ctrl" -> states.ctrlArmed
+        "alt" -> states.altArmed
         else -> null
     }
 }
@@ -1184,6 +1206,56 @@ object DrsUnified {
                 } else {
                     state.unifiedToolViews
                 },
+            )
+        }
+        return applied
+    }
+
+    /**
+     * DRS v1.22.0: «إعادة الترتيب بالسحب» — moves the task rendered at
+     * pinned-head position [from] to position [to] (the same ten-slot
+     * geometry [replaceStripSlot] uses). The strip order list is rewritten
+     * so the pinned head keeps the dragged order, and the explicit pin
+     * list is reordered coherently so cap priority (user pins win in pin
+     * order) follows what the user sees. Honest return: false for
+     * out-of-range indexes or a no-op move — nothing silently swallowed.
+     */
+    fun reorderPinnedTool(from: Int, to: Int, view: DrsHybridViewMode): Boolean {
+        if (from == to) return false
+        var applied = false
+        DrsStore.update { state ->
+            val defaultPinnedIds = DrsUnifiedTools.ALL.filter { it.defaultPinned }.map { it.id }
+            val effectivePinned = DrsUnifiedTools
+                .capPinned(state.pinnedUnifiedTools, defaultPinnedIds)
+                .toHashSet()
+            val head = DrsUnifiedTools.resolveFor(
+                view = view,
+                hidden = state.hiddenUnifiedTools,
+                pinned = state.pinnedUnifiedTools,
+                order = state.unifiedToolOrder,
+                viewOverrides = state.unifiedToolViews,
+            ).filter { it.id in effectivePinned }.map { it.id }
+            if (from < 0 || from >= head.size || to < 0 || to >= head.size) return@update state
+            applied = true
+            val newHead = DrsUnifiedTools.reorderPinnedSlots(head, from, to)
+            // Rewrite the catalogue order: pinned head first in the dragged
+            // order, everything else keeps its relative tail order.
+            val catalogueIds = DrsUnifiedTools.ALL.map { it.id }
+            val baseOrder = if (state.unifiedToolOrder.isEmpty()) {
+                catalogueIds
+            } else {
+                val known = state.unifiedToolOrder.filter { it in catalogueIds }
+                known + catalogueIds.filter { it !in known.toSet() }
+            }
+            val newOrder = (newHead + baseOrder.filter { it !in newHead.toSet() }).distinct()
+            // Keep the explicit pin order coherent with the visible head —
+            // pins hidden on this level keep their relative order after it.
+            val explicitSet = state.pinnedUnifiedTools.toHashSet()
+            val reorderedPins = newHead.filter { it in explicitSet }
+            val remainingPins = state.pinnedUnifiedTools.filter { it !in reorderedPins.toSet() }
+            state.copy(
+                unifiedToolOrder = newOrder,
+                pinnedUnifiedTools = (reorderedPins + remainingPins).distinct(),
             )
         }
         return applied

@@ -393,10 +393,27 @@ class ClipboardManager(
         }
     }
 
-    fun pinClip(item: ClipboardItem) {
+    /**
+     * DRS v1.22.0: pins one history item — honestly bounded now. The cap
+     * (clipboard__pinned_max_size, default 50) is checked synchronously
+     * against the in-memory history before the DB write; the caller shows
+     * the honest toast when the pin is refused. Re-pinning an already
+     * pinned item is always allowed, and pins above a lowered cap are
+     * never auto-destroyed — only new pins are gated.
+     */
+    fun pinClip(item: ClipboardItem): Boolean {
+        if (!ClipboardTextPolicy.pinCapAllows(
+                alreadyPinned = item.isPinned,
+                pinnedCount = currentHistory.pinned.size,
+                cap = prefs.clipboard.pinnedMaxSize.get(),
+            )
+        ) {
+            return false
+        }
         ioScope.launch {
             clipHistoryDao?.update(item.copy(isPinned = true))
         }
+        return true
     }
 
     fun unpinClip(item: ClipboardItem) {

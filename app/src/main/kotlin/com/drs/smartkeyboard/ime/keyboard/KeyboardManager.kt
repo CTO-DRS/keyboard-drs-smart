@@ -49,6 +49,7 @@ import com.drs.smartkeyboard.ime.input.CapitalizationBehavior
 import com.drs.smartkeyboard.ime.input.InputEventDispatcher
 import com.drs.smartkeyboard.ime.input.InputKeyEventReceiver
 import com.drs.smartkeyboard.ime.input.InputShiftState
+import com.drs.smartkeyboard.ime.input.cycleModifierLatch
 import com.drs.smartkeyboard.ime.nlp.ClipboardSuggestionCandidate
 import com.drs.smartkeyboard.ime.nlp.PunctuationRule
 import com.drs.smartkeyboard.ime.nlp.SuggestionCandidate
@@ -351,6 +352,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
      */
     fun handleArrow(code: Int, count: Int = 1) = editorInstance.apply {
         val isShiftPressed = activeState.isManualSelectionMode || inputEventDispatcher.isPressed(KeyCode.SHIFT)
+        // DRS v1.22.0: the revived modifier latches ride along — an armed
+        // CTRL turns an arrow into word movement, an armed ALT into
+        // line/page jumps (the same meta semantics physical keyboards
+        // deliver; sendDownUpKeyEvent already carries META_*_ON). LOCKED
+        // latches persist, LATCHED ones are consumed by the caller.
+        val ctrlArmed = activeState.inputCtrlState.isArmed
+        val altArmed = activeState.inputAltState.isArmed
         val content = activeContent
         val selection = content.selection
         when (code) {
@@ -359,28 +367,28 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                     activeState.isManualSelectionModeStart = true
                     activeState.isManualSelectionModeEnd = false
                 }
-                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT, meta(shift = isShiftPressed), count)
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_LEFT, meta(ctrl = ctrlArmed, alt = altArmed, shift = isShiftPressed), count)
             }
             KeyCode.ARROW_RIGHT -> {
                 if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
                     activeState.isManualSelectionModeStart = false
                     activeState.isManualSelectionModeEnd = true
                 }
-                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, meta(shift = isShiftPressed), count)
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_RIGHT, meta(ctrl = ctrlArmed, alt = altArmed, shift = isShiftPressed), count)
             }
             KeyCode.ARROW_UP -> {
                 if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
                     activeState.isManualSelectionModeStart = true
                     activeState.isManualSelectionModeEnd = false
                 }
-                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_UP, meta(shift = isShiftPressed), count)
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_UP, meta(ctrl = ctrlArmed, alt = altArmed, shift = isShiftPressed), count)
             }
             KeyCode.ARROW_DOWN -> {
                 if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
                     activeState.isManualSelectionModeStart = false
                     activeState.isManualSelectionModeEnd = true
                 }
-                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, meta(shift = isShiftPressed), count)
+                sendDownUpKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN, meta(ctrl = ctrlArmed, alt = altArmed, shift = isShiftPressed), count)
             }
             KeyCode.MOVE_START_OF_PAGE -> {
                 if (!selection.isSelectionMode && activeState.isManualSelectionMode) {
@@ -824,6 +832,11 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
 
     private fun onInputKeyUpBody(data: KeyData) = activeState.batchEdit {
         val windowController = DrsImeService.windowControllerOrNull() ?: return@batchEdit
+        // DRS v1.22.0: snapshot the armed modifier latches BEFORE any
+        // branch can consume them — the arrow and delete branches below
+        // read these, the CTRL/ALT branches cycle them.
+        val ctrlArmed = activeState.inputCtrlState.isArmed
+        val altArmed = activeState.inputAltState.isArmed
         DrsAdaptationEngine.recordKey(data.code)
         DrsEconomy.recordKeyEarn(data.code)
         // DRS v1.0.5: anonymous count of smart-tool usage (which tool button
@@ -875,6 +888,22 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 handleArrow(data.code)
             }
             KeyCode.CAPS_LOCK -> handleCapsLock()
+            // DRS v1.22.0: the revived CTRL/ALT — «المفاتيح الميتة تنبض».
+            // A tap cycles OFF → LATCHED → LOCKED → OFF; the *_LOCK codes
+            // jump straight to LOCKED. They used to fall into the
+            // unknown-key branch (drawn, dead, logged as an error).
+            KeyCode.CTRL, KeyCode.CTRL_LOCK -> {
+                activeState.inputCtrlState = cycleModifierLatch(
+                    activeState.inputCtrlState,
+                    lock = data.code == KeyCode.CTRL_LOCK,
+                )
+            }
+            KeyCode.ALT, KeyCode.ALT_LOCK -> {
+                activeState.inputAltState = cycleModifierLatch(
+                    activeState.inputAltState,
+                    lock = data.code == KeyCode.ALT_LOCK,
+                )
+            }
             KeyCode.CHAR_WIDTH_SWITCHER -> handleCharWidthSwitch()
             KeyCode.CHAR_WIDTH_FULL -> handleCharWidthFull()
             KeyCode.CHAR_WIDTH_HALF -> handleCharWidthHalf()
@@ -916,8 +945,11 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                     if (clip.isPinned) {
                         clipboardManager.unpinClip(clip)
                         appContext.showShortToastSync(R.string.clipboard__unpinned_active)
+                    } else if (!clipboardManager.pinClip(clip)) {
+                        // DRS v1.22.0: the honest pin cap toast — the
+                        // same refusal the clipboard panel popup shows.
+                        appContext.showShortToastSync(R.string.clipboard__pin_cap_toast)
                     } else {
-                        clipboardManager.pinClip(clip)
                         appContext.showShortToastSync(R.string.clipboard__pinned_active)
                     }
                 }
@@ -933,10 +965,17 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             // same path IME_HIDE_UI uses.
             KeyCode.TAB -> editorInstance.commitText("\t")
             KeyCode.ESCAPE -> DrsImeService.hideUi()
-            KeyCode.DELETE -> handleBackwardDelete(OperationUnit.CHARACTERS)
+            KeyCode.DELETE -> handleBackwardDelete(
+                // DRS v1.22.0: an armed CTRL upgrades the delete to word
+                // granularity — the same contract a physical keyboard has.
+                if (ctrlArmed) OperationUnit.WORDS else OperationUnit.CHARACTERS,
+            )
             KeyCode.DELETE_WORD -> handleBackwardDelete(OperationUnit.WORDS)
             KeyCode.ENTER -> handleEnter()
-            KeyCode.FORWARD_DELETE -> handleForwardDelete(OperationUnit.CHARACTERS)
+            KeyCode.FORWARD_DELETE -> handleForwardDelete(
+                // DRS v1.22.0: armed CTRL deletes forward by words too.
+                if (ctrlArmed) OperationUnit.WORDS else OperationUnit.CHARACTERS,
+            )
             KeyCode.FORWARD_DELETE_WORD -> handleForwardDelete(OperationUnit.WORDS)
             KeyCode.IME_SHOW_UI -> DrsImeService.showUi()
             KeyCode.IME_HIDE_UI -> DrsImeService.hideUi()
@@ -1097,6 +1136,21 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 if (activeState.inputShiftState != InputShiftState.CAPS_LOCK && !inputEventDispatcher.isPressed(KeyCode.SHIFT)) {
                     activeState.inputShiftState = InputShiftState.UNSHIFTED
                 }
+            }
+        }
+        // DRS v1.22.0: a consuming key releases a one-shot modifier latch —
+        // LOCKED latches persist until the key is tapped again, and the
+        // modifier keys never consume themselves (the branch that cycles
+        // them is reached before this cleanup). `consumed()` is
+        // idempotent, so branches that already consumed stay honest.
+        when (data.code) {
+            KeyCode.CTRL, KeyCode.CTRL_LOCK,
+            KeyCode.ALT, KeyCode.ALT_LOCK,
+            KeyCode.SHIFT, KeyCode.CAPS_LOCK,
+            -> Unit
+            else -> {
+                activeState.inputCtrlState = activeState.inputCtrlState.consumed()
+                activeState.inputAltState = activeState.inputAltState.consumed()
             }
         }
     }
