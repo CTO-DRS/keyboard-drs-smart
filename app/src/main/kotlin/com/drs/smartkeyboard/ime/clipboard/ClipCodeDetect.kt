@@ -117,24 +117,28 @@ object ClipCodeDetector {
         val trimmed = line.trim()
         if (trimmed.length < 3) return false
 
+        // DRS v1.21.0: a leading '*' is ambiguous — it opens a JSDoc/doc
+        // continuation AND a Markdown bullet («* item one») — so it no
+        // longer decides alone: it is stripped and the remainder scored.
+        // The unambiguous markers below still decide immediately.
+        val scored = if (trimmed.startsWith("*")) trimmed.trimStart('*').trim() else trimmed
+
         // Indentation of an interior line is a weak, supporting signal —
         // handled by callers via the aggregate; alone it never decides.
         var score = 0
 
         // Structural punctuation.
-        if (trimmed.endsWith(";")) score += 2
-        if (trimmed.startsWith("{") || trimmed.startsWith("}") || trimmed == "{" || trimmed == "}" || trimmed.endsWith("}")) score += 1
-        if ((trimmed.startsWith("[") || trimmed.endsWith("]")) && trimmed.contains(',')) score += 1
+        if (scored.endsWith(";")) score += 2
+        if (scored.startsWith("{") || scored.startsWith("}") || scored == "{" || scored == "}" || scored.endsWith("}")) score += 1
+        if ((scored.startsWith("[") || scored.endsWith("]")) && scored.contains(',')) score += 1
 
         // Comment markers.
-        if (trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*") ||
-            trimmed.endsWith("*/") || trimmed.startsWith("#!")
-        ) {
+        if (scored.startsWith("//") || scored.startsWith("/*") || scored.endsWith("*/") || scored.startsWith("#!")) {
             return true
         }
 
         // Language keyword vocabulary (case-insensitive where it matters).
-        val lowered = trimmed.lowercase(java.util.Locale.ROOT)
+        val lowered = scored.lowercase(java.util.Locale.ROOT)
         when {
             KOTLIN_JAVA_WORDS.any { lowered.contains(it) } -> score += 2
             PYTHON_WORDS.any { lowered.contains(it) } -> score += 2
@@ -146,16 +150,16 @@ object ClipCodeDetector {
         }
 
         // Shape-based signals.
-        if (TAG_PATTERN.containsMatchIn(trimmed)) score += 2
-        if (JSON_PAIR_PATTERN.containsMatchIn(trimmed)) score += 2
-        if (CSS_RULE_PATTERN.containsMatchIn(trimmed)) score += 2
-        if (IDENTIFIER_OP_PATTERN.containsMatchIn(trimmed)) score += 1
-        if (CALL_PATTERN.containsMatchIn(trimmed) &&
-            (trimmed.contains(';') || trimmed.contains('{') || trimmed.endsWith("):") || trimmed.endsWith(")"))
+        if (TAG_PATTERN.containsMatchIn(scored)) score += 2
+        if (JSON_PAIR_PATTERN.containsMatchIn(scored)) score += 2
+        if (CSS_RULE_PATTERN.containsMatchIn(scored)) score += 2
+        if (IDENTIFIER_OP_PATTERN.containsMatchIn(scored)) score += 1
+        if (CALL_PATTERN.containsMatchIn(scored) &&
+            (scored.contains(';') || scored.contains('{') || scored.endsWith("):") || scored.endsWith(")"))
         ) {
             score += 1
         }
-        if (CAMEL_OR_SNAKE.containsMatchIn(trimmed) && (trimmed.contains('(') || trimmed.contains('='))) score += 1
+        if (CAMEL_OR_SNAKE.containsMatchIn(scored) && (scored.contains('(') || scored.contains('='))) score += 1
 
         return score >= 2
     }

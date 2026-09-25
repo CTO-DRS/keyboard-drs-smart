@@ -617,6 +617,16 @@ class EditorInstance(context: Context) : AbstractEditorInstance(context) {
         val from = minOf(selectionStart, selectionEnd)
         val to = maxOf(selectionStart, selectionEnd)
         val hasSelection = from != to
+        if (tool.isInsertMark) {
+            // DRS v1.21.0: the invisible directional/joining marks commit
+            // straight at the cursor — no text needed, nothing replaced.
+            val mark = DrsTextTools.insertionMarkFor(tool) ?: return false
+            val ok = ic.commitText(mark.toString(), 1)
+            if (!ok) {
+                appContext.showShortToastSync(R.string.drs__text_tools__failed)
+            }
+            return ok
+        }
         if (tool.isEditorOp) {
             return performEditorLineOp(ic, tool, full, from, to)
         }

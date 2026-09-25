@@ -99,7 +99,11 @@
       "main": { "code":  8942, "label": "⋮" }
     } },
     { "code": 1563, "label": "؛", "popup": {
-      "main": { "code":   59, "label": ";" }
+      "main": { "code": 1548, "label": "،" },
+      "relevant": [
+        { "code": 1600, "label": "ـ" },
+        { "code":   59, "label": ";" }
+      ]
     } },
     { "code":   33, "label": "!", "popup": {
       "main": { "code":  161, "label": "¡" }

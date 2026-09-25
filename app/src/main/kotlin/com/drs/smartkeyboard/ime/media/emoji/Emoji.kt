@@ -37,6 +37,26 @@ enum class EmojiSkinTone(val id: Int) {
     MEDIUM_SKIN_TONE(0x1F3FD),
     MEDIUM_DARK_SKIN_TONE(0x1F3FE),
     DARK_SKIN_TONE(0x1F3FF);
+
+    /**
+     * DRS v1.21.0: the next tone in the palette selector's cycle (pure,
+     * JVM-testable) — DEFAULT → LIGHT → … → DARK → DEFAULT.
+     */
+    fun next(): EmojiSkinTone = entries[(ordinal + 1) % entries.size]
+
+    /**
+     * DRS v1.21.0: the swatch color the in-palette selector dot paints
+     * with (pure, JVM-testable) — the twemoji skin-tone palette so the
+     * dot reads as the exact tone the people emoji will render with.
+     */
+    fun swatchColor(): Long = when (this) {
+        DEFAULT -> 0xFFCC4D
+        LIGHT_SKIN_TONE -> 0xFFF7DECE
+        MEDIUM_LIGHT_SKIN_TONE -> 0xFFF3D2A2
+        MEDIUM_SKIN_TONE -> 0xFFD5AB88
+        MEDIUM_DARK_SKIN_TONE -> 0xFFAF7E57
+        DARK_SKIN_TONE -> 0xFF7C533E
+    }
 }
 
 enum class EmojiHairStyle(val id: Int) {

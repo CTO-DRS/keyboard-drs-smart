@@ -1768,12 +1768,19 @@ fun ClipboardInputLayout(
                 // DRS v1.12.0: the matches glow inside the text itself —
                 // every match paints its palette color, the active one
                 // strongest, so the cards and the field tell one story.
-                val highlightRanges = remember(matches, activeIndex) {
-                    ClipSearchResults.highlightRanges(matches, activeIndex)
+                // DRS v1.21.0: ranges are normalized against the current
+                // text and re-filtered per apply — the debounced matches
+                // can never paint past the shrinking field text.
+                val highlightRanges = remember(matches, activeIndex, editingText) {
+                    ClipSearchResults.highlightRanges(editingText, matches, activeIndex)
                 }
                 val highlightTransformation = remember(highlightRanges) {
                     VisualTransformation { fieldText ->
-                        if (highlightRanges.isEmpty()) {
+                        val safeRanges = ClipSearchResults.inBounds(
+                            highlightRanges,
+                            fieldText.text.length,
+                        )
+                        if (safeRanges.isEmpty()) {
                             TransformedText(
                                 androidx.compose.ui.text.AnnotatedString(fieldText.text),
                                 OffsetMapping.Identity,
@@ -1781,7 +1788,7 @@ fun ClipboardInputLayout(
                         } else {
                             val annotated = buildAnnotatedString {
                                 append(fieldText.text)
-                                for (range in highlightRanges) {
+                                for (range in safeRanges) {
                                     addStyle(
                                         SpanStyle(
                                             background = Color(

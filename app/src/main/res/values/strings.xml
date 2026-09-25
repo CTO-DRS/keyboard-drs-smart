@@ -2509,4 +2509,21 @@
     <string name="editor__cut_failed">تعذر قص النص المحدد: إما أن حالة التحديد غير صالحة أو حدث خطأ في اتصال الإدخال.</string>
     <string name="editor__copy_failed">تعذر نسخ النص المحدد: إما أن حالة التحديد غير صالحة أو حدث خطأ في اتصال الإدخال.</string>
     <string name="ime__voice_ime_not_found">تعذر العثور على لوحة مفاتيح صوتية، هل لديك واحدة مثبتة؟</string>
+    <string name="clip__notification_channel" comment="Notification channel of the floating edit window">نافذة التعديل المنبثقة</string>
+    <string name="clip__notification_title" comment="Title of the edit notification">تعديل النص المنسوخ</string>
+    <string name="pref__clipboard__edit_notification__label" comment="Preference title">إشعار «تعديل» عند النسخ</string>
+    <string name="pref__clipboard__edit_notification__summary" comment="Preference summary">عند نسخ نص جديد يظهر إشعار فوري بزر «تعديل» يفتح نافذة التعديل العائمة فوق الشاشة — خارج لوحة المفاتيح. النصوص الحساسة لا تظهر في الإشعارات أبدًا.</string>
+    <string name="drs__text_tools__section_marks" comment="Text tools panel section title">علامات الاتجاه والوصل</string>
+    <string name="drs__text_tools__tool_insert_rlm" comment="Text tool label">إدراج RLM</string>
+    <string name="drs__text_tools__desc_insert_rlm" comment="Text tool description">يضيف علامة يمين-إلى-يسار غير مرئية عند المؤشر لتثبيت اتجاه النص المختلط</string>
+    <string name="drs__text_tools__tool_insert_lrm" comment="Text tool label">إدراج LRM</string>
+    <string name="drs__text_tools__desc_insert_lrm" comment="Text tool description">يضيف علامة يسار-إلى-يمين غير مرئية عند المؤشر لتثبيت اتجاه النص المختلط</string>
+    <string name="drs__text_tools__tool_insert_zwj" comment="Text tool label">إدراج ZWJ (واصل)</string>
+    <string name="drs__text_tools__desc_insert_zwj" comment="Text tool description">يضيف واصلاً غير مرئيًا عند المؤشر — يصل الحروف والإيموجي في تسلسلات مركبة</string>
+    <string name="drs__text_tools__tool_insert_zwnj" comment="Text tool label">إدراج نصف المسافة (ZWNJ)</string>
+    <string name="drs__text_tools__desc_insert_zwnj" comment="Text tool description">يضيف نصف مسافة غير مرئي عند المؤشر — يفصل اتصال الحروف دون مسافة مرئية</string>
+    <string name="backup_and_restore__back_up__files_user_dictionary" comment="Backup files selector item">قاموس المستخدم (الكلمات المتعلمة)</string>
+    <string name="emoji__skin_tone__cd" comment="Accessibility label of the skin tone selector">اختيار لون البشرة</string>
+    <string name="emoji__search__clear" comment="Accessibility label of the emoji search clear button">مسح البحث</string>
+
 </resources>

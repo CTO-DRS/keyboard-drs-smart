@@ -29,6 +29,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.Redo
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.AutoFixHigh
@@ -446,6 +448,39 @@ private val PANEL_SECTIONS: List<DrsTextToolsPanelSection> = listOf(
             ),
         ),
     ),
+    // DRS v1.21.0: the invisible directional/joining marks — the tools
+    // RTL authors keep reaching for: RLM/LRM steer neutral punctuation
+    // between mixed-direction runs, ZWJ/ZWNJ (نصف المسافة) join or break
+    // cursive connections and emoji sequences.
+    DrsTextToolsPanelSection(
+        titleRes = R.string.drs__text_tools__section_marks,
+        items = listOf(
+            toolItem(
+                DrsTextTool.INSERT_RLM,
+                R.string.drs__text_tools__tool_insert_rlm,
+                R.string.drs__text_tools__desc_insert_rlm,
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+            ),
+            toolItem(
+                DrsTextTool.INSERT_LRM,
+                R.string.drs__text_tools__tool_insert_lrm,
+                R.string.drs__text_tools__desc_insert_lrm,
+                Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+            ),
+            toolItem(
+                DrsTextTool.INSERT_ZWJ,
+                R.string.drs__text_tools__tool_insert_zwj,
+                R.string.drs__text_tools__desc_insert_zwj,
+                Icons.Default.Link,
+            ),
+            toolItem(
+                DrsTextTool.INSERT_ZWNJ,
+                R.string.drs__text_tools__tool_insert_zwnj,
+                R.string.drs__text_tools__desc_insert_zwnj,
+                Icons.Default.LinkOff,
+            ),
+        ),
+    ),
     DrsTextToolsPanelSection(
         titleRes = R.string.drs__text_tools__section_quick,
         items = listOf(
@@ -549,6 +584,10 @@ fun textToolTitleRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.DELETE_LINE -> R.string.drs__text_tools__tool_delete_line
     DrsTextTool.DELETE_TO_LINE_START -> R.string.drs__text_tools__tool_delete_to_line_start
     DrsTextTool.DELETE_TO_LINE_END -> R.string.drs__text_tools__tool_delete_to_line_end
+    DrsTextTool.INSERT_RLM -> R.string.drs__text_tools__tool_insert_rlm
+    DrsTextTool.INSERT_LRM -> R.string.drs__text_tools__tool_insert_lrm
+    DrsTextTool.INSERT_ZWJ -> R.string.drs__text_tools__tool_insert_zwj
+    DrsTextTool.INSERT_ZWNJ -> R.string.drs__text_tools__tool_insert_zwnj
 }
 
 /** DRS v1.5.0: the panel description of every text tool (tile tooltips). */
@@ -601,6 +640,10 @@ fun textToolDescRes(tool: DrsTextTool): Int = when (tool) {
     DrsTextTool.DELETE_LINE -> R.string.drs__text_tools__desc_delete_line
     DrsTextTool.DELETE_TO_LINE_START -> R.string.drs__text_tools__desc_delete_to_line_start
     DrsTextTool.DELETE_TO_LINE_END -> R.string.drs__text_tools__desc_delete_to_line_end
+    DrsTextTool.INSERT_RLM -> R.string.drs__text_tools__desc_insert_rlm
+    DrsTextTool.INSERT_LRM -> R.string.drs__text_tools__desc_insert_lrm
+    DrsTextTool.INSERT_ZWJ -> R.string.drs__text_tools__desc_insert_zwj
+    DrsTextTool.INSERT_ZWNJ -> R.string.drs__text_tools__desc_insert_zwnj
 }
 
 /**
@@ -645,7 +688,7 @@ fun DrsTextToolsPanel(modifier: Modifier = Modifier) {
                 onClick = { keyboardManager.activeState.imeUiMode = ImeUiMode.TEXT },
                 modifier = sizeModifier,
             ) {
-                SnyggIcon(imageVector = Icons.AutoMirrored.Filled.ArrowBack)
+                SnyggIcon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight)
             }
             SnyggText(
                 elementName = DrsImeUi.ClipboardHeaderText.elementName,

@@ -74,6 +74,8 @@ import org.drs.lib.compose.stringRes
 import org.drs.lib.kotlin.io.subDir
 import org.drs.lib.kotlin.io.subFile
 import org.drs.lib.kotlin.io.writeJson
+import com.drs.smartkeyboard.ime.dictionary.DictionaryManager
+import com.drs.smartkeyboard.ime.dictionary.UserDictionaryFormats
 
 object Backup {
     const val FILE_PROVIDER_AUTHORITY = "${BuildConfig.APPLICATION_ID}.provider.file"
@@ -81,6 +83,9 @@ object Backup {
     const val CLIPBOARD_TEXT_ITEMS_JSON_NAME = "clipboard_text_items.json"
     const val CLIPBOARD_IMAGES_JSON_NAME = "clipboard_images.json"
     const val CLIPBOARD_VIDEO_JSON_NAME = "clipboard_video.json"
+    // DRS v1.21.0: the personal user dictionary travels in the archive —
+    // a factory reset used to silently lose every learned word.
+    const val USER_DICTIONARY_TXT_NAME = "user_dictionary.txt"
 
     fun defaultFileName(metadata: Metadata): String {
         return "backup_${metadata.packageName}_${metadata.versionCode}_${metadata.timestamp}.zip"
@@ -95,6 +100,7 @@ object Backup {
         var jetprefDatastore by mutableStateOf(true)
         var imeKeyboard by mutableStateOf(true)
         var imeTheme by mutableStateOf(true)
+        var userDictionary by mutableStateOf(true)
         var clipboardTextItems by mutableStateOf(false)
         var clipboardImageItems by mutableStateOf(false)
         var clipboardVideoItems by mutableStateOf(false)
@@ -122,7 +128,8 @@ object Backup {
         }
 
         fun atLeastOneSelected(): Boolean {
-            return jetprefDatastore || imeKeyboard || imeTheme || clipboardTextItems || clipboardImageItems || clipboardVideoItems
+            return jetprefDatastore || imeKeyboard || imeTheme || userDictionary ||
+                clipboardTextItems || clipboardImageItems || clipboardVideoItems
         }
     }
 
@@ -212,6 +219,25 @@ fun BackupScreen() = DrsScreen {
                 context.filesDir.subDir(ExtensionManager.IME_THEME_PATH).let { dir ->
                     dir.copyRecursively(workspaceFilesDir.subDir(ExtensionManager.IME_THEME_PATH))
                 }
+            }
+
+            // DRS v1.21.0: the personal user dictionary travels in the
+            // archive (combined-list text format) — a restore/factory
+            // reset used to silently lose every learned word.
+            if (backupFilesSelector.userDictionary) {
+                workspace.inputDir
+                    .subFile(Backup.USER_DICTIONARY_TXT_NAME)
+                    .bufferedWriter()
+                    .use { writer ->
+                        DictionaryManager.default().drsUserDictionaryDao()
+                            ?.let { dao ->
+                                // The DAO lives behind the DB interface; write through a tiny adapter.
+                                writer.append("dictionary=user_dictionary;version=1\n")
+                                for (entry in dao.queryAll()) {
+                                    writer.append(UserDictionaryFormats.entryLine(entry)).append('\n')
+                                }
+                            }
+                    }
             }
 
             if (backupFilesSelector.provideClipboardItems()) {
@@ -362,6 +388,12 @@ internal fun BackupFilesSelector(
             onClick = { filesSelector.imeTheme = !filesSelector.imeTheme },
             checked = filesSelector.imeTheme,
             text = stringRes(R.string.backup_and_restore__back_up__files_ime_theme),
+        )
+        // DRS v1.21.0: the learned personal words ride the archive too.
+        CheckboxListItem(
+            onClick = { filesSelector.userDictionary = !filesSelector.userDictionary },
+            checked = filesSelector.userDictionary,
+            text = stringRes(R.string.backup_and_restore__back_up__files_user_dictionary),
         )
 
         TriStateCheckboxListItem(

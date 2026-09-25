@@ -229,6 +229,7 @@ class DrsV180Tests : FunSpec({
         val rem = DrsTextTool.fromCode(-645).shouldNotBeNull()
         sep shouldBe DrsTextTool.SEPARATE_DIGIT_LETTERS
         rem shouldBe DrsTextTool.REMOVE_PUNCTUATION
-        (DrsTextTool.entries.size) shouldBe 47
+        // DRS v1.21.0: +4 mark-insertion tools (RLM/LRM/ZWJ/ZWNJ).
+        (DrsTextTool.entries.size) shouldBe 51
     }
 })

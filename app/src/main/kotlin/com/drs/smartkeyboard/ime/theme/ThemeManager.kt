@@ -231,7 +231,7 @@ class ThemeManager(context: Context) {
                 val current = LocalTime.now()
                 val sunrise = prefs.theme.sunriseTime.get().javaLocalTime
                 val sunset = prefs.theme.sunsetTime.get().javaLocalTime
-                if (current in sunrise..sunset) {
+                if (ThemeDayWindow.isDaytime(current, sunrise, sunset)) {
                     prefs.theme.dayThemeId.get()
                 } else {
                     prefs.theme.nightThemeId.get()
@@ -380,6 +380,24 @@ class ThemeManager(context: Context) {
     ) {
         companion object {
             val DEFAULT = RemoteColors("undefined", null, null, null)
+        }
+    }
+
+    /**
+     * DRS v1.21.0 — the pure FOLLOW_TIME day-window decision. The old
+     * inline `current in sunrise..sunset` collapsed to an empty range
+     * whenever sunset ≤ sunrise (a night-shift schedule like 22:00→06:00,
+     * or the degenerate equal pair), silently forcing night forever; the
+     * day window now wraps midnight honestly, and the degenerate equal
+     * pair falls back to day.
+     */
+    object ThemeDayWindow {
+        fun isDaytime(current: LocalTime, sunrise: LocalTime, sunset: LocalTime): Boolean {
+            return when {
+                sunrise < sunset -> !current.isBefore(sunrise) && !current.isAfter(sunset)
+                sunrise == sunset -> true
+                else -> !current.isBefore(sunrise) || !current.isAfter(sunset)
+            }
         }
     }
 }

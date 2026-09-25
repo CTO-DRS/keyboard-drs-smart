@@ -79,6 +79,9 @@ import org.drs.lib.kotlin.io.deleteContentsRecursively
 import org.drs.lib.kotlin.io.readJson
 import org.drs.lib.kotlin.io.subDir
 import org.drs.lib.kotlin.io.subFile
+import com.drs.smartkeyboard.ime.dictionary.DictionaryManager
+import com.drs.smartkeyboard.ime.dictionary.UserDictionaryEntry
+import com.drs.smartkeyboard.ime.dictionary.UserDictionaryFormats
 
 object Restore {
     const val MIN_VERSION_CODE = 1
@@ -189,6 +192,39 @@ fun RestoreScreen() = DrsScreen {
                 }
                 if (srcDir.exists()) {
                     srcDir.copyRecursively(dstDir, overwrite = true)
+                }
+            }
+            // DRS v1.21.0: the learned personal words ride the archive —
+            // merged back (erase-then-import on the erase strategy), so a
+            // factory reset no longer loses the user dictionary.
+            if (restoreFilesSelector.userDictionary) {
+                val udictFile = workspace.outputDir.subFile(Backup.USER_DICTIONARY_TXT_NAME)
+                if (udictFile.exists()) {
+                    val dao = DictionaryManager.default().drsUserDictionaryDao()
+                    if (dao != null) {
+                        if (shouldReset) {
+                            dao.deleteAll()
+                        }
+                        udictFile.bufferedReader().use { reader ->
+                            var isFirstLine = true
+                            reader.forEachLine { line ->
+                                if (isFirstLine) {
+                                    isFirstLine = false
+                                    return@forEachLine
+                                }
+                                val entry = UserDictionaryFormats.parseEntryLine(line) ?: return@forEachLine
+                                val existing = dao.queryExact(
+                                    entry.word,
+                                    entry.locale?.let { com.drs.smartkeyboard.lib.DrsLocale.fromTag(it) },
+                                )
+                                if (existing.isNotEmpty()) {
+                                    dao.update(UserDictionaryEntry(existing[0].id, entry.word, entry.freq, entry.locale, entry.shortcut))
+                                } else {
+                                    dao.insert(UserDictionaryEntry(0, entry.word, entry.freq, entry.locale, entry.shortcut))
+                                }
+                            }
+                        }
+                    }
                 }
             }
             val clipboardManager = context.clipboardManager().value

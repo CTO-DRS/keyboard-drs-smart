@@ -111,6 +111,8 @@ enum class DrsTextTool(
     val isInfoOnly: Boolean = false,
     /** Editor-level tools that need the cursor position, not a transform. */
     val isEditorOp: Boolean = false,
+    /** DRS v1.21.0: tools that commit an invisible mark at the cursor. */
+    val isInsertMark: Boolean = false,
 ) {
     // ---- Case transformation (applies to selection, else whole field) ----
     UPPERCASE(-601),
@@ -199,17 +201,41 @@ enum class DrsTextTool(
     // ---- Editor-level line operations (cursor-relative) ----
     DELETE_LINE(-651, isEditorOp = true),
     DELETE_TO_LINE_START(-652, isEditorOp = true),
-    DELETE_TO_LINE_END(-653, isEditorOp = true);
+    DELETE_TO_LINE_END(-653, isEditorOp = true),
+
+    // DRS v1.21.0: invisible directional/joining marks committed at the
+    // cursor — the tools RTL authors keep reaching for in every other
+    // editor («إدراج RLM/LRM/ZWJ/ZWNJ»). Insertion needs no text, works
+    // on an empty field, and never replaces anything.
+    INSERT_RLM(-654, isEditorOp = true, isInsertMark = true),
+    INSERT_LRM(-655, isEditorOp = true, isInsertMark = true),
+    INSERT_ZWJ(-656, isEditorOp = true, isInsertMark = true),
+    INSERT_ZWNJ(-657, isEditorOp = true, isInsertMark = true);
 
     companion object {
         /** Inclusive range covering every tool code, for fast dispatch. */
-        val CODE_RANGE = -653..-601
+        val CODE_RANGE = -657..-601
 
         fun fromCode(code: Int): DrsTextTool? = entries.firstOrNull { it.code == code }
     }
 }
 
 object DrsTextTools {
+
+    /**
+     * DRS v1.21.0 — the invisible mark each insertion tool commits at the
+     * cursor (pure, JVM-testable): RLM (U+200F) and LRM (U+200E) steer the
+     * bidi resolution of neutral characters, ZWJ (U+200D) joins letters or
+     * emoji into ligatures/sequences, ZWNJ (U+200C) — نصف المسافة — breaks
+     * the join. Null for every non-insertion tool.
+     */
+    fun insertionMarkFor(tool: DrsTextTool): Char? = when (tool) {
+        DrsTextTool.INSERT_RLM -> '\u200F'
+        DrsTextTool.INSERT_LRM -> '\u200E'
+        DrsTextTool.INSERT_ZWJ -> '\u200D'
+        DrsTextTool.INSERT_ZWNJ -> '\u200C'
+        else -> null
+    }
 
     /**
      * Applies [tool] to [text]. Pure function; never throws.
@@ -473,8 +499,12 @@ object DrsTextTools {
                 // COUNT never transforms; callers use [countInfo] instead.
                 DrsTextTool.COUNT -> text
                 // Editor ops need the live cursor; handled by EditorInstance.
+                // The mark insertions commit at the cursor the same way —
+                // nothing to transform here.
                 DrsTextTool.DELETE_LINE, DrsTextTool.DELETE_TO_LINE_START,
                 DrsTextTool.DELETE_TO_LINE_END,
+                DrsTextTool.INSERT_RLM, DrsTextTool.INSERT_LRM,
+                DrsTextTool.INSERT_ZWJ, DrsTextTool.INSERT_ZWNJ,
                 -> text
             }
         } catch (_: Throwable) {

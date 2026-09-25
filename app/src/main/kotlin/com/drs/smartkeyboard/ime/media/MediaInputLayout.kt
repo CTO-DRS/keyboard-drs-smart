@@ -24,10 +24,17 @@ import androidx.compose.foundation.indication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Backspace
 import androidx.compose.material3.Icon
@@ -39,22 +46,31 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.drs.smartkeyboard.R
+import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.ime.input.InputEventDispatcher
 import com.drs.smartkeyboard.ime.input.LocalInputFeedbackController
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.keyboard.KeyData
 import com.drs.smartkeyboard.ime.media.emoji.EmojiData
 import com.drs.smartkeyboard.ime.media.emoji.EmojiPaletteView
+import com.drs.smartkeyboard.ime.media.emoji.EmojiSkinTone
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
 import com.drs.smartkeyboard.subtypeManager
+import org.drs.jetpref.datastore.model.collectAsState
+import kotlinx.coroutines.launch
 import org.drs.lib.snygg.SnyggSelector
 import org.drs.lib.snygg.ui.SnyggBox
 import org.drs.lib.snygg.ui.SnyggColumn
@@ -105,6 +121,34 @@ fun MediaInputLayout(
                 Text(
                     text = "ABC",
                     fontWeight = FontWeight.Bold,
+                )
+            }
+            // DRS v1.21.0: the in-palette skin-tone selector — a tap cycles
+            // the preferred tone right here (Gboard parity); it used to
+            // require a trip to the app settings. The dot paints the tone
+            // the palette renders people emoji with.
+            val prefs by DrsPreferenceStore
+            val skinTone by prefs.emoji.preferredSkinTone.collectAsState()
+            val toneScope = rememberCoroutineScope()
+            val toneCd = androidx.compose.ui.res.stringResource(R.string.emoji__skin_tone__cd)
+            SnyggBox(
+                elementName = DrsImeUi.MediaBottomRowButton.elementName,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(1f)
+                    .clickable {
+                        toneScope.launch { prefs.emoji.preferredSkinTone.set(skinTone.next()) }
+                    }
+                    .semantics { contentDescription = toneCd },
+            ) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .size(22.dp)
+                        .background(
+                            androidx.compose.ui.graphics.Color(skinTone.swatchColor()),
+                            CircleShape,
+                        ),
                 )
             }
             Spacer(modifier = Modifier.weight(1f))

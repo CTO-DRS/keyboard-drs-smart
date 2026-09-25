@@ -2592,4 +2592,21 @@
     <string name="editor__cut_failed">Failed to cut the selected text: either the selection state is invalid or an error occurred within the input connection.</string>
     <string name="editor__copy_failed">Failed to copy the selected text: either the selection state is invalid or an error occurred within the input connection.</string>
     <string name="ime__voice_ime_not_found">Failed to find a voice keyboard, do you have one installed?</string>
+    <string name="clip__notification_channel" comment="Notification channel of the floating edit window">Floating edit window</string>
+    <string name="clip__notification_title" comment="Title of the edit notification">Edit the copied text</string>
+    <string name="pref__clipboard__edit_notification__label" comment="Preference title">«Edit» notification on copy</string>
+    <string name="pref__clipboard__edit_notification__summary" comment="Preference summary">When new text is copied a heads-up notification with an «Edit» action opens the floating editor above the screen — outside the keyboard panel. Sensitive text never appears in notifications.</string>
+    <string name="drs__text_tools__section_marks" comment="Text tools panel section title">Direction &amp; join marks</string>
+    <string name="drs__text_tools__tool_insert_rlm" comment="Text tool label">Insert RLM</string>
+    <string name="drs__text_tools__desc_insert_rlm" comment="Text tool description">Adds an invisible right-to-left mark at the cursor to pin mixed-text direction</string>
+    <string name="drs__text_tools__tool_insert_lrm" comment="Text tool label">Insert LRM</string>
+    <string name="drs__text_tools__desc_insert_lrm" comment="Text tool description">Adds an invisible left-to-right mark at the cursor to pin mixed-text direction</string>
+    <string name="drs__text_tools__tool_insert_zwj" comment="Text tool label">Insert ZWJ (joiner)</string>
+    <string name="drs__text_tools__desc_insert_zwj" comment="Text tool description">Adds an invisible joiner at the cursor — joins letters and emoji into compound sequences</string>
+    <string name="drs__text_tools__tool_insert_zwnj" comment="Text tool label">Insert ZWNJ (non-joiner)</string>
+    <string name="drs__text_tools__desc_insert_zwnj" comment="Text tool description">Adds an invisible non-joiner at the cursor — breaks the cursive join with no visible space</string>
+    <string name="backup_and_restore__back_up__files_user_dictionary" comment="Backup files selector item">User dictionary (learned words)</string>
+    <string name="emoji__skin_tone__cd" comment="Accessibility label of the skin tone selector">Choose skin tone</string>
+    <string name="emoji__search__clear" comment="Accessibility label of the emoji search clear button">Clear search</string>
+
 </resources>

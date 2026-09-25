@@ -43,6 +43,12 @@ jobs:
       - name: Run unit tests (release gate)
         run: ./gradlew --no-daemon testDebugUnitTest --stacktrace
 
+      # DRS v1.21.0: the release path had no static-analysis step at all —
+      # lint reports now build with every release (non-fatal while the
+      # existing baseline is noisy, but produced for review).
+      - name: Lint release build (report)
+        run: ./gradlew --no-daemon lintRelease --stacktrace || true
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 

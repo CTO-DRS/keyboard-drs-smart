@@ -478,8 +478,12 @@ private fun HarakatKeyboardKey(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
 
+    // DRS v1.21.0: the hold-to-repeat key fires its first press the moment
+    // the finger lands — a quick tap deletes immediately (it used to need a
+    // full 400 ms hold before the first delete, leaving quick taps inert).
     LaunchedEffect(pressed, holdRepeat) {
         if (pressed && holdRepeat) {
+            onPress()
             delay(400)
             while (true) {
                 onPress()

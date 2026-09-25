@@ -334,9 +334,20 @@ object ClipEditorPopupLauncher {
 class ClipEditorPopupActivity : ComponentActivity() {
     private val clipboardManager by clipboardManager()
 
+    companion object {
+        /**
+         * DRS v1.21.0: the notification-style edit window hands the clip
+         * text through the intent so the popup survives process death —
+         * the in-memory [ClipEditorPopupStore] handoff only works inside
+         * the live IME process, while the notification can arrive later.
+         */
+        const val EXTRA_EDIT_TEXT: String = "drs.clip_edit.text"
+        const val EXTRA_EDIT_TS: String = "drs.clip_edit.ts"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val pending = ClipEditorPopupStore.consume()
+        val pending = pendingFromIntent() ?: ClipEditorPopupStore.consume()
         if (pending == null) {
             // Defensive: no pending request (e.g. recreated after process
             // death). Nothing to edit — close silently.
@@ -355,6 +366,21 @@ class ClipEditorPopupActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    /**
+     * DRS v1.21.0: builds the pending edit from the notification intent
+     * extras (process-death-safe), or null when this launch is not the
+     * notification route — then the classic store handoff applies.
+     */
+    private fun pendingFromIntent(): PendingClipEdit? {
+        val text = intent?.getStringExtra(EXTRA_EDIT_TEXT) ?: return null
+        if (text.isEmpty()) return null
+        return PendingClipEdit(
+            item = ClipboardItem.text(text),
+            text = text,
+            openedAtMs = intent.getLongExtra(EXTRA_EDIT_TS, System.currentTimeMillis()),
+        )
     }
 
     @Composable
@@ -885,38 +911,45 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             .onSizeChanged { editorViewportPx = it.height }
                             .verticalScroll(textScrollState),
                     ) {
-                        // DRS v1.12.0: the matches glow inside the text —
-                        // each match paints its palette color, the active
-                        // one strongest, matching the result cards.
-                        val highlightRanges = remember(matches, activeIndex) {
-                            ClipSearchResults.highlightRanges(matches, activeIndex)
-                        }
-                        val highlightTransformation = remember(highlightRanges) {
-                            VisualTransformation { fieldText ->
-                                if (highlightRanges.isEmpty()) {
-                                    TransformedText(
-                                        androidx.compose.ui.text.AnnotatedString(fieldText.text),
-                                        OffsetMapping.Identity,
+                // DRS v1.12.0: the matches glow inside the text —
+                // each match paints its palette color, the active
+                // one strongest, matching the result cards.
+                // DRS v1.21.0: ranges are normalized against the current
+                // text, and re-filtered per apply — the debounced matches
+                // can never paint past the shrinking field text.
+                val highlightRanges = remember(matches, activeIndex, text) {
+                    ClipSearchResults.highlightRanges(text, matches, activeIndex)
+                }
+                val highlightTransformation = remember(highlightRanges) {
+                    VisualTransformation { fieldText ->
+                        val safeRanges = ClipSearchResults.inBounds(
+                            highlightRanges,
+                            fieldText.text.length,
+                        )
+                        if (safeRanges.isEmpty()) {
+                            TransformedText(
+                                androidx.compose.ui.text.AnnotatedString(fieldText.text),
+                                OffsetMapping.Identity,
+                            )
+                        } else {
+                            val annotated = buildAnnotatedString {
+                                append(fieldText.text)
+                                for (range in safeRanges) {
+                                    addStyle(
+                                        SpanStyle(
+                                            background = Color(
+                                                ClipResultPalette.COLORS[range.colorSlot],
+                                            ).copy(alpha = if (range.isActive) 0.55f else 0.22f),
+                                        ),
+                                        range.start,
+                                        range.end,
                                     )
-                                } else {
-                                    val annotated = buildAnnotatedString {
-                                        append(fieldText.text)
-                                        for (range in highlightRanges) {
-                                            addStyle(
-                                                SpanStyle(
-                                                    background = Color(
-                                                        ClipResultPalette.COLORS[range.colorSlot],
-                                                    ).copy(alpha = if (range.isActive) 0.55f else 0.22f),
-                                                ),
-                                                range.start,
-                                                range.end,
-                                            )
-                                        }
-                                    }
-                                    TransformedText(annotated, OffsetMapping.Identity)
                                 }
                             }
+                            TransformedText(annotated, OffsetMapping.Identity)
                         }
+                    }
+                }
                         BasicTextField(
                             value = text,
                             onValueChange = { text = ClipboardTextPolicy.truncateForStorage(it, editorLimit) },

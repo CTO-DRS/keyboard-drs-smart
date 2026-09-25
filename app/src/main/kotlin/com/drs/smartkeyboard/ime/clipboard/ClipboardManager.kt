@@ -223,6 +223,16 @@ class ClipboardManager(
     private fun addNewClip(item: ClipboardItem) {
         insertOrMoveBeginning(item)
         updatePrimaryClip(item)
+        // DRS v1.21.0: «نافذة الاشعارات المنبثقه الخاصه بالتعديل» — a new
+        // capture can surface a heads-up «تعديل» notification that opens
+        // the floating editor from anywhere. The pure policy keeps it
+        // honest (text only, non-sensitive, pref + history gated).
+        ClipEditNotification.maybePost(
+            appContext,
+            item,
+            prefEnabled = prefs.clipboard.editNotificationEnabled.get(),
+            historyEnabled = prefs.clipboard.historyEnabled.get(),
+        )
     }
 
     /**

@@ -225,6 +225,14 @@ abstract class DrsPreferenceModel : PreferenceModel() {
             key = "clipboard__popup_scrim",
             default = ClipEditorScrim.NORMAL,
         )
+        // DRS v1.21.0 — «نافذة الاشعارات المنبثقه الخاصه بالتعديل»: a new
+        // text capture may surface a heads-up notification whose «تعديل»
+        // action opens the floating editor outside the panel. Sensitive
+        // and non-text clips never notify (lock-screen privacy).
+        val editNotificationEnabled = boolean(
+            key = "clipboard__edit_notification_enabled",
+            default = true,
+        )
         val jumpToLine = boolean(
             key = "clipboard__jump_to_line",
             default = true,

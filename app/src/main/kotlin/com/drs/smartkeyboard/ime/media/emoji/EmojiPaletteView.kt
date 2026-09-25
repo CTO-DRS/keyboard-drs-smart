@@ -75,6 +75,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.isUnspecified
 import androidx.compose.ui.draw.clip
@@ -103,6 +104,7 @@ import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
+import com.drs.smartkeyboard.ime.clipboard.readableTextColor
 import org.drs.jetpref.datastore.model.collectAsState
 import kotlinx.coroutines.launch
 import org.drs.lib.android.AndroidKeyguardManager
@@ -292,7 +294,13 @@ fun EmojiPaletteView(
                 if (category == EmojiCategory.RECENTLY_USED && !emojiHistoryEnabled) {
                     continue
                 }
+                // DRS v1.21.0: the tabs used to be icon-only — TalkBack
+                // announced an unlabeled tab. The localized category name
+                // rides the tab's semantics now.
+                val context = LocalContext.current
+                val categoryLabel = context.getString(category.labelRes())
                 Tab(
+                    modifier = Modifier.semantics { contentDescription = categoryLabel },
                     onClick = {
                         inputFeedbackController.keyPress(TextKeyData.UNSPECIFIED)
                         onCategoryChange(category)
@@ -318,12 +326,29 @@ fun EmojiPaletteView(
         // emoji names/keywords from the :name suggestion metadata.
         val mediaSearchActive = keyboardManager.activeState.collectAsState().value.isMediaSearchActive
         val mediaSearchQuery by keyboardManager.mediaSearchQuery.collectAsState()
+        // DRS v1.21.0: the search row used to paint itself from the default
+        // MaterialTheme while every other panel follows the snygg keyboard
+        // theme — on any custom theme the pill clashed. It reads the themed
+        // window colors now, with a luminance-derived readable fallback.
+        val windowStyle = rememberSnyggThemeQuery(DrsImeUi.Window.elementName)
+        val themedForeground = windowStyle.foreground()
+        val searchTextColor = if (themedForeground.isSpecified) {
+            themedForeground
+        } else {
+            windowStyle.background()
+                .takeIf { it.isSpecified }
+                ?.let { readableTextColor(it) }
+                ?: MaterialTheme.colorScheme.onSurfaceVariant
+        }
+        val searchContainer = windowStyle.background().takeIf { it.isSpecified }
+            ?.copy(alpha = 0.45f)
+            ?: MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .background(searchContainer)
                 .clickable { keyboardManager.activeState.isMediaSearchActive = true }
                 .padding(horizontal = 10.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -331,7 +356,7 @@ fun EmojiPaletteView(
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = searchTextColor,
                 modifier = Modifier.size(18.dp),
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -343,9 +368,9 @@ fun EmojiPaletteView(
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = if (mediaSearchQuery.isEmpty()) {
-                    MaterialTheme.colorScheme.onSurfaceVariant
+                    searchTextColor.copy(alpha = 0.7f)
                 } else {
-                    MaterialTheme.colorScheme.onSurface
+                    searchTextColor
                 },
                 maxLines = 1,
                 modifier = Modifier.weight(1f),
@@ -357,8 +382,8 @@ fun EmojiPaletteView(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        contentDescription = stringRes(R.string.emoji__search__clear),
+                        tint = searchTextColor,
                         modifier = Modifier.size(16.dp),
                     )
                 }

@@ -27,8 +27,8 @@ import kotlinx.serialization.json.Json
  * the integrated clipboard system lives here so the engine owns the policy
  * and the UI only renders it.
  *
- * - [ClipboardTextPolicy] caps one stored text at 50,000 characters (the
- *   user-facing contract «النص الواحد يقبل حتى 50,000 حرف»).
+ * - [ClipboardTextPolicy] caps one stored text at 500,000 characters (the
+ *   user-facing contract «النص الواحد يقبل حتى 500,000 حرف» since v1.12.0).
  * - [ClipFileNamer] turns a user-supplied file name into a safe, portable
  *   `.txt` name for the save-as-file feature.
  * - [ClipTextStats] computes the real character/word/line counts shown in

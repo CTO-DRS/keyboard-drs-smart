@@ -80,6 +80,150 @@
     "ى": {
       "main": { "code": 1574, "label": "ئ" }
     },
+    "ت": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ث": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ح": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "خ": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "د": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ذ": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ر": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "س": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ص": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ض": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ط": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ظ": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ع": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "غ": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "م": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
+    "ن": {
+      "relevant": [
+        { "code": 1614, "label": "َ" },
+        { "code": 1615, "label": "ُ" },
+        { "code": 1616, "label": "ِ" },
+        { "code": 1617, "label": "ّ" },
+        { "code": 1618, "label": "ْ" }
+      ]
+    },
     "ـ": {
       "relevant": [
         { "code": 1614, "label": "َ" },

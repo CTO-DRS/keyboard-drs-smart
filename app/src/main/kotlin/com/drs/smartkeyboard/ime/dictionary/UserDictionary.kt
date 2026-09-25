@@ -203,22 +203,100 @@ interface UserDictionaryDatabase {
                 dst.write(toString())
             }
             for (entry in userDictionaryDao().queryAll()) {
-                StringBuilder().apply {
-                    append(" w=")
-                    append(entry.word)
-                    append(";f=")
-                    append(entry.freq)
-                    append(";l=")
-                    append(entry.locale) // always append locale even if null
-                    if (entry.shortcut != null) {
-                        append(";s=")
-                        append(entry.shortcut)
-                    }
-                    appendLine()
-                    dst.write(toString())
-                }
+                dst.write(UserDictionaryFormats.entryLine(entry) + "\n")
             }
         }
+    }
+
+    /**
+     * DRS v1.21.0: writes the whole DRS user dictionary in the same
+     * combined-list text format [importCombinedList] parses — the backup
+     * archive carries the learned words so a restore/factory-reset no
+     * longer loses them. Returns the entry count.
+     */
+    fun exportToWriter(dst: java.io.Writer): Int {
+        dst.append("dictionary=user_dictionary;version=1\n")
+        val entries = userDictionaryDao().queryAll()
+        for (entry in entries) {
+            dst.append(UserDictionaryFormats.entryLine(entry)).append('\n')
+        }
+        return entries.size
+    }
+
+    /**
+     * DRS v1.21.0: reads the combined-list text format from [src] and
+     * merges it into the dictionary (existing words are updated, new ones
+     * inserted — the same dedup [importCombinedList] applies). Malformed
+     * lines are skipped honestly; returns the entries merged.
+     */
+    fun importFromReader(src: java.io.Reader): Int {
+        var merged = 0
+        var isFirstLine = true
+        src.forEachLine { line ->
+            if (isFirstLine) {
+                isFirstLine = false
+                return@forEachLine
+            }
+            val entry = UserDictionaryFormats.parseEntryLine(line) ?: return@forEachLine
+            val existing = userDictionaryDao().queryExact(entry.word, entry.locale?.let { DrsLocale.fromTag(it) })
+            if (existing.isNotEmpty()) {
+                userDictionaryDao().update(UserDictionaryEntry(existing[0].id, entry.word, entry.freq, entry.locale, entry.shortcut))
+            } else {
+                userDictionaryDao().insert(UserDictionaryEntry(0, entry.word, entry.freq, entry.locale, entry.shortcut))
+            }
+            merged += 1
+        }
+        return merged
+    }
+}
+
+/**
+ * DRS v1.21.0: the pure line-format helpers of the combined-list text
+ * format — [entryLine] renders one entry the way `exportCombinedList`
+ * always has, [parseEntryLine] parses one data line back (null when the
+ * line is malformed or lacks a word/freq). JVM-testable round trip.
+ */
+object UserDictionaryFormats {
+    fun entryLine(entry: UserDictionaryEntry): String {
+        return StringBuilder().apply {
+            append(" w=")
+            append(entry.word)
+            append(";f=")
+            append(entry.freq)
+            append(";l=")
+            append(entry.locale) // always append locale even if null
+            if (entry.shortcut != null) {
+                append(";s=")
+                append(entry.shortcut)
+            }
+        }.toString()
+    }
+
+    fun parseEntryLine(line: String): UserDictionaryEntry? {
+        var word: String? = null
+        var freq: Int? = null
+        var locale: String? = null
+        var shortcut: String? = null
+        for (property in line.split(';')) {
+            if (property.isBlank()) continue
+            val keyValuePair = property.split('=', limit = 2)
+            if (keyValuePair.size != 2) return null
+            val key = keyValuePair[0].trim().lowercase()
+            val value = keyValuePair[1].trim()
+            when (key) {
+                "w", "word" -> word = value.ifBlank { null }
+                "f", "freq" -> freq = value.toIntOrNull(10)
+                "l", "locale" -> locale = when (value) {
+                    "all", "null", "" -> null
+                    else -> value.ifBlank { null }
+                }
+                "s", "shortcut" -> shortcut = value.ifBlank { null }
+            }
+        }
+        val w = word ?: return null
+        val f = freq ?: return null
+        if (f !in FREQUENCY_MIN..FREQUENCY_MAX) return null
+        return UserDictionaryEntry(0, w, f, locale, shortcut)
     }
 }
 

@@ -80,6 +80,49 @@ object ClipSearchResults {
     const val MAX_CARDS: Int = 50
 
     /**
+     * DRS v1.21.0 — guards against the stale-snapshot crash window: the
+     * matches list is computed on a debounced (150 ms old) text snapshot,
+     * while the text the cards and highlights render can shrink underneath
+     * (replace-with-shorter, undo). A match computed on the old text must
+     * never index the current text out of bounds — matches fully outside
+     * the current text are dropped honestly, partially-out ones are clamped,
+     * and each survivor carries its ORIGINAL list index so card navigation
+     * (activeMatch = card.matchIndex) still targets the real match list.
+     */
+    private fun normalizedWithIndexes(text: String, matches: List<ClipMatch>): List<Pair<Int, ClipMatch>> {
+        if (matches.isEmpty()) return emptyList()
+        val length = text.length
+        val normalized = ArrayList<Pair<Int, ClipMatch>>(matches.size)
+        matches.forEachIndexed { index, match ->
+            if (match.start >= length) return@forEachIndexed // wholly beyond the shrunken text
+            val end = if (match.end > length) length else match.end
+            if (end <= match.start) return@forEachIndexed
+            normalized.add(index to (if (end == match.end) match else ClipMatch(match.start, end)))
+        }
+        return normalized
+    }
+
+    /**
+     * DRS v1.21.0 — the stale-snapshot crash guard: matches wholly outside
+     * the current text are dropped, partially-out ones clamped to bounds.
+     */
+    fun normalizeAgainst(text: String, matches: List<ClipMatch>): List<ClipMatch> {
+        return normalizedWithIndexes(text, matches).map { it.second }
+    }
+
+    /**
+     * DRS v1.21.0 — the highlight ranges filtered against the CURRENT field
+     * text length. The UI transformation loop applies these to the text it
+     * receives at transform time, which can be newer than the matches; a
+     * range beyond the field text would throw inside addStyle, so anything
+     * out of bounds is dropped here first.
+     */
+    fun inBounds(ranges: List<ClipHighlightRange>, textLength: Int): List<ClipHighlightRange> {
+        if (ranges.isEmpty()) return ranges
+        return ranges.filter { it.start < textLength && it.end <= textLength }
+    }
+
+    /**
      * The 1-based line number of [offset] in [text] (counting newlines
      * strictly before the offset). Offset 0 or an empty text is line 1.
      */
@@ -104,9 +147,15 @@ object ClipSearchResults {
         maxCards: Int = MAX_CARDS,
     ): List<ClipResultCard> {
         if (matches.isEmpty()) return emptyList()
-        val cards = ArrayList<ClipResultCard>(matches.size.coerceAtMost(maxCards))
-        for ((position, match) in matches.withIndex()) {
+        // DRS v1.21.0: stale matches never index the current text out of
+        // bounds, and each survivor keeps its ORIGINAL match index so the
+        // navigation arrows and the active highlight stay on target.
+        val safeMatches = normalizedWithIndexes(text, matches)
+        if (safeMatches.isEmpty()) return emptyList()
+        val cards = ArrayList<ClipResultCard>(safeMatches.size.coerceAtMost(maxCards))
+        for ((position, pair) in safeMatches.withIndex()) {
             if (position >= maxCards) break
+            val (originalIndex, match) = pair
             val lineStart = text.lastIndexOf('\n', (match.start - 1).coerceAtLeast(-1)) + 1
             val lineEnd = text.indexOf('\n', match.end).let { if (it < 0) text.length else it }
             val wantBeforeStart = match.start - contextChars
@@ -115,7 +164,7 @@ object ClipSearchResults {
             val afterEnd = wantAfterEnd.coerceAtMost(lineEnd)
             cards.add(
                 ClipResultCard(
-                    matchIndex = position,
+                    matchIndex = originalIndex,
                     start = match.start,
                     end = match.end,
                     lineNumber = lineNumberAt(text, match.start),
@@ -143,6 +192,28 @@ object ClipSearchResults {
                 match.end,
                 index == activeIndex,
                 ClipResultPalette.slotFor(index),
+            )
+        }
+    }
+
+    /**
+     * DRS v1.21.0 — the text-aware variant the editors render through:
+     * the matches are normalized against the current text first, so the
+     * produced ranges can never exceed the text they will paint over,
+     * and the original indexes drive both the active flag and the palette.
+     */
+    fun highlightRanges(
+        text: String,
+        matches: List<ClipMatch>,
+        activeIndex: Int,
+    ): List<ClipHighlightRange> {
+        if (matches.isEmpty()) return emptyList()
+        return normalizedWithIndexes(text, matches).map { (originalIndex, match) ->
+            ClipHighlightRange(
+                match.start,
+                match.end,
+                originalIndex == activeIndex,
+                ClipResultPalette.slotFor(originalIndex),
             )
         }
     }

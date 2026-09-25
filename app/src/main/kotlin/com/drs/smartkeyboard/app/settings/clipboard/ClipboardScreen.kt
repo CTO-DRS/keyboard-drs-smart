@@ -225,6 +225,14 @@ fun ClipboardScreen() = DrsScreen {
                 title = stringRes(R.string.pref__clipboard__popup_scrim__label),
                 entries = enumDisplayEntriesOf(ClipEditorScrim::class),
             )
+            // DRS v1.21.0 — «نافذة الاشعارات المنبثقه الخاصه بالتعديل»: the
+            // heads-up notification that opens the floating editor from
+            // anywhere — not only from inside the panel.
+            SwitchPreference(
+                prefs.clipboard.editNotificationEnabled,
+                title = stringRes(R.string.pref__clipboard__edit_notification__label),
+                summary = stringRes(R.string.pref__clipboard__edit_notification__summary),
+            )
         }
 
         PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_smart_editor__label)) {

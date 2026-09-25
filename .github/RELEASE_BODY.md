@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.20.0
+# DRS Smart Keyboard V 1.21.0
 
-## الجولة الشاملة العشرون — الدقة والإتقان: الفحص الثلاثي أثمر — لوحة الأرقام تخرج من الحبس، خمسة إصلاحات جوهرية في التزلج، اقتراحات أعدل، خصوصية أقسى، ونسخ احتياطي لا يفشل
+## الجولة الشاملة الحادية والعشرون — السلامة والدقة والوصول: مفتاح ميت يُحيى، نافذة انهيار تُسدّ، ووعد v1.11 يتحقق أخيرًا — نافذة التعديل الإشعارية
 
-**Twentieth Comprehensive Round — Precision & Mastery: The Tri-Front Audit Pays Off — The Trapped Number Pad Freed, Five Core Glide Fixes, Fairer Suggestions, Tougher Privacy, and a Backup That No Longer Fails**
+**Twenty-First Comprehensive Round — Safety, Precision & Accessibility: A Dead Key Revived, A Crash Window Sealed, and the v1.11 Promise Finally Shipped — the Notification-Style Edit Window**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,120 +20,123 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.20.0 — جولة الدقة والإتقان
+## الجديد في V 1.21.0 — جولة السلامة والدقة والوصول
 
-بعد جولة الفحص الشامل في v1.19.0، جاءت هذه الجولة لتجني ثماره: فحصٌ ثلاثي
-الجبهات جديد كشف زلاتٍ دقيقة كان الفحص السابق لا يراها — فُصلت كل زلة إلى
-إصلاح حقيقي مُختبر، لا لمسة تجميل.
+جولة فحص ثلاثي جديدة (محرك الإدخال واللوحات / الحافظة والإيموجي واللوحات
+الذكية / طبقة التطبيق والإعدادات والنشر) كشفت أخطاءً حقيقية كان الكود
+يكذبنا بوجودها: مفتاح يعلن الحذف ولا يحذف، انهيار يمكن للمستخدم إحداثه
+بنقرتين، وقسيمة وعدٍ من v1.11 لم يصرفها أي إصدار. كل بند أدناه إصلاح
+مُختبر فعليًا، لا لمسة تجميل.
 
-- 🔓 **لوحة الأرقام تخرج من الحبس — أخيرًا** — أي حقل رقمي في أي تطبيق
-  كان يقفلك على لوحة 4×4 صمّاء: أرقام وفاصلة ونقطة فقط، **بلا أي مفتاح
-  للعودة إلى الحروف** — لا مسافة ذكية ولا مفتاح ABC. الآن تحمل كلتا
-  لوحتي الأرقام (العادية وPC) مفتاح **«الحروف»** في الصف الأخير يعيدك
-  إلى لوحة الحروف بضغطة، تمامًا كما تفعل أقوى لوحات المفاتيح عالميًا.
-  وعُقدة اختبار جديدة تضمن أن كل لوحة غير حرفية تحتوي مفتاح خروج —
-  فلن يعود الحبس إلى إصدار صامت أبدًا.
+- 🛡️ **وعد v1.11 يتحقق أخيرًا: نافذة الاشعارات المنبثقة الخاصة بالتعديل** —
+  منذ v1.11 والمستخدم يطلب «نافذة الاشعارات المنبثقه الخاصه بالتعديل وليست
+  في اللوحة»، وما كان موجودًا فعلًا سوى نافذة عائمة تُفتح من داخل لوحة
+  الحافظة — ولا أي إشعار في المستودع بأكمله (صفر استخدامات
+  `NotificationCompat`/`Notification` خارج مركز التحديث). الآن: عند التقاط
+  نص جديد يظهر **إشعار فوري (heads-up)** بقناة عالية الأهمية، عنوانه
+  «تعديل النص المنسوخ» ومعاينة النص، وفعل **«تعديل»** يفتح نافذة المحرر
+  العائمة **فوق الشاشة — خارج لوحة المفاتيح** من أي مكان، واللوحة مغلقة
+  أو لا. اللمسات الدقيقة: النص يعبر عبر Intent إضافي فينجو من موت العملية
+  (التسليم الداخلي بالذاكرة كان سيفشل من إشعار لاحق)، النصوص **الحساسة**
+  (كلمات السر المكتشفة) وغير النصية لا تظهر في الإشعارات أبدًا (خصوصية
+  شاشة القفل)، إشعار واحد يُستبدل بجديدك التالي (لا تكدّس)، وفيل الإعداد
+  في شاشة إعدادات الحافظة الشاملة: **«إشعار «تعديل» عند النسخ»**.
 
-- 📞 **لوحة الهاتف مكتملة** — الفاصلة «,» متاحة بضغط مطول على «.»،
-  ومفتاح الانتظار «;» (المعيار الهاتفي لتعليق الاتصال) بضغط مطول على
-  «-»، وفي لوحة الهاتف الثانية زال التكرار العبثي: كان فيها مفتاحان
-  يفعلان الشيء نفسه حرفيًا («pause» والفاصلة كلاهما يرسل «,») — بقي
-  مفتاح واحد ومُلئت الفجوة بفاصل الوقت «:» المفيد لمراسلات المواعيد.
+- 🔧 **مفتاح الحذف في لوحة الحركات كان ميتًا عند اللمسة السريعة** —
+  مفتاح الحذف بضغطة سريعة أقصر من 400 ميلي ثانية **لم يحذف شيئًا**:
+  النقر كان مستبعدًا صراحة عن مفتاح التكرار، والتأثير المتكرر كان ينام
+  400ms قبل أول حذف — فمفتاح أساسي في لوحة حركات كاملة كان يعمل بالضغط
+  المطول فقط. الآن أول حذف ينطلق لحظة ملامسة الإصبع ثم يتكرر عند
+  الاستمرار — اللمسة السريعة تحذف، والضغط المطول يكنس.
 
-- ⛸️ **خمسة إصلاحات جوهرية في التزلج (الكتابة بالسحب)** —
-  1. **لا مزيد من تجميد الواجهة**: تحميل قاموس 50 ألف كلمة وبناء
-     فهرس القاطع كانا يجريان **بشكل متزامن على خيط الواجهة** عند أول
-     إظهار لكل لغة (ومع كل تغيير يفرغ الكاش) — انتقلا إلى الخلفية
-     مع بوابة الجاهزية القائمة فلا تتجمد اللوحة ولا تثير مراقبات ANR.
-  2. **المعاينة لم تعد تُبتلع**: أثناء التزلج كانت رقاقة الحافظة
-     تخطف صف المرشحين وتخفي معاينة الكلمة إذا كان لديك أي مقطع حديث
-     منسوخ (أشيع حالة على الإطلاق: نسخ ثم تزلج!) — الآن المعاينة
-     الحية لها الأولوية ما دامت الإيماءة جارية، ويتولى الاقتراح
-     الاعتيادي زمامه فور عودة الكتابة الحقيقية.
-  3. **لا مخزن متضخم ولا حالة عالقة**: كان أثر الإصبع يتراكم في
-     الذاكرة **بلا حدود طوال عمر العملية** وإشارة «أنا أتزلج الآن»
-     تبقى مرفوعة إلى الأبد متى كان إظهار الأثر معطلًا — لأن المسح
-     كله كان داخل بوابة ترفيهية. المسح الآن دائم والبوابة للأنيماشن
-     فقط.
-  4. **عدالة القاطع للكلمات المكررة الحروف**: كاش الأطوال المثالية
-     كان يفتح بالمفردة وحدها بينما لكل كلمة متكررة الحروف (pool،
-     letter) متغيرا إيماءة — الطبيعي والحلزوني — فكان الطويل
-     يُحاكم بطول القصير ويُقصى خطأً. المفتاح الآن بالمفردة والمتغير
-     معًا.
-  5. **كاشف أعدل للبدايات البطيئة**: كان السحب يُحكم عليه من السرعة
-     المتوسطة منذ لحظة اللمس ويُقفل «ليس تزلجًا» نهائيًا بعد 500
-     ميلي ثانية — فالضغط ثم التوقف ثم الانطلاق كان محرومًا من التزلج
-     كليًا. صار القياس **بنافذة انزلاقية** على أحدث ~500 ميلي ثانية
-     من الحركة (مثل Gboard)، مع حارس مؤشر صحيح (`findPointerIndex`
-     بدل `actionIndex` الذي يعني دائمًا الصفر في الحركة فكان يهمش
-     أي إصبع غير الأول)، وقفل الضغط المطول أصبح يفحص **كل** الأصابع
-     لا الإصبع صفر حصرًا.
+- 💥 **نافذة انهيار حقيقية في المحرر الذكي — مغلقة** — البحث في المحرر
+  يحسب المطابقات على لقطة نص مؤجلة بـ150ms، لكن النص نفسه ينكمش خلفها
+  (استبدال بنص أقصر، تراجع عن إضافة كبيرة): إعادة التركيب كانت تمرر
+  مطابقات قديمة إلى `text.substring` فتنهار `StringIndexOutOfBounds`
+  فوق بطاقات النتائج أو التوهج داخل النص — بنقرات عادية في المحررين
+  معًا (النافذة العائمة ومحرر اللوحة). الحارس: مُطبِّع نقي يُسقط
+  المطابقات الخارجة كليًا ويقص الجزئية منها، تحته حلقة التوهج تُفلتر
+  مجددًا ضد طول النص الحي لحظة التطبيق، **وكل بطاقة ناجية تحمل فهرسها
+  الأصلي** في قائمة المطابقات فيبقى التنقل (الأسهم والبطاقة النشطة)
+  صاديًا على الهدف الحقيقي.
 
-- 🎯 **اقتراحات أعدل — والتعلم يقبل «لا»** —
-  - **نهاية قص البادئات المعجمي**: البحث عن مرشحي البادئة كان يقفز
-    أول 48 نتيجة معجمية **ثم** يرتبها بالتكرار — فالبادئات المنتجة
-    («ال»، «al») كانت تفقد أكثر كلماتها تكرارًا ببساطة لأنها وُلدت
-    بعد الجولة. محرك جديد (`findTopByPrefix`) يمسح المدى الكامل
-    بكومة صغرى مقيّدة فيختار الأشيع فعلًا.
-  - **كلماتك تُطابق كما تنطقها**: الكلمات المتعلمة باللاتينية كانت
-    تُقارن بلا طيّ العلامات — «élève» المتعلمة لم يكن «eleve»
-    يصل إليها قط رغم أن كلمات القاموس نفسها تُطابَق بالطيّ. صار
-    الخطّان خطًا واحدًا، في المحرك وفي المدقق الإملائي معًا.
-  - **حالة الكلمة التالية واعية بالجملة**: التنبؤ بالكلمة التالية
-    كان يقلّد حالة الكلمة السابقة نفسها — «Hello » كان يكبّر التالية
-    و«Hi. » لا يكبّر! الصحيح عكس ذلك تمامًا: بعد نهاية الجملة (. !
-    ? … ؟ ۔) تُكبّر، وبعد كلمة عادية تبقى كما هي.
-  - **الرفض يُعلّم أيضًا**: رجوعك عن تصحيح تلقائي كان يترك الكلمة
-    المرفوضة جالسة في قاموسك الشخصي بكامل قوتها إلى الأبد. الآن كل
-    رفض يصرّف 64 نقطة من تكرارها ويحذفها كليًا عند نزولها للصفر.
-  - **المدخلات العالمية تظهر أخيرًا**: الكلمات المستوردة «لكل اللغات»
-    (بلا لغة) كانت موجودة في القاعدة لكن استعلام الاقتراحات لا يعيدها
-    أبدًا رغم أن توثيق الدالة يدّعي ذلك حرفيًا — الاستعلام صار صادقًا،
-    في القاموس الداخلي وقاموس النظام معًا.
-  - **الإيموجي بلا خسائر صامتة**: الفلترة كانت بعد القص، فأي مرشحين
-    صفرّيي الوزن في القمة يجعل النتائج أقل من المطلوب رغم وجود بدائل
-    حقيقية. الفلترة صارت قبل القص.
+- 🚫 **الإنذار الكاذب في كشف الأسطر البرمجية** — سطر يبدأ بـ«*» كان
+  يُحكم «كودًا» فورًا (ظنًّا أنه استمرار توثيق JSDoc) — فالقائمة
+  النقطية الماركداونية بثلاثة أسطر («* عنصر واحد…») كانت تُقلب المحرر
+  كله إلى خط أحادي المسافة بشارة «كود» زائفة. العلامة الغامضة لم تعد
+  تقرر وحدها: تُجرد والسطر الباقي يُقيَّم بقواعده، فالقوائم قوائم
+  (لا كود)، و«* let x = 5;» ما تزال كودًا، و`/**` و`*/` و`//` وshebang
+  تقرر فورًا كما كانت.
 
-- 🔒 **خصوصية أقسى: كلمات المرور تخفي تلقائيًا** — حقول كلمات المرور
-  كانت تعطل التركيب فقط، ولو لم يعلن التطبيق المضيف راية
-  «بلا تعلم شخصي» بقيت لوحتنا تتعلم داخل حقل كلمة السر! الآن كل حقل
-  كلمة مرور يفرض التخفي الكامل (بلا تعلم، بلا سجل حافظة) كما تفعل
-  Gboard وSwiftKey — حتى لو لم يطلب المضيف ذلك.
+- 🕌 **طمس التشكيل صار واحدًا** — محرر الحافظة كان يُبقي علامات ضبط
+  المصحف الصغيرة (U+06D6–U+06ED) بينما لوحة أدوات النص تنزعها — نفس
+  الأداة باسمين وسلوكين. الاثنان يشاركان تعريفًا واحدًا الآن: «طمس
+  التشكيل» يعني الشيء نفسه في كل مكان.
 
-- 💾 **نسخ احتياطي لا يفشل ولا يجمّد** — ثلاث زلات حقيقية في شاشتي
-  النسخ والاستعادة: (1) الكتابة والفك كانتا على الخيط الرئيسي — مئات
-  الميغابايتات من وسائط الحافظة = تجميد وANR مؤكد، انتقل كل IO إلى
-  `Dispatchers.IO`؛ (2) مقبض مساحة العمل كان متغيرًا محليًا عاديًا،
-  فتغيير تكوين أثناء فتح منتقي الملفات يفقده ويجعل النقر ينهار
-  بـ`!!` — يظهر للمستخدم كـ«فشل النسخ» زائفًا — صار محفوظًا عبر
-  التكوينات كنظيره في الاستعادة؛ (3) عنصر وسائط واحد بمعرف مكسور
-  كان يُسقط النسخ أو الاستعادة **كلها** في منتصف الطريق — الآن
-  يُتخطى العنصر المعطوب وتُكمل العملية.
+- 🌗 **حارس نافذة «تتبع الوقت» المعكوسة** — من يضبط شروقًا 22:00 وغروبًا
+  06:00 (جدول ليلي) كان يجبر الثيم الليلي **إلى الأبد** لأن المدى
+  `current in sunrise..sunset` ينهار إلى فراغ. نافذة النهار تلتف حول
+  منتصف الليل الآن، والزوج المنحل (شروق = غروب) يعود إلى النهار.
 
-- 🏗️ **CI أقوى: بوابات حقيقية** — بناء الإصدار الموقّع كان ينشر
-  بلا تشغيل اختبارات ولا تحقق من الإصدار. الآن ينهار الإصدار فورًا
-  إن لم تطابق `gradle.properties` وسم الإصدار، ولا يُبنى APK قبل
-  نجاح **492 اختبار وحدة** كاملة.
+- ✍️ **16 حرفًا عربيًا نالت حركاتها** — التاء والثاء والحاء والخاء والدال
+  والذال والراء والسين والصاد والضاد والطاء والظاء والعين والغين والميم
+  والنون كانت **بلا أي ضغطة مطولة** في خريطة النوافذ العربية — أبرز أحرف
+  الكتابة اليومية بلا طريق إلى حركاتها! كل واحدة تحمل الآن الحركات
+  الخمس (َ ُ ِ ّ ْ) بضغطة مطولة. والفاصلة العربية «،» التي كانت غائبة
+  كليًا من لوحة الرموز الشرقية (بينما «؛» موجودة!) أصبحت الضغطة المطولة
+  على «؛» مع التطويل «ـ» بجوارها.
 
-- 🧹 **نظافة ممتدة** — أربعة إعدادات ميتة حُذفت من الجذر (نمط شعر
-  الإيموجي المفضل — يُشتق من المحارف أصلًا، علامة بيتا داخلية بلا
-  قارئ، ووجهتا «جهات الاتصال» و«إدخالات قاموس المستخدم» اللتان لم
-  يُنفذ وعدُهما قط) مع سلاسلها من **44 لغة** كي لا يبقى ترجمة يتيمة؛
-  توستا القص والنسخ المضمنان إنجليزيًا (منذ اليوم الأول بخطأ إملائي
-  «Eiter») صارا مفتاحين معرّبين؛ توست «لا لوحة صوتية» عُرّب؛ وبلاطتا
-  العنصر النائب NOOP/DRAG_MARKER في محرر الأفعال لم تعد تمر عبر مسار
-  «مفتاح مجهول» — التوازي الآن **2,374 مفتاحًا لكل لغة** بالضبط.
+- 🧭 **أربع أدوات إدراج علامات الاتجاه والوصل** — قسم جديد في لوحة أدوات
+  النص: **RLM** و**LRM** (تثبيت اتجاه النيُترالات بين النصوص المختلطة)،
+  **ZWJ** (واصل الحروف والإيموجي المركبة)، و**ZWNJ** — نصف المسافة —
+  (فاصل الاتصال بلا مسافة). الإدراج عند المؤشر مباشرة، يعمل على حقل فارغ،
+  ولا يبديل أي حرف — كانت أدوات الإزالة موجودة منذ v1.5 والإدراج غير
+  موجود في المستودع كله.
 
-- 🧪 **20 اختبار وحدة جديدًا (492 ناجحة، كانت 472)** — عقود
-  `findTopByPrefix` (الترتيب بالتكرار على كامل المدى، الحد، الحواف)،
-  عقود `findByPrefix` الأصلية غير المتأثرة، حالة الكلمة التالية
-  بالإنهامات العربية واللاتينية، قرار بدء الإيماءة بالنافذة
-  الانزلاقية (السرعة، المسافة، استثناء مفاتيح السحب، قسر الصفر)،
-  أسبقية معاينة التزلج على رقاقة الحافظة بحالاتها الأربع، حساب
-  الصرف عند الرفض حتى الحذف، و**عقود بنية اللوحات نفسها**: لوحتا
-  الأرقام بمفتاح خروج، لوحة الهاتف بفواصلها المطولة، ولوحة الهاتف
-  الثانية بلا تكرار — فتصبح البيانات التي تخدم أصابعك محروسة
-  كالكود.
+- 👋 **منتقي لون البشرة داخل لوحة الإيموجي** — تغيير لون البشرة كان
+  يتطلب الخروج من الكيبورد إلى إعدادات التطبيق (الإعداد موجود منذ بداية
+  المشروع لكن بلا أي وصول من اللوحة!). نقطة ملونة في الصف السفلي تدور
+  الستة ألوان (DEFAULT → LIGHT → … → DARK → DEFAULT) بألوان عيّنة twemoji
+  الحقيقية، ومع تسمية وصولية عربية.
+
+- 🗣️ **TalkBack يتكلم حيث كان صامتًا** — تبويبات الإيموجي العشر كانت
+  أيقونات معلنة `Tab` بلا نص: «بلا تسمية». كل تبويب ينطق اسم فئته
+  العربية الآن، وزرا «مسح البحث» في شاشتي الإضافات (أزرار فعلية بلا
+  وصف) يُعلنان وظيفتهما، وزر لون البشرة ينطق «اختيار لون البشرة».
+
+- 🎨 **صف بحث الإيموجي يلتزم ثيم لوحة المفاتيح** — كان يلوّن نفسه من
+  `MaterialTheme` الافتراضي بينما كل لوحات أخرى تقرأ ثيم snygg الفعّال —
+  نفس عائلة الخلل الذي أُصلح لبحث الحافظة في v1.7 ولم يصل إلى الإيموجي.
+  يقرأ ألوان النافذة المُهيمنة الآن مع تدرج قراءة من الإضاءة.
+
+- 💾 **قاموس المستخدم يسافر في النسخة الاحتياطية أخيرًا** — الكلمات
+  المتعلمة (قلب التخصيص!) كانت **الشيء الوحيد المهم خارج الأرشيف**:
+  إعادة ضبط المصنع كانت تمحوها ولا شيء يعيدها. خيار جديد «قاموس المستخدم
+  (الكلمات المتعلمة)» في شاشة النسخ يصدّرها بصيغة القائمة المدمجة
+  المعيارية (نفسها التي يقرأها الاستيراد اليدوي)، والاستعادة تدمجها بذكاء
+  (تحديث الموجود، إدخال الجديد، دمج أو مسح-ثم-استيراد حسب استراتيجيتك)
+  مع تجاهل صادق للأسطر التالفة.
+
+- 🏗️ **خطوة lint في مسار النشر** — خط أنابيب الإصدار كان يشغّل 521
+  اختبارًا وبوابة الوسم ثم ينشر، دون أي فحص ثابت. `lintRelease` يجري
+  الآن مع كل إصدار (غير مانع أثناء الضجيج الحالي، لكنه مُنتَج للمراجعة).
+
+- 🧹 **نظافة** — `RELEASE_BODY.md` الجذري كان نسخة ميتة من v1.16 تعارض
+  نسخة `.github/` التي تستخدمها CI فعلًا — حُذف. وتعليق «50,000 حرف»
+  القديم فوق ثابت 500,000 صار صادقًا. **التوازي الآن 2,390 مفتاحًا
+  لكل لغة (AR/EN)**.
+
+- 🧪 **20 اختبار وحدة جديدًا (521 ناجحة)** — عقود حارس المطابقات
+  (`normalizeAgainst`/`buildCards`/`inBounds` بإسقاطها وقصّها وصمد
+  فهارسها الأصلية)، عقود كشف الكود (القوائم ليست كودًا، النجم المتبوع
+  بكود يظل كودًا، العلامات الواضحة تقرر)، طمس ضبط المصحف، نافذة
+  FOLLOW_TIME بحالاتها الأربع (المعتاد، المعكوس، المنحل، الحواف الشاملة)،
+  دورة لون البشرة وألوان العيّن، عقد سلسلة قاموس المستخدم (ذهابًا
+  وإيابًا، locale فارغة، تلف وفكرة)، بوابة الإشعار بحالاتها الست
+  (مفعّل/حساس/غير نصي/فراغ/إعداد/سجل) ومعاينتها، خرائط علامات الإدراج
+  ونطاق التوزيع الممتد (-657)، و**عقد بنية الأصول**: الـ16 حرفًا بحركاتها
+  في ar.json والفاصلة العربية والتطويل في الرموز الشرقية — الأصول
+  التي تخدم أصابعك محروسة كالكود.
 
 </div>
 
@@ -148,123 +151,138 @@ thoughtful Arabic layouts and Arabic suggestions/correction, with English
 as a complete second option. Everything stays on your device: no accounts,
 no tracking, no ads.
 
-## What's new in V 1.20.0 — The Precision & Mastery Round
+## What's new in V 1.21.0 — The Safety, Precision & Accessibility Round
 
-After v1.19.0's full audit, this round harvests the next layer: a fresh
-tri-front audit uncovered subtle defects the previous pass couldn't see —
-every one of them fixed with a real, tested change.
+A fresh tri-front audit (input engine & layouts / clipboard, emoji & smart
+panels / app layer, settings & release) found defects the code kept
+denying: a key that claims to delete but doesn't, a crash any user could
+trigger in two taps, and a v1.11 promise no release ever cashed. Every
+item below is a real, tested fix — no polish passes.
 
-- 🔓 **The number pad is finally free** — any numeric field in any app
-  used to lock you onto a silent 4×4 pad with **no way back to letters**
-  — no ABC key, nothing. Both number pads (standard and PC layout) now
-  carry a **"characters"** exit key on the bottom row, exactly like the
-  world's leading keyboards. A new test contract guarantees every
-  non-letter layout contains an exit key, so the trap can never silently
-  return.
+- 🛡️ **The v1.11 promise finally shipped: the notification-style edit
+  window** — since v1.11 the user asked for «نافذة الاشعارات المنبثقه
+  الخاصه بالتعديل — وليست في اللوحة», and what shipped back then was a
+  floating window reachable only from inside the clipboard panel — the
+  repo had **zero notifications** outside the update center. Now: when a
+  new text clip is captured, a **heads-up notification** (HIGH-importance
+  channel) appears — "Edit the copied text", a preview, and an **«تعديل»
+  action that opens the floating editor OVER the screen, outside the
+  keyboard**, from anywhere, panel open or not. The details: the text
+  rides intent extras so the popup survives process death (the in-memory
+  handoff would fail from a later notification), **sensitive** clips
+  (detected passwords) and non-text items never surface (lock-screen
+  privacy), one notification replaces the previous (no stacking), and a
+  switch in the comprehensive clipboard settings: **"«Edit» notification
+  on copy"**.
 
-- 📞 **The phone pad is complete** — comma is one long-press away on
-  ".", the telephony wait separator ";" (used to pause call strings) is
-  a long-press on "-", and the second phone pad lost its pointless
-  duplication (a "pause" key and a comma key that literally inserted the
-  same character) — the freed slot now holds the time separator ":".
+- 🔧 **The harakat keyboard's delete key was dead on quick taps** — a tap
+  shorter than 400 ms deleted **nothing**: clicks were explicitly excluded
+  from the repeat key while the repeat effect slept 400 ms before its
+  first deletion — a primary key on a shipped panel worked only by holding.
+  The first delete now fires the instant the finger lands, then repeats on
+  hold — quick tap deletes, long-press sweeps.
 
-- ⛸️ **Five core glide-typing fixes** —
-  1. **No more UI freezes**: loading the 50k-word dictionary and building
-     the pruner index used to run **synchronously on the composition
-     thread** on first layout per language — both moved to a background
-     scope behind the existing readiness gate.
-  2. **The preview is no longer swallowed**: during a glide, the clipboard
-     chip hijacked the candidate row whenever any recent clip existed (the
-     most common state: copy, then glide!) — the live word preview now wins
-     while the gesture is active, and normal suggestions take over the
-     moment real typing resumes.
-  3. **No unbounded buffer, no stuck state**: with the trail setting off,
-     every gesture kept accumulating points in memory for the whole process
-     lifetime and `isGliding` stayed true forever — the buffer clear and
-     state reset are now unconditional; only the cosmetic fade stays gated.
-  4. **Fair pruning for double-letter words**: the ideal-length cache was
-     keyed by word only while repeated-letter words (pool, letter) produce
-     TWO gesture variants — the loop variant was judged against the plain
-     variant's cached length and mis-pruned. The key is now word AND variant.
-  5. **A fairer detector for slow starts**: glide was decided from average
-     velocity since touch-down and permanently latched "not a gesture" after
-     500 ms — press, dwell, then glide was impossible. Measurement now uses
-     a **sliding window** over the latest ~500 ms of movement (Gboard-style),
-     with a correct pointer guard (`findPointerIndex` instead of an
-     `actionIndex` that is always 0 during moves) and long-press blocking
-     that considers **every** finger, not hardcoded pointer zero.
+- 💥 **A real crash window in the smart editor — sealed** — editor search
+  computes matches on a text snapshot debounced by 150 ms, while the text
+  itself shrinks underneath (replace-with-shorter, undo a big insert):
+  recomposition handed the stale matches to `text.substring`, throwing
+  `StringIndexOutOfBounds` over the result cards or the in-text glow —
+  reachable with ordinary taps in BOTH editors (the popup and the panel
+  one). The guard: a pure normalizer drops wholly-out matches and clamps
+  partial ones, the highlight loop re-filters against the live field text
+  length at apply time, and **every surviving card keeps its ORIGINAL
+  match-list index** so navigation (arrows, active card) stays honest.
 
-- 🎯 **Fairer suggestions — and learning that accepts "no"** —
-  - **Prefix ranking over the full range**: candidates used to cut the
-    first 48 lexicographic hits and only then sort by frequency — productive
-    prefixes ("ال", "al") silently lost their most frequent words. A new
-    engine (`findTopByPrefix`) scans the entire matching range with a bounded
-    min-heap.
-  - **Your words match as you type them**: Latin user-dictionary words were
-    compared without accent folding — a learned "élève" was unreachable from
-    "eleve" even though dictionary words fold. Both sides now share one
-    pipeline, in the engine and in the spell checker.
-  - **Sentence-aware next-word casing**: next-word predictions used to copy
-    the previous word's own case — "Hello " capitalized the next word while
-    "Hi. " didn't. Exactly backwards: after a sentence terminator
-    (. ! ? … ؟ ۔) the prediction is capitalized, after a plain word it isn't.
-  - **Reverted suggestions unlearn**: rejecting an auto-correct used to
-    leave the unwanted word in your personal dictionary at full strength
-    forever. Every revert now drains 64 frequency points and deletes the
-    entry entirely when it reaches zero.
-  - **Global dictionary entries finally surface**: words imported for "all
-    languages" (null locale) sat in the database but the suggestion query
-    never returned them despite the function's own documentation claiming it
-    does — both the private Room DAO and the system-provider DAO now match
-    the documented contract.
-  - **Emoji without silent losses**: zero-weight matches were cut after the
-    limit, shrinking result counts below the cap when real matches existed
-    further down — filter now runs before the limit.
+- 🚫 **The false positive in code-line detection** — a line starting with
+  `*` was instantly labeled code (assumed a JSDoc continuation), so a
+  three-line Markdown bullet list flipped the whole editor to monospace
+  with a bogus "code" badge. The ambiguous marker no longer decides alone:
+  it is stripped and the remainder scored by the normal rules — bullets
+  are bullets, `* let x = 5;` is still code, and `/**`, `*/`, `//` and
+  shebangs still decide immediately.
 
-- 🔒 **Tougher privacy: password fields go incognito automatically** —
-  password fields only used to disable composing; if the host app didn't
-  advertise IME_FLAG_NO_PERSONALIZED_LEARNING, the keyboard kept learning
-  inside a password field. Every password field now forces full incognito
-  (no learning, no clipboard history), matching Gboard/SwiftKey behavior.
+- 🕌 **One tashkeel strip to rule them both** — the clipboard editor kept
+  the small Quranic annotation marks (U+06D6–U+06ED) while the text-tools
+  panel stripped them — one tool, two names, two behaviors. Both now share
+  a single definition: "remove diacritics" means the same thing everywhere.
 
-- 💾 **A backup that neither fails nor freezes** — three real defects in
-  the backup/restore screens: (1) archive writing and unzipping ran on the
-  main thread — hundreds of MB of clipboard media meant guaranteed jank and
-  ANR; all of it moved to `Dispatchers.IO`; (2) the backup workspace handle
-  was a plain local var, so a config change while the file picker was open
-  lost it and the callbacks crashed on `!!` — surfacing as a bogus "backup
-  failed"; it is now remember-backed like its restore counterpart; (3) a
-  single media item with a broken URI aborted the whole backup or restore
-  midway — broken items are now skipped and the operation completes.
+- 🌗 **A guard for the inverted FOLLOW_TIME window** — setting sunrise
+  22:00 and sunset 06:00 (a night shift) forced the night theme **forever**
+  because `current in sunrise..sunset` collapses to an empty range. The
+  day window now wraps midnight, and the degenerate pair (sunrise ==
+  sunset) falls back to day.
 
-- 🏗️ **Stronger CI: real gates** — signed releases were published without
-  running tests and without verifying the version. A release now fails fast
-  if `gradle.properties` doesn't match the pushed tag, and no APK is built
-  until all **492 unit tests** pass.
+- ✍️ **16 bare Arabic letters got their harakat** — ت ث ح خ د ذ ر س ص ض ط
+  ظ ع غ م ن had **no long-press at all** in the Arabic popup mappings —
+  the workhorse letters of daily writing had no path to their diacritics!
+  Each now carries the five core harakat (َ ُ ِ ّ ْ) on long-press. And
+  the Arabic comma «،» — entirely absent from the eastern symbols page
+  while «؛» sat right there — is now the long-press on «؛», with the
+  tatweel «ـ» beside it.
 
-- 🧹 **Extended hygiene** — four dead settings deleted at the root
-  (preferred emoji hair style — derived from code points anyway, an
-  internal beta flag with zero readers, and the never-implemented contacts /
-  user-dictionary-entries spell switches) together with their strings from
-  **44 locales** so no orphan translations remain; the hardcoded English
-  cut/copy toasts (carrying the "Eiter" typo since day one) became localized
-  keys; the "no voice IME found" toast is localized; and the NOOP/
-  DRAG_MARKER placeholder tiles in the actions editor no longer trip the
-  "unknown key" error path. Exact parity: **2,374 keys per language**.
+- 🧭 **Four directional/joining mark insertion tools** — a new section in
+  the text-tools panel: **RLM** and **LRM** (pin neutral characters
+  between mixed-direction runs), **ZWJ** (join letters and emoji into
+  compound sequences), and **ZWNJ** — نصف المسافة — (break the cursive
+  join with no visible space). They commit straight at the cursor, work
+  on an empty field, and replace nothing — the removal tool existed since
+  v1.5 while insertion was absent from the entire repo.
 
-- 🧪 **20 new unit tests (492 passing, up from 472)** — findTopByPrefix
-  contracts (frequency ranking over the full range, limits, edges), the
-  untouched findByPrefix contract, next-word casing with Latin and Arabic
-  terminators, the sliding-window gesture-start decision (velocity, travel,
-  swipe-key exclusion, zero-duration clamp), glide-preview-over-clipboard
-  precedence in all four states, revert demotion down to deletion, and —
-  new this round — **contracts over the layout JSON themselves**: both
-  number pads expose an exit, the phone pad exposes its long-press
-  separators, and the second phone pad has no duplicated keys.
+- 👋 **An in-palette skin-tone selector** — changing the skin tone used to
+  require leaving the keyboard for the app settings (the preference has
+  existed all along with zero access from the palette!). A colored dot in
+  the bottom row cycles the six tones (DEFAULT → LIGHT → … → DARK →
+  DEFAULT) with real twemoji swatches and an Arabic accessibility label.
+
+- 🗣️ **TalkBack speaks where it was silent** — the ten emoji tabs were
+  icon-only `Tab`s: announced as unlabeled. Each tab now announces its
+  Arabic category name, the clear-search buttons in the two extension
+  screens (actionable icons with no description) announce their job, and
+  the skin-tone dot announces "choose skin tone".
+
+- 🎨 **The emoji search row follows the keyboard theme** — it painted
+  itself from the default `MaterialTheme` while every other panel reads
+  the active snygg keyboard theme — the same defect family fixed for the
+  clipboard search back in v1.7 that never reached the emoji palette. It
+  reads the themed window colors now with a luminance-derived fallback.
+
+- 💾 **The user dictionary finally rides the backup** — your learned
+  words (the heart of personalization!) were the one important thing
+  outside the archive: a factory reset erased them and nothing brought
+  them back. A new "User dictionary (learned words)" selector in the
+  backup screen exports them in the standard combined-list format (the
+  same one the manual import path reads), and restore merges them
+  intelligently (update existing, insert new, merge or erase-then-import
+  by your chosen strategy) while honestly skipping malformed lines.
+
+- 🏗️ **A lint step in the release path** — the pipeline ran 521 unit
+  tests and the tag gate, then published without any static analysis.
+  `lintRelease` now runs with every release (non-fatal while the existing
+  baseline is noisy, but produced for review).
+
+- 🧹 **Hygiene** — the stale root `RELEASE_BODY.md` (a frozen v1.16 copy
+  diverging from the `.github/` one CI actually uses) is deleted, and the
+  old "50,000 characters" comment above the 500,000 constant now tells
+  the truth. **Exact parity: 2,390 keys per language (AR/EN)**.
+
+- 🧪 **20 new unit tests (521 passing)** — the match-guard contracts
+  (`normalizeAgainst`/`buildCards`/`inBounds` with drop, clamp and
+  preserved original indexes), code-detection contracts (bullets are not
+  code, a star followed by code still is, unambiguous markers decide),
+  the Quranic-mark strip, the FOLLOW_TIME window in all four states
+  (normal, inverted, degenerate, inclusive edges), the skin-tone cycle
+  and swatches, the user-dictionary format round trip (word+freq+locale+
+  shortcut, literal-null global entries, malformed and out-of-range
+  honesty), the notification gate in all its states and the preview
+  capping, the insertion-mark maps and the extended dispatch range
+  (-657), and — new this round — **asset-structure contracts**: the 16
+  letters with their harakat in ar.json and the Arabic comma + tatweel in
+  the eastern symbols page. The data serving your fingers is guarded like
+  the code.
 
 ## Install
 
-1. Download `DRS-Smart-Keyboard-v1.20.0.apk` below.
+1. Download `DRS-Smart-Keyboard-v1.21.0.apk` below.
 2. Install it (allow unknown sources when prompted).
 3. Open Settings → System → Languages & input → enable the keyboard.
 4. Pick it as your default keyboard and start typing.

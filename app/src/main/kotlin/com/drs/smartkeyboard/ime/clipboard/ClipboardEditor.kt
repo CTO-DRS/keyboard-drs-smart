@@ -136,8 +136,11 @@ object ClipTextTransforms {
 
     // Arabic-aware smart normalization ----------------------------------
 
-    // Arabic harakat + superscript alef + wasla + small Quranic marks.
-    private val ARABIC_DIACRITICS = Regex("[\u064B-\u065F\u0670]")
+    // DRS v1.21.0: unified with DrsTextTools.ARABIC_DIACRITICS — the same
+    // tashkeel (harakat + superscript alef + wasla + the small Quranic
+    // annotation marks U+06D6–U+06ED) is stripped in the editor and the
+    // text-tools panel alike, so «طمس التشكيل» means one thing everywhere.
+    private val ARABIC_DIACRITICS = Regex("[\u064B-\u065F\u0670\u06D6-\u06ED]")
 
     /** Strips Arabic diacritics (tashkeel); letters and spaces are kept. */
     fun removeArabicDiacritics(text: String): String {

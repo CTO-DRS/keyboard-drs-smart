@@ -153,7 +153,8 @@ fun ExtensionListScreen(type: ExtensionListScreenType, showUpdate: Boolean) = Dr
                     trailingIcon = {
                         if (query.isNotEmpty()) {
                             IconButton(onClick = { query = "" }) {
-                                Icon(Icons.Default.Close, contentDescription = null)
+                                // DRS v1.21.0: an actionable button must announce itself.
+                                Icon(Icons.Default.Close, contentDescription = stringRes(R.string.clip__a11y_clear_find))
                             }
                         }
                     },
