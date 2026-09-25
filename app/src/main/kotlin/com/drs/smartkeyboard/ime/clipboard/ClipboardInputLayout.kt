@@ -40,6 +40,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
@@ -58,6 +59,8 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DeleteSweep
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.Image
@@ -120,8 +123,11 @@ import com.drs.smartkeyboard.lib.observeAsTransformingState
 import com.drs.smartkeyboard.lib.util.NetworkUtils
 import org.drs.jetpref.datastore.model.collectAsState
 import java.time.Instant
+import java.time.ZoneId
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.drs.lib.android.AndroidKeyguardManager
 import org.drs.lib.android.AndroidVersion
 import org.drs.lib.android.showShortToastSync
@@ -145,6 +151,8 @@ import org.drs.lib.snygg.ui.rememberSnyggThemeQuery
 
 private val ItemWidth = 200.dp
 private val DialogWidth = 240.dp
+private val EditDialogWidth = 320.dp
+private val EditFieldHeight = 180.dp
 
 const val CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO: Int = 0
 
@@ -182,8 +190,15 @@ fun ClipboardInputLayout(
     val gridState = rememberLazyStaggeredGridState()
     var popupItem by remember(filteredHistory) { mutableStateOf<ClipboardItem?>(null) }
     var showClearAllHistory by remember { mutableStateOf(false) }
+    // DRS v1.9.0: the integrated clipboard system — an in-panel text editor
+    // and a save-as-file dialog with a user-named file.
+    var editingItem by remember { mutableStateOf<ClipboardItem?>(null) }
+    var editingText by remember { mutableStateOf("") }
+    var savingItem by remember { mutableStateOf<ClipboardItem?>(null) }
+    var saveName by remember { mutableStateOf("") }
 
-    fun isPopupSurfaceActive() = popupItem != null || showClearAllHistory
+    fun isPopupSurfaceActive() = popupItem != null || showClearAllHistory ||
+        editingItem != null || savingItem != null
 
     LaunchedEffect(isFilterRowShown) {
         delay(AnimationDuration.toLong())
@@ -395,6 +410,19 @@ fun ClipboardInputLayout(
                     )
                 }
             }
+            // DRS v1.9.0: a real state badge on pinned tiles — the pin is
+            // the first-class citizen of the smart clipboard system.
+            if (item.isPinned) {
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                        .background(Color.White, CircleShape),
+                    imageVector = Icons.Outlined.PushPin,
+                    contentDescription = null,
+                    tint = Color.Black,
+                )
+            }
         }
     }
 
@@ -601,6 +629,25 @@ fun ClipboardInputLayout(
                     }
                     SnyggColumn(modifier = Modifier.weight(0.5f)) {
                         SnyggColumn(DrsImeUi.ClipboardItemActions.elementName) {
+                            // DRS v1.9.0: the organized action ladder of the
+                            // smart clipboard — paste, copy back, pin, edit,
+                            // save as file, delete (edit/save for text only).
+                            PopupAction(
+                                icon = Icons.Outlined.ContentPasteGo,
+                                text = stringRes(R.string.clip__paste_item),
+                            ) {
+                                clipboardManager.pasteItem(popupItem!!)
+                                popupItem = null
+                            }
+                            // DRS v1.0.6: copy the item back to the system
+                            // clipboard without inserting it anywhere.
+                            PopupAction(
+                                icon = Icons.Default.ContentCopy,
+                                text = stringRes(R.string.clip__copy_item_again),
+                            ) {
+                                clipboardManager.copyItemBack(popupItem!!)
+                                popupItem = null
+                            }
                             PopupAction(
                                 icon = Icons.Outlined.PushPin,
                                 text = stringRes(if (popupItem!!.isPinned) {
@@ -616,6 +663,26 @@ fun ClipboardInputLayout(
                                 }
                                 popupItem = null
                             }
+                            if (popupItem!!.type == ItemType.TEXT) {
+                                PopupAction(
+                                    icon = Icons.Default.Edit,
+                                    text = stringRes(R.string.clip__edit_item),
+                                ) {
+                                    editingItem = popupItem!!
+                                    editingText = popupItem!!.text.orEmpty()
+                                    popupItem = null
+                                }
+                                PopupAction(
+                                    icon = Icons.Default.SaveAlt,
+                                    text = stringRes(R.string.clip__save_item_as_file),
+                                ) {
+                                    savingItem = popupItem!!
+                                    saveName = ClipFileNamer.defaultFileName(
+                                        System.currentTimeMillis(), ZoneId.systemDefault(),
+                                    )
+                                    popupItem = null
+                                }
+                            }
                             PopupAction(
                                 icon = Icons.Default.Delete,
                                 text = stringRes(R.string.clip__delete_item),
@@ -623,21 +690,173 @@ fun ClipboardInputLayout(
                                 clipboardManager.deleteClip(popupItem!!, onlyIfUnpinned = false)
                                 popupItem = null
                             }
-                            // DRS v1.0.6: copy the item back to the system
-                            // clipboard without inserting it anywhere.
-                            PopupAction(
-                                icon = Icons.Default.ContentCopy,
-                                text = stringRes(R.string.clip__copy_item_again),
+                        }
+                    }
+                }
+            }
+
+            // DRS v1.9.0: the in-panel text editor — live counts, the 50k
+            // storage policy applied on every change, save through
+            // ClipboardManager.editClipText (history + primary clip sync).
+            if (editingItem != null) {
+                SnyggRow(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures { editingItem = null }
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                ) {
+                    SnyggColumn(
+                        elementName = DrsImeUi.ClipboardClearAllDialog.elementName,
+                        modifier = Modifier
+                            .width(EditDialogWidth)
+                            .pointerInput(Unit) {
+                                detectTapGestures { /* Do nothing */ }
+                            },
+                    ) {
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardHeaderText.elementName,
+                            text = stringRes(R.string.clip__edit_title),
+                        )
+                        val stats = ClipTextStats.of(editingText)
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                            text = stringRes(
+                                R.string.clip__stats_label,
+                                "chars" to stats.chars,
+                                "words" to stats.words,
+                                "lines" to stats.lines,
+                            ),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = EditFieldHeight)
+                                .drsVerticalScroll(),
+                        ) {
+                            BasicTextField(
+                                value = editingText,
+                                onValueChange = { editingText = ClipboardTextPolicy.truncateForStorage(it) },
+                                modifier = Modifier.fillMaxWidth(),
+                                textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                            )
+                        }
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                            text = stringRes(
+                                R.string.clip__char_limit_counter,
+                                "used" to editingText.length,
+                                "max" to ClipboardTextPolicy.MAX_TEXT_CHARS,
+                            ),
+                        )
+                        SnyggRow(DrsImeUi.ClipboardClearAllDialogButtons.elementName) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            SnyggButton(
+                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                                attributes = mapOf("action" to "no"),
+                                onClick = { editingItem = null },
                             ) {
-                                clipboardManager.copyItemBack(popupItem!!)
-                                popupItem = null
+                                SnyggText(text = stringRes(R.string.action__cancel))
                             }
-                            PopupAction(
-                                icon = Icons.Outlined.ContentPasteGo,
-                                text = stringRes(R.string.clip__paste_item),
+                            SnyggButton(
+                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                                attributes = mapOf("action" to "yes"),
+                                onClick = {
+                                    val item = editingItem!!
+                                    editingItem = null
+                                    clipboardManager.editClipText(item, editingText)
+                                },
                             ) {
-                                clipboardManager.pasteItem(popupItem!!)
-                                popupItem = null
+                                SnyggText(text = stringRes(R.string.action__save))
+                            }
+                        }
+                    }
+                }
+            }
+
+            // DRS v1.9.0: save-as-file with a user-named file — the name is
+            // normalized by ClipFileNamer and written by ClipFileSaver
+            // (MediaStore Downloads on Android 10+, private dir before).
+            if (savingItem != null) {
+                SnyggRow(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures { savingItem = null }
+                        },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceAround,
+                ) {
+                    SnyggColumn(
+                        elementName = DrsImeUi.ClipboardClearAllDialog.elementName,
+                        modifier = Modifier
+                            .width(EditDialogWidth)
+                            .pointerInput(Unit) {
+                                detectTapGestures { /* Do nothing */ }
+                            },
+                    ) {
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardHeaderText.elementName,
+                            text = stringRes(R.string.clip__save_file_title),
+                        )
+                        BasicTextField(
+                            value = saveName,
+                            onValueChange = { saveName = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            textStyle = LocalTextStyle.current.copy(fontSize = 14.sp),
+                            decorationBox = { innerTextField ->
+                                Box {
+                                    if (saveName.isEmpty()) {
+                                        Text(
+                                            text = stringRes(R.string.clip__save_file_name_hint),
+                                            color = LocalTextStyle.current.color.copy(alpha = 0.6f),
+                                            fontSize = 14.sp,
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            },
+                        )
+                        SnyggText(
+                            elementName = DrsImeUi.ClipboardItemTimestamp.elementName,
+                            text = stringRes(R.string.clip__save_file_note),
+                        )
+                        SnyggRow(DrsImeUi.ClipboardClearAllDialogButtons.elementName) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            SnyggButton(
+                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                                attributes = mapOf("action" to "no"),
+                                onClick = { savingItem = null },
+                            ) {
+                                SnyggText(text = stringRes(R.string.action__cancel))
+                            }
+                            SnyggButton(
+                                elementName = DrsImeUi.ClipboardClearAllDialogButton.elementName,
+                                attributes = mapOf("action" to "yes"),
+                                onClick = {
+                                    val item = savingItem!!
+                                    val name = ClipFileNamer.sanitize(saveName)
+                                    savingItem = null
+                                    scope.launch {
+                                        val result = withContext(Dispatchers.IO) {
+                                            ClipFileSaver.save(context, item.text.orEmpty(), name)
+                                        }
+                                        val message = when (result) {
+                                            is ClipFileSaver.Result.PublicDownloads ->
+                                                R.string.clip__saved_to_downloads
+                                            is ClipFileSaver.Result.PrivateFiles ->
+                                                R.string.clip__saved_to_app_files
+                                            ClipFileSaver.Result.Failed ->
+                                                R.string.clip__save_failed
+                                        }
+                                        context.showShortToastSync(message)
+                                    }
+                                },
+                            ) {
+                                SnyggText(text = stringRes(R.string.action__save))
                             }
                         }
                     }

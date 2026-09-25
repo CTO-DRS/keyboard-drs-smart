@@ -2257,4 +2257,20 @@
     <string name="drs__text_tools__desc_separate_digit_letters">يضع مسافة واحدة بين كل رقم وحرف متجاور في الاتجاهين (12abc تصبح 12 abc و٣س تصبح ٣ س) — عربيًا ولاتينيًا</string>
     <string name="drs__text_tools__tool_remove_punctuation">إزالة علامات الترقيم</string>
     <string name="drs__text_tools__desc_remove_punctuation">يحذف كل علامات الترقيم (،؛؟ العربية واللاتينية وعلامات الاقتباس والأقواس) مع إبقاء الحروف والأرقام والمسافات والرموز</string>
+    <string name="clip__edit_item">تعديل النص</string>
+    <string name="clip__save_item_as_file">حفظ كملف</string>
+    <string name="clip__edit_title">تعديل نص الحافظة</string>
+    <string name="clip__stats_label">{chars} حرف · {words} كلمة · {lines} أسطر</string>
+    <string name="clip__char_limit_counter">{used} / {max}</string>
+    <string name="clip__save_file_title">حفظ العنصر كملف</string>
+    <string name="clip__save_file_name_hint">اسم الملف</string>
+    <string name="clip__save_file_note">يُكتب النص في «التنزيلات/DRS Keyboard» على أندرويد 10 وما بعده، وفي مساحة التطبيق الخاصة على الإصدارات الأقدم. الامتداد txt يُضاف تلقائيًا إن لم يوجد</string>
+    <string name="clip__saved_to_downloads">تم الحفظ في مجلد التنزيلات</string>
+    <string name="clip__saved_to_app_files">تم الحفظ في مساحة التطبيق الخاصة</string>
+    <string name="clip__save_failed">فشل حفظ الملف</string>
+    <string name="pref__clipboard__group_export__label">التصدير</string>
+    <string name="clipboard__export_history__label">تصدير سجل الحافظة</string>
+    <string name="clipboard__export_history__summary">حفظ كل نصوص السجل في ملف JSON واحد عبر منتقي ملفات النظام — النصوص فقط، الوسائط لا تُصَدَّر</string>
+    <string name="clipboard__export_history__done">تم تصدير سجل الحافظة</string>
+    <string name="clipboard__export_history__failed">فشل تصدير سجل الحافظة</string>
 </resources>

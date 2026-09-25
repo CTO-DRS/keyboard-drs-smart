@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.8.0
+# DRS Smart Keyboard V 1.9.0
 
-## الجولة الشاملة الثامنة — شريط المهام فوق الاقتراحات للجميع وزر السحب الجانبي ودرج التثبيت ومؤشرات التفعيل الحقيقية
+## الجولة الشاملة التاسعة — نظام الحافظة الذكي المتكامل: تعديل النص، الحفظ كملف باسمك، سقف 50,000 حرف، وتصدير السجل
 
-**Eighth Comprehensive Round — Tasks Bar Above Suggestions for Everyone, Side-Pull Handle, Pinned-Tools Drawer, Real Toggle Indicators**
+**Ninth Comprehensive Round — The Integrated Smart Clipboard System: Edit Text, Save-As-File With Your Name, the 50,000-Character Cap, and History Export**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,76 +20,77 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.8.0 — كل ميزة مربوطة بالمحرك فعليًا
+## الجديد في V 1.9.0 — نظام متكامل وذكي واحترافي للحافظة
 
-- 🎯 **شريط المهام فوق شريط الاقتراحات — للجميع**: كان الشريط الموحد
-  مخفيًا افتراضيًا للنظام العادي (اشتراك اختياري) ومشروطًا بمفاتيح
-  الملف الشخصي للنظامين الآخرين؛ صار الآن **الشريط الأول أعلى شريط
-  الاقتراحات لكل الأنظمة الثلاثة** (العادي والتقني وكلاهما) بمفتاح
-  رئيسي واحد محفوظ `unifiedStripEnabled` افتراضه «ظاهر»، مع بقاء حارس
-  حقول كلمة المرور كما هو — المفتاح الواحد الصادق هو الباب الوحيد
-  للإخفاء، ومتوفر داخل لوحة المفاتيح نفسها ومن شاشة الأدوات
-- 🎚️ **زر السحب الجانبي + درج المهام المثبتة**: أول عنصر في الشريط صار
-  مقبض سحب (زر جانبي) يفتح **درج «المهام المثبتة»** فوق مساحة لوحة
-  المفاتيح (نفس نمط تبديل اللوحات القائم) — ويظل متاحًا للجميع حتى لو
-  أفرغت الشريط من كل البلاطات. الدرج يمنح **كل مستخدم من الأنظمة
-  الثلاثة** تحكمًا مباشرًا داخل الكيبورد دون فتح الإعدادات:
-  - **«المثبتة الآن»**: بلاطاتك المثبتة بترتيب رأس الشريط مع أزرار
-    إعادة ترتيب (أعلى/أسفل) وفك تثبيت حقيقية عبر مسارات `moveTool` و
-    `setToolPinned` المحفوظة نفسها
-  - **«جميع المهام»**: الكتالوج الكامل (44 أداة) مع مرشحات المجموعات
-    (الكل/أدوات/تحرير/المؤشر)، وتثبيت/فك تثبيت، وإظهار/إخفاء لكل أداة
-  - **عقد «التثبيت للجميع» الجديد**: تثبيت أداة تقنية من الوضع البسيط
-    كان سابقًا يبتلع التثبيت صامتًا (مثبتة لا تُرى أبدًا) — صار
-    التثبيت يوسّع نطاق ظهور الأداة تلقائيًا عبر `ensureVisibleOverride`
-    النقية فتظهر فعلًا في مستواك الحالي، والارتداد مختبر
-  - **مفتاح الشريط الرئيسي وإعادة الضبط** في ذيل الدرج
-- 💡 **مؤشرات التفعيل الحقيقية على بلاطات الشريط**: أدوات التبديل
-  (الوضع الخفي/التصحيح التلقائي/صف الأرقام/إظهار الشريط الذكي/النافذة
-  العائمة) تعرض الآن نقطة تفعيل بلون نظامك عند اشتغالها — تُقرأ من
-  مصادرها المحركية الحقيقية نفسها (رايات حالة الإدخال، وإعدادات jetpref،
-  ومتحكم النافذة) لا من تقدير، عبر بنية `ToggleStates` النقية المختبرة
-- 🛠️ **أداتا كتالوج جديدتان** (تصبح **44 أداة**) بمسارات محرك قائمة
-  فعلًا، ملحقتان بذيل الكتالوج حفاظًا على ترتيبك وتثبيتك المحفوظَين:
-  **«الإجراءات السريعة»** عبر `TOGGLE_ACTIONS_OVERFLOW` (لوحة الأكثر
-  استخدامًا والإجراءات المخفية — أسرع وصول لكل المهام)، و**«محرر
-  الإجراءات»** عبر `TOGGLE_ACTIONS_EDITOR` — كلتاهما مسجلتان في
-  الأدوات الذكية فتُحتسبان في بلاطات الأكثر استخدامًا من اليوم الأول
-- ✍️ **عمليتان نصيتان جديدتان** (تصبح **47 عملية**)، كلتاهما تحويل نقي:
-  - **فصل الأرقام عن الحروف**: مسافة واحدة بين كل رقم وحرف متجاور في
-    الاتجاهين (12abc تصبح 12 abc، و٣س تصبح ٣ س) — `p{N}` يشمل
-    العربية-الهندية ٠-٩ و`p{L}` يشمل العربية واللاتينية، والـ lookaround
-    لا يستهلك محارف فلا تُمس الترقيمات والأسطر، والعملية idempotent
-  - **إزالة علامات الترقيم**: يحذف كل علامات يونيكود الفئتية P (،؛؟
-    العربية واللاتينية وعلامات الاقتباس والأقواس) مع إبقاء الحروف
-    والأرقام والمسافات والرموز والعملات — شقيق «تنظيف النص» الموجّه
-    للبحث والعدّ
-- 🌐 **19 مفتاح سلاسل AR/EN جديدًا**، مفحوص التوازي آليًا
-  (PARITY OK — 2124 مفتاحًا لكل لغة)
-- ✅ **214 اختبار وحدة ناجحًا** (كانت 198): مصفوفة `ensureVisibleOverride`
-  كاملة (توسيع تقني↔بسيط، وترك المرئي كما هو، وطفو التثبيت لرأس
-  الشريط)، وعقود الأداتين الجديدتين من الرمز إلى السجل، واستقلالية راية
-  درج الأدوات عن راية الفائض، وترحيل حالة v1.7.0 القديمة (تُفتح
-  بشارط ظاهر)، والعمليتين النصيتين بأطرافهما (العربية واللاتينية
-  والعملات والidempotency)، وتحديث نوافذ عقود الذيل للجولات 1.4.0–1.7.0
-  (+2)
+- ✏️ **تعديل أي نص في السجل من داخل الكيبورد**: قائمة العنصر (ضغطة
+  مطوّلة) صارت تمنح **«تعديل النص»** — محرر حقيقي داخل لوحة الحافظة
+  نفسها يفتح النص الحالي، ويحفظ عبر مسار محركي واحد: تحديث السجل مع
+  رفع الطابع الزمني فيطفو العنصر إلى المقدمة، وبقاء التثبيت
+  والهوية كما هما، ومزامنة المقصوصة الأساسية إذا كانت هي العنصر
+  نفسه عبر مسار المزامنة المعتمد ذاته
+- 📊 **إحصاءات حية أثناء التعديل**: عدّاد **الأحرف والكلمات والأسطر**
+  يتحدث لحظة بلحظة أثناء الكتابة، محسوبًا من دوال نقية مختبرة
+  (الكلمات مقاطع مفصولة بمسافات، والأسطر فواصل حقيقية) — لا
+  تقدير ولا تخمين
+- 🗂️ **حفظ أي نص كملف باسم تختاره**: فعل **«حفظ كملف»** يفتح حوار
+  اسم الملف معبأً مسبقًا باسم افتراضي مؤرخ (`drs-clip-20260925-1430.txt`)،
+  ثم يكتب النص فعليًا:
+  - **أندرويد 10 وما بعده**: مساهمة MediaStore في مجلد
+    **«التنزيلات/DRS Keyboard»** — مرئية لك ولأي تطبيق، دون أي
+    إذن تخزين
+  - **أندرويد 8-9**: مجلد التطبيق الخاص `files/clips` مع لاحقة
+    تصادم تلقائية ` (1)`
+  - **تنقية الاسم احترافية**: محارف `/ \ : * ? " < > |` ومحارف
+    التحكم تصبح `_`، وحواف النص ونقاطه الختامية تُقتطع (خطر
+    ويندوز)، والامتداد `txt` يُفرض دائمًا (إن وُجد امتداد أجنبي
+    كـ`json` بقي داخل الاسم وأُلحق `txt` بعده)، والاسم الكامل
+    مقيّد بـ80 حرفًا مع الحفاظ على الامتداد، والفراغ يعود
+    للاسم الافتراضي
+- 🔢 **سقف 50,000 حرف للنص الواحد**: عقد تخزين صريح — **كل نص في
+  السجل يحتفظ بحد أقصى 50,000 حرف**، مطبقًا في نقطة اختناق واحدة
+  نقية (`ClipboardTextPolicy`) على كل طريق الإدخال: النسخ من
+  النظام، واللصق الداخلي، والتعديل اليدوي. القصّ **آمن مع
+  الإيموجي**: لو وقع حدّ الـ50,000 داخل زوج بديل (surrogate pair)
+  تراجع خطوة واحدة فلا يُنتج نصًا تالفًا أبدًا، والمقصوصة
+  الأساسية تحتفظ بالنص الكامل — السقف يحمي السجل وقاعدة
+  البيانات والعرض فقط
+- 📌 **شارة تثبيت حقيقية على البلاطات**: كل عنصر مثبّت يحمل أيقونة
+  الدبوس في زاويته — حالة حقيقية مقروءة من العنصر نفسه، وسُلّم
+  الإجراءات في القائمة المنبثقة **أُعيد ترتيبه احترافيًا**:
+  لصق ← نسخ مجددًا ← تثبيت/فك ← تعديل ← حفظ كملف ← حذف
+  (التعديل والحفظ للنصوص فقط)
+- 📤 **تصدير سجل الحافظة من الإعدادات**: زر جديد في شاشة الحافظة
+  يكتب **كل نصوص السجل في ملف JSON واحد محمول** عبر منتقي ملفات
+  النظام (النصوص فقط — بايتات الوسائط لا تصلح للرحلة ذهابًا
+  وإيابًا)، بحقل `text` و`createdAt` و`pinned` لكل عنصر، مع
+  توست نجاح/فشل صادق
+- 🌐 **16 مفتاح سلاسل AR/EN جديدًا**، مفحوص التوازي آليًا
+  (PARITY OK — 2140 مفتاحًا لكل لغة)
+- ✅ **233 اختبار وحدة ناجحًا** (كانت 214): 19 اختبارًا جديدًا
+  تغطي سقف الـ50,000 بحدّيه تمامًا وفوقه، وسلامة أزواج الإيموجي
+  عند القص، وعقد تنقية اسم الملف كاملًا (المحارف غير الشرعية،
+  النقاط الختامية، فرض الامتداد، سقف الـ80، الأسماء الافتراضية
+  المؤرخة بمنطقة زمنية مثبتة)، والإحصاءات الثلاث على نصوص عربية
+  ولاتينية وفارغة ومسافات فقط، وخطة التعديل (نص جديد وطابع مرفوع
+  وتثبيت وهوية محفوظان وقصّ فوق السقف)، وتصدير JSON برحلة ذهاب
+  وإياب كاملة والعربي والمثبتات محفوظان
 
 ## بعد التثبيت
 
-افتح أي حقل كتابة — ستجد **شريط المهام أعلى شريط الاقتراحات مباشرة**.
-اضغط زر السحب الجانبي (أول عنصر) لفتح درج المهام المثبتة: ثبّت ما
-تستخدمه، أعد ترتيبه، أخف ما لا تريده — وبنقطة التفعيل على بلاطات
-التبديل ستعرف حالة كل مفتاح بنظرة. شاشة التشخيصات «الفحص التقني
-الشامل» يواصل التحقق من 32 بندًا حقيقيًا، وكل شيء من بياناتك المحلية
-وحدها.
+افتح لوحة الحافظة (من الشريط أو الأدوات) واضغط مطولًا على أي نص:
+ستجد السلّم الجديد كاملًا — عدّل النص بمؤشرات حية، أو احفظه ملفًا
+باسمك في «التنزيلات/DRS Keyboard». انسخ نصًا أطول من 50 ألف حرف
+وسترى السجل يحتفظ بأول 50,000 حرف بأمان. ومن شاشة الإعدادات ←
+الحافظة صدّر السجل كله ملفًا واحدًا وقتما شئت — وكل ذلك من بياناتك
+المحلية وحدها.
 
 ## الخصوصية
 
 كل شيء يعمل **دون اتصال بالإنترنت إطلاقًا** في مسار الكتابة،
-والإحصاءات عدّادات مجهولة على جهازك (لا نصوص ولا طوابع زمنية للضغطات
-ولا هوية الحقول)، والنسخ الاحتياطي ملف JSON محلي تختار وجهته بنفسك
-عبر منتقي ملفات النظام — والحالة الجديدة ترحّل آليًا: من يرقّى من
-V 1.7.0 يجد الشريط ظاهرًا للجميع دون أي فقدان لتخصيصاته المحفوظة.
+والحفظ والتصدير يكتبان في المكان الذي تختاره أنت فقط (منتقي ملفات
+النظام أو مجلد تنزيلاتك)، ولا إذن تخزين يُطلب في أي حال، والإحصاءات
+عدّادات مجهولة على جهازك — ولا نصوص ولا طوابع زمنية للضغطات ولا
+هوية حقول، كما في كل جولة قبل هذه.
 
 </div>
 
@@ -106,61 +107,65 @@ layouts, and Arabic suggestions and correction, with English as a complete
 second option. Everything you type stays on your device: no accounts, no
 tracking, no ads.
 
-## What's new in V 1.8.0 — every feature wired to the real engine
+## What's new in V 1.9.0 — an integrated, smart, professional clipboard
 
-- 🎯 **The tasks bar now sits ABOVE the suggestions strip — for
-  everyone**: the unified strip used to be hidden by default for the
-  TYPICAL system (opt-in) and gated by profile switches elsewhere; it
-  is now the FIRST row above suggestions on ALL three systems, with a
-  single persisted master switch (`unifiedStripEnabled`, default ON)
-  and the password-field guard. One honest way off, available both
-  inside the keyboard drawer and the tools screen.
-- 🎚️ **Side-pull handle + pinned-tools drawer**: the strip's first
-  element is now a drag-handle button that opens the **«Pinned tools»
-  drawer** over the keyboard area (the established panel-swap pattern)
-  — reachable for everyone even with an empty strip. It gives every
-  user of all three systems direct in-keyboard control:
-  - **Pinned now**: your pinned tiles in strip-head order with real
-    reorder (up/down) and unpin through the same persisted
-    `moveTool`/`setToolPinned` paths
-  - **All tools**: the full 44-tool catalogue with group filters
-    (all/tools/editing/cursor), pin/unpin and show/hide per tool
-  - **The new pin-for-everyone contract**: pinning a technical-only
-    tool from the simple level used to swallow the pin silently
-    (pinned, never rendered) — pinning now widens the tool's view
-    override via the pure `ensureVisibleOverride` helper so it really
-    appears on your current level, with round-trip tests
-  - **Bar master switch and reset** at the drawer's tail
-- 💡 **Real on/off indicators on strip tiles**: toggle tools
-  (incognito / autocorrect / number row / smartbar visibility /
-  floating window) now show an accent dot while active — read from the
-  very engine sources that own the state (IME state flags, jetpref
-  settings, the window controller) through the tested pure
-  `ToggleStates` structure.
-- 🛠️ **Two new catalogue tools (44 total)** on real engine actions,
-  tail-appended: **Quick actions** via `TOGGLE_ACTIONS_OVERFLOW` (the
-  most-used + hidden-actions panel — the fastest "all tools" surface)
-  and **Actions editor** via `TOGGLE_ACTIONS_EDITOR` — both already in
-  SmartToolCodes, so they count in most-used stats from day one.
-- ✍️ **Two new pure text operations (47 total)**: **Separate digits
-  from letters** (one space at every digit↔letter boundary, both
-  directions — `\p{N}` covers ٠-۹ and 0-9, `\p{L}` covers Arabic and
-  Latin; lookarounds consume nothing so punctuation and newlines
-  survive; idempotent) and **Remove punctuation** (every Unicode
-  category-P mark, Arabic ،؛؟ and Latin alike, keeping letters, digits,
-  spaces, symbols and currency).
-- 🌐 **19 new AR/EN string keys**, parity-checked automatically
-  (PARITY OK — 2124 keys per language).
-- ✅ **214 unit tests passing** (was 198): the full
-  `ensureVisibleOverride` matrix, the new tools' code-to-registry
-  contracts, the drawer flag's independence from the overflow flag,
-  old-v1.7.0-state migration (decodes with the bar ON), both text
-  operations' edge cases (Arabic/Latin/currency/idempotency), and the
-  v1.4.0–v1.7.0 tail contracts shifted by the two new tools.
+- ✏️ **Edit any history text from inside the keyboard**: the item's
+  long-press menu now offers **«Edit text»** — a real editor inside the
+  clipboard panel that opens the current text and saves through one
+  engine path: the history row is updated with a bumped timestamp (the
+  item floats to the top), pin state and id preserved, and the primary
+  clip is re-synced through the established sync path when it is the
+  same item.
+- 📊 **Live stats while editing**: the **character / word / line**
+  counts update on every keystroke, computed by tested pure functions
+  (words are whitespace-separated runs, lines are real newline counts)
+  — no estimation anywhere.
+- 🗂️ **Save any text as a file with your own name**: **«Save as
+  file»** opens a file-name dialog prefilled with a timestamped default
+  (`drs-clip-20260925-1430.txt`) and then really writes the text:
+  - **Android 10+**: a MediaStore contribution under
+    **Downloads/DRS Keyboard** — visible to you and other apps, with
+    no storage permission requested
+  - **Android 8-9**: the app-private `files/clips` directory with an
+    automatic ` (1)` collision suffix
+  - **Professional name sanitization**: `/ \ : * ? " < > |` and
+    control characters become `_`, edges and trailing dots are trimmed
+    (a Windows hazard), the `.txt` extension is always enforced (a
+    foreign `.json` stays inside the base with `.txt` appended), the
+    full name is capped at 80 characters preserving the extension, and
+    blank input falls back to the default
+- 🔢 **The 50,000-character cap per text**: an explicit storage
+  contract — **one history text retains at most 50,000 characters**,
+  enforced at a single pure choke point (`ClipboardTextPolicy`) across
+  every intake path: system sync, internal paste and manual edit.
+  Truncation is **emoji-safe**: if the boundary lands inside a
+  surrogate pair it steps back one character instead of producing
+  corrupted text, and the primary clip keeps the FULL text — the cap
+  protects only the history database and rendering.
+- 📌 **A real pin badge on tiles**: every pinned item wears a pushpin
+  icon in its corner — true state read from the item itself — and the
+  popup action ladder is **re-organized professionally**: paste ← copy
+  again ← pin/unpin ← edit ← save as file ← delete (edit/save for
+  text items only).
+- 📤 **History export from the settings screen**: a new button on the
+  clipboard screen writes **all history texts into one portable JSON
+  document** through the system file picker (texts only — media bytes
+  cannot round-trip), with `text` / `createdAt` / `pinned` per entry
+  and an honest success/failure toast.
+- 🌐 **16 new AR/EN string keys**, parity-checked automatically
+  (PARITY OK — 2140 keys per language).
+- ✅ **233 unit tests passing** (was 214): 19 new tests covering both
+  sides of the 50k boundary and one char over it, surrogate-pair
+  truncation safety, the full file-name contract (illegal characters,
+  trailing dots, extension enforcement, the 80-char cap, timestamped
+  defaults at a pinned time zone), the three stats on Arabic/Latin/
+  empty/whitespace texts, the edit plan (new text, bumped timestamp,
+  preserved pin/id, over-cap input), and a full JSON export
+  round-trip with Arabic and pin state intact.
 
 ## Download
 
-- **APK**: `DRS-Smart-Keyboard-v1.8.0.apk` — install directly (safe
+- **APK**: `DRS-Smart-Keyboard-v1.9.0.apk` — install directly (safe
   in-place upgrade over any previous release, same signing key)
 - **AAB**: for advanced needs
 - **SHA256SUMS.txt**: full cryptographic verification of every asset
@@ -168,11 +173,11 @@ tracking, no ads.
 
 ## Privacy
 
-Everything runs **fully offline**: no internet on the typing path at all.
-Statistics are anonymous counters on your device (never text, never
-per-keystroke timestamps, never field identity), and backups are local
-JSON files whose destination you pick through the system file picker.
-The new state migrates automatically: upgrading from V 1.7.0 turns the
-bar on for everyone without touching any saved customization.
+Everything runs **fully offline**: no internet on the typing path at
+all. Saving and exporting write only where you choose (the system file
+picker or your Downloads folder), no storage permission is ever
+requested, and statistics remain anonymous counters on your device
+(never text, never per-keystroke timestamps, never field identity) —
+same as every round before this one.
 
 </div>

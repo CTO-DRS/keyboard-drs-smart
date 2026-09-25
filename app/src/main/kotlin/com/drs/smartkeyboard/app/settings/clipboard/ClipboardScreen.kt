@@ -16,18 +16,29 @@
 
 package com.drs.smartkeyboard.app.settings.clipboard
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.IosShare
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.enumDisplayEntriesOf
+import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AUTO
+import com.drs.smartkeyboard.ime.clipboard.ClipboardHistoryExport
 import com.drs.smartkeyboard.ime.clipboard.ClipboardSyncBehavior
 import com.drs.smartkeyboard.lib.compose.DrsScreen
 import org.drs.jetpref.datastore.ui.DialogSliderPreference
 import org.drs.jetpref.datastore.ui.ExperimentalJetPrefDatastoreUi
 import org.drs.jetpref.datastore.ui.ListPreference
+import org.drs.jetpref.datastore.ui.Preference
 import org.drs.jetpref.datastore.ui.PreferenceGroup
 import org.drs.jetpref.datastore.ui.SwitchPreference
 import org.drs.lib.android.AndroidVersion
+import org.drs.lib.android.showShortToastSync
 import org.drs.lib.compose.pluralsRes
 import org.drs.lib.compose.stringRes
 
@@ -36,6 +47,30 @@ import org.drs.lib.compose.stringRes
 fun ClipboardScreen() = DrsScreen {
     title = stringRes(R.string.settings__clipboard__title)
     previewFieldVisible = true
+
+    val context = LocalContext.current
+    val clipboardManager by context.clipboardManager()
+    // DRS v1.9.0: the integrated clipboard system exports the whole text
+    // history as one portable JSON document through the system file picker
+    // (text items only — media bytes cannot round-trip through JSON).
+    val exportPayload = remember { mutableStateOf<String?>(null) }
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json"),
+    ) { uri ->
+        val payload = exportPayload.value
+        if (uri != null && payload != null) {
+            val written = runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { out ->
+                    out.write(payload.toByteArray(Charsets.UTF_8))
+                } != null
+            }.getOrDefault(false)
+            context.showShortToastSync(
+                if (written) R.string.clipboard__export_history__done
+                else R.string.clipboard__export_history__failed,
+            )
+        }
+        exportPayload.value = null
+    }
 
     content {
         PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_basics__label)) {
@@ -160,6 +195,18 @@ fun ClipboardScreen() = DrsScreen {
                 title = stringRes(R.string.pref__clipboard__clear_primary_clip_affects_history_if_unpinned__label),
                 summary = stringRes(R.string.pref__clipboard__clear_primary_clip_affects_history_if_unpinned__summary),
                 enabledIf = { prefs.clipboard.historyEnabled isEqualTo true },
+            )
+        }
+
+        PreferenceGroup(title = stringRes(R.string.pref__clipboard__group_export__label)) {
+            Preference(
+                icon = Icons.Outlined.IosShare,
+                title = stringRes(R.string.clipboard__export_history__label),
+                summary = stringRes(R.string.clipboard__export_history__summary),
+                onClick = {
+                    exportPayload.value = clipboardManager.exportHistoryJson()
+                    exportLauncher.launch(ClipboardHistoryExport.DEFAULT_FILE_NAME)
+                },
             )
         }
     }

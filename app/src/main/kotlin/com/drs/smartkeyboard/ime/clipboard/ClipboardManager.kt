@@ -245,20 +245,28 @@ class ClipboardManager(
             return
         }
         if (prefs.clipboard.historyEnabled.get()) {
+            // DRS v1.9.0: one history text retains at most 50,000 characters
+            // (ClipboardTextPolicy). The primary clip keeps the full text;
+            // the stored history variant is what the panel re-pastes.
+            val historyVariant = if (newItem.type == ItemType.TEXT && newItem.text != null) {
+                newItem.copy(text = ClipboardTextPolicy.truncateForStorage(newItem.text))
+            } else {
+                newItem
+            }
             val historyElement = currentHistory.all.firstOrNull { item ->
-                item.type == ItemType.TEXT && item.text == newItem.text && item.isSensitive == newItem.isSensitive
+                item.type == ItemType.TEXT && item.text == historyVariant.text && item.isSensitive == historyVariant.isSensitive
             }
             if (historyElement != null) {
                 moveToTheBeginning(
                     oldItem = historyElement,
                     newItem = if (historyElement.isPinned) {
-                        newItem.copy(isPinned = true)
+                        historyVariant.copy(isPinned = true)
                     } else {
-                        newItem
+                        historyVariant
                     }
                 )
             } else {
-                insertClip(newItem)
+                insertClip(historyVariant)
             }
         }
     }
@@ -385,6 +393,32 @@ class ClipboardManager(
         ioScope.launch {
             clipHistoryDao?.update(item.copy(isPinned = false))
         }
+    }
+
+    /**
+     * DRS v1.9.0: replaces the text of a history item through
+     * [ClipboardEditPlan] (policy-capped, timestamp bumped so the item
+     * floats to the top). If the item currently sits on the primary clip
+     * (matched by id), the primary clip is refreshed with the edited text
+     * through the same sync path as a normal clipboard set.
+     */
+    fun editClipText(item: ClipboardItem, newText: String) {
+        if (item.type != ItemType.TEXT) return
+        val edited = ClipboardEditPlan.plan(item, newText, System.currentTimeMillis())
+        ioScope.launch {
+            clipHistoryDao?.update(edited)
+            if (primaryClip?.id == item.id) {
+                updatePrimaryClip(edited)
+            }
+        }
+    }
+
+    /**
+     * DRS v1.9.0: the whole text history as one portable JSON document
+     * (text items only — media bytes cannot round-trip through JSON).
+     */
+    fun exportHistoryJson(): String {
+        return ClipboardHistoryExport.toJson(historyFlow.value.all)
     }
 
     fun pasteItem(item: ClipboardItem) {

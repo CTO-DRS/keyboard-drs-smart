@@ -2341,4 +2341,20 @@
     <string name="drs__text_tools__desc_separate_digit_letters">Inserts one space between every adjacent digit and letter in both directions (12abc becomes 12 abc) — Arabic and Latin alike</string>
     <string name="drs__text_tools__tool_remove_punctuation">Remove punctuation</string>
     <string name="drs__text_tools__desc_remove_punctuation">Deletes every punctuation mark (Arabic ،؛؟ and Latin, quotes and brackets) keeping letters, digits, spaces and symbols</string>
+    <string name="clip__edit_item">Edit text</string>
+    <string name="clip__save_item_as_file">Save as file</string>
+    <string name="clip__edit_title">Edit clipboard text</string>
+    <string name="clip__stats_label">{chars} chars · {words} words · {lines} lines</string>
+    <string name="clip__char_limit_counter">{used} / {max}</string>
+    <string name="clip__save_file_title">Save item as file</string>
+    <string name="clip__save_file_name_hint">File name</string>
+    <string name="clip__save_file_note">Written to Downloads/DRS Keyboard on Android 10+, and to the app\'s private storage on older versions. The txt extension is appended when missing</string>
+    <string name="clip__saved_to_downloads">Saved to the Downloads folder</string>
+    <string name="clip__saved_to_app_files">Saved to the app\'s private storage</string>
+    <string name="clip__save_failed">Failed to save the file</string>
+    <string name="pref__clipboard__group_export__label">Export</string>
+    <string name="clipboard__export_history__label">Export clipboard history</string>
+    <string name="clipboard__export_history__summary">Save the whole history\'s texts into one JSON file via the system file picker — texts only, media is not exported</string>
+    <string name="clipboard__export_history__done">Clipboard history exported</string>
+    <string name="clipboard__export_history__failed">Failed to export the clipboard history</string>
 </resources>
