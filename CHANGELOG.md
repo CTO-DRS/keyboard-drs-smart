@@ -106,3 +106,11 @@
 ## v1.16.0
 - جولة تطوير شاملة سادسة عشرة — V 1.16.0 (versionCode 28) —
   - [الإصدار الكامل](https://github.com/CTO-DRS/keyboard-drs-smart/releases/tag/v1.16.0)
+
+## v1.17.0
+- جولة تطوير شاملة سابعة عشرة — V 1.17.0 (versionCode 29) —
+  - [الإصدار الكامل](https://github.com/CTO-DRS/keyboard-drs-smart/releases/tag/v1.17.0)
+
+## v1.18.0
+- جولة تطوير شاملة ثامنة عشرة — V 1.18.0 (versionCode 30): تفعيل R8 مع بوابة تحقق من اكتمال الـdex، لوحة مفاتيح مقسومة للشاشات العريضة، قواميس ثماني لغات جديدة، وترجمة إسبانية موسعة —
+  - [الإصدار الكامل](https://github.com/CTO-DRS/keyboard-drs-smart/releases/tag/v1.18.0)

@@ -78,6 +78,8 @@ import com.drs.smartkeyboard.ime.keyboard.keyA11yLabelRes
 import com.drs.smartkeyboard.ime.popup.ExceptionsForKeyCodes
 import com.drs.smartkeyboard.ime.popup.PopupUiController
 import com.drs.smartkeyboard.ime.popup.rememberPopupUiController
+import com.drs.smartkeyboard.ime.keyboard.SplitLayout
+import com.drs.smartkeyboard.ime.window.ImeWindowMode
 import com.drs.smartkeyboard.ime.text.gestures.GlideTypingGesture
 import com.drs.smartkeyboard.ime.text.gestures.SwipeAction
 import com.drs.smartkeyboard.ime.text.gestures.SwipeGesture
@@ -234,9 +236,27 @@ fun TextKeyboardLayout(
         val keyMarginH by remember { derivedStateOf { windowSpec.keyMarginH.toPx() } }
         val keyMarginV by remember { derivedStateOf { windowSpec.keyMarginV.toPx() } }
 
+        // DRS v1.18.0: split keyboard — compute the central gap in pixels
+        // for this keyboard from the SplitMode preference and the real
+        // window width. Only the normal fixed window mode splits (compact
+        // one-handed and floating windows are already narrow), and only the
+        // letters page — the numeric/phone pads are small centered grids
+        // where a mid-row gap would look broken rather than helpful.
+        val splitMode by prefs.keyboard.splitMode.collectAsState()
+        val splitGapPx = with(LocalDensity.current) {
+            val spec = windowSpec
+            val isNormalFixed = spec is ImeWindowSpec.Fixed &&
+                spec.fixedMode == ImeWindowMode.Fixed.NORMAL
+            if (keyboard.mode == KeyboardMode.CHARACTERS && isNormalFixed) {
+                SplitLayout.gapWidthPx(splitMode, keyboardWidth, density)
+            } else {
+                0f
+            }
+        }
+
         val desiredKey = remember(
             keyboard, keyboardWidth, keyboardHeight, keyMarginH, keyMarginV,
-            keyboardRowBaseHeight, evaluator
+            keyboardRowBaseHeight, evaluator, splitGapPx
         ) {
             TextKey(data = TextKeyData.UNSPECIFIED).also { desiredKey ->
                 desiredKey.touchBounds.apply {
@@ -253,7 +273,7 @@ fun TextKeyboardLayout(
                     }
                 }
                 desiredKey.visibleBounds.applyFrom(desiredKey.touchBounds).deflateBy(keyMarginH, keyMarginV)
-                keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, true)
+                keyboard.layout(keyboardWidth, keyboardHeight, desiredKey, true, splitGapPx)
             }
         }
 

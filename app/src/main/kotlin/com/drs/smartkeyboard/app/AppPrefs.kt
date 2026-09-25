@@ -41,6 +41,7 @@ import com.drs.smartkeyboard.ime.input.HapticVibrationMode
 import com.drs.smartkeyboard.ime.input.InputFeedbackActivationMode
 import com.drs.smartkeyboard.ime.keyboard.IncognitoMode
 import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
+import com.drs.smartkeyboard.ime.keyboard.SplitMode
 import com.drs.smartkeyboard.ime.landscapeinput.LandscapeInputUiMode
 import com.drs.smartkeyboard.app.settings.DrsSearchHistory
 import com.drs.smartkeyboard.ime.media.emoji.EmojiHairStyle
@@ -757,6 +758,14 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val backspaceStripsHarakat = boolean(
             key = "keyboard__backspace_strips_harakat",
             default = true,
+        )
+        // DRS v1.18.0: split keyboard — two halves with a central gap so
+        // thumbs reach on wide screens. AUTO splits only on wide keyboards
+        // (>= 560dp, i.e. landscape phones / foldables / tablets); the gap
+        // renders on the letters page in the normal fixed window mode only.
+        val splitMode = enum(
+            key = "keyboard__split_mode",
+            default = SplitMode.AUTO,
         )
         val incognitoDisplayMode = enum(
             key = "keyboard__incognito_indicator",

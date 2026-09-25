@@ -2476,4 +2476,11 @@
     <string name="pref__suggestion__autocorrect_enabled__summary">يُصلح الخطأ المطبعي تلقائيًا عند المسافة عندما يطابق تصحيح شائع قريب من كلمةٍ لا تبدأ بها قواميس الحروف — والمسح للخلف يتراجع عن التصحيح</string>
     <string name="pref__keyboard__backspace_strips_harakat__label">حذف الحركة أولًا</string>
     <string name="pref__keyboard__backspace_strips_harakat__summary">يمسح مفتاح الحذف الحركة (الفتحة والضمة والشدة…) قبل الحرف بدل حذف الحرف وحركاته معًا</string>
+    <string name="pref__keyboard__split_mode__label">لوحة المفاتيح المقسومة</string>
+    <string name="enum__split_mode__auto">تلقائي</string>
+    <string name="enum__split_mode__auto__description">يقسم لوحة الحروف إلى نصفين بفجوة وسطى على الشاشات العريضة فقط (الهاتف بالوضع الأفقي، الأجهزة القابلة للطي، والأجهزة اللوحية)</string>
+    <string name="enum__split_mode__always">دائمًا</string>
+    <string name="enum__split_mode__always__description">يقسم لوحة الحروف إلى نصفين بفجوة وسطى في كل الأحجام</string>
+    <string name="enum__split_mode__never">أبدًا</string>
+    <string name="enum__split_mode__never__description">يبقي لوحة الحروف كاملة العرض بلا فجوة وسطى</string>
 </resources>

@@ -19,6 +19,7 @@ package com.drs.smartkeyboard.ime.text.keyboard
 import com.drs.smartkeyboard.ime.keyboard.Key
 import com.drs.smartkeyboard.ime.keyboard.Keyboard
 import com.drs.smartkeyboard.ime.keyboard.KeyboardMode
+import com.drs.smartkeyboard.ime.keyboard.SplitLayout
 import com.drs.smartkeyboard.ime.popup.PopupMapping
 import kotlin.math.abs
 
@@ -48,6 +49,7 @@ class TextKeyboard(
         keyboardHeight: Float,
         desiredKey: Key,
         extendTouchBoundariesDownwards: Boolean,
+        splitGapWidth: Float,
     ) {
         if (arrangement.isEmpty()) return
 
@@ -60,7 +62,11 @@ class TextKeyboard(
 
         for ((r, row) in rows().withIndex()) {
             val posY = (desiredTouchBounds.height + rowMarginV) * r
-            val availableWidth = (keyboardWidth - rowMarginH) / desiredTouchBounds.width
+            // DRS v1.18.0: split keyboard — the row's usable width shrinks by
+            // the central gap, and the gap itself is re-inserted after the
+            // midpoint key below, so both halves keep the same grow/shrink
+            // distribution the unsplit layout computes.
+            val availableWidth = (keyboardWidth - rowMarginH - splitGapWidth) / desiredTouchBounds.width
             var requestedWidth = 0.0f
             var shrinkSum = 0.0f
             var growSum = 0.0f
@@ -68,6 +74,11 @@ class TextKeyboard(
                 requestedWidth += key.flayWidthFactor
                 shrinkSum += key.flayShrink
                 growSum += key.flayGrow
+            }
+            val splitIndex = if (splitGapWidth > 0.0f) {
+                SplitLayout.splitIndexForRow(FloatArray(row.size) { row[it].flayWidthFactor })
+            } else {
+                -1
             }
             if (requestedWidth <= availableWidth) {
                 // Requested with is smaller or equal to the available with, so we can grow
@@ -100,6 +111,12 @@ class TextKeyboard(
                         bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
                     }
                     posX += keyWidth
+                    // DRS v1.18.0: re-insert the central gap after the
+                    // midpoint key so the right half shifts right as one
+                    // block (the width math above already reserved its room).
+                    if (k == splitIndex) {
+                        posX += splitGapWidth
+                    }
                     // After-adjust touch bounds for the row margin
                     key.touchBounds.apply {
                         if (k == 0) {
@@ -135,6 +152,12 @@ class TextKeyboard(
                         bottom = key.touchBounds.bottom - abs(desiredTouchBounds.bottom - desiredVisibleBounds.bottom)
                     }
                     posX += keyWidth
+                    // DRS v1.18.0: same gap re-insertion in the shrink
+                    // branch — the row only ever gets narrower here, and
+                    // the reserved gap room is consumed at the midpoint.
+                    if (k == splitIndex) {
+                        posX += splitGapWidth
+                    }
                     // After-adjust touch bounds for the row margin
                     key.touchBounds.apply {
                         if (k == 0) {

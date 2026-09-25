@@ -23,6 +23,7 @@ import com.drs.smartkeyboard.app.Routes
 import com.drs.smartkeyboard.app.enumDisplayEntriesOf
 import com.drs.smartkeyboard.ime.input.CapitalizationBehavior
 import com.drs.smartkeyboard.ime.keyboard.SpaceBarMode
+import com.drs.smartkeyboard.ime.keyboard.SplitMode
 import com.drs.smartkeyboard.ime.landscapeinput.LandscapeInputUiMode
 import com.drs.smartkeyboard.ime.smartbar.IncognitoDisplayMode
 import com.drs.smartkeyboard.ime.text.key.KeyHintMode
@@ -174,6 +175,14 @@ fun KeyboardScreen() = DrsScreen {
                 prefs.keyboard.backspaceStripsHarakat,
                 title = stringRes(R.string.pref__keyboard__backspace_strips_harakat__label),
                 summary = stringRes(R.string.pref__keyboard__backspace_strips_harakat__summary),
+            )
+            // DRS v1.18.0: split keyboard — the letters page renders in two
+            // halves with a central gap so thumbs reach both edges on wide
+            // screens (landscape phones, foldables, tablets).
+            ListPreference(
+                listPref = prefs.keyboard.splitMode,
+                title = stringRes(R.string.pref__keyboard__split_mode__label),
+                entries = enumDisplayEntriesOf(SplitMode::class),
             )
         }
     }

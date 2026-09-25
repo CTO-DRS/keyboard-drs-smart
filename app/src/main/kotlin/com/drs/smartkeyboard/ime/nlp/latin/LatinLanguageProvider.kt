@@ -89,14 +89,19 @@ private fun isEditDistanceAtMostOne(a: String, b: String): Boolean {
  *
  * Dictionaries are language-aware assets stored under `ime/dict/`:
  *  - `ar.json`   : 50k-word Arabic frequency dictionary (with smart normalization)
- *  - `data.json` : generic Latin dictionary (English)
+ *  - `fr/de/es/it/pt/tr/ru/fa.json` : DRS v1.18.0 curated high-frequency
+ *    dictionaries per language (rank-based score curve) — Latin-script
+ *    languages and Persian no longer fall back to ENGLISH suggestions
+ *  - `data.json` : generic Latin dictionary (English, also the honest
+ *    fallback for languages without a bundled dictionary)
  *  - `ar_bigrams.json` / `en_bigrams.json` : next-word prediction tables built from
  *    real corpus co-occurrence counts (OpenSubtitles). Head words are stored in their
  *    normalized form; the suggested next words keep their original (correct) spelling.
  *
  * Arabic matching is performed on a normalized form (hamza variants unified, ta-marbuta,
  * alif maqsura, diacritics and tatweel stripped), so typing "مدرسه" still surfaces the
- * correct spelling "مدرسة" as a tap-to-commit suggestion.
+ * correct spelling "مدرسة" as a tap-to-commit suggestion. DRS v1.18.0: Latin input is
+ * matched through the same pipeline with accent folding, so "eleve" surfaces "élève".
  *
  * When the composing region is empty (right after a space/commit), the provider predicts
  * the NEXT word from the preceding word using the bigram table.
@@ -248,14 +253,17 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         return DictIndex(entries)
     }
 
-    private fun dictAssetFor(lang: String): String = when (lang) {
-        ARABIC_LANGUAGE -> "ime/dict/ar.json"
-        else -> "ime/dict/data.json"
-    }
+    // DRS v1.18.0: bundled per-language dictionaries live in the pure
+    // LatinWordNormalize object (tested): every Latin-script language below
+    // gets its own frequency dictionary instead of silently receiving
+    // ENGLISH suggestions (the old generic data.json fallback); unknown
+    // languages still degrade to the English fallback honestly.
+    private fun dictAssetFor(lang: String): String = LatinWordNormalize.dictAssetFor(lang)
 
-    private fun bigramAssetFor(lang: String): String = when (lang) {
+    private fun bigramAssetFor(lang: String): String? = when (lang) {
         ARABIC_LANGUAGE -> "ime/dict/ar_bigrams.json"
-        else -> "ime/dict/en_bigrams.json"
+        "en" -> "ime/dict/en_bigrams.json"
+        else -> null
     }
 
     /**
@@ -267,8 +275,13 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
             subtype.secondaryLocales.map { it.language }
         val lang = languages.firstOrNull() ?: return emptyMap()
         bigramCache.withLock { it[lang] }?.let { return it }
+        // DRS v1.18.0: bigram tables exist for Arabic and English only —
+        // the other bundled languages degrade to an empty next-word table
+        // (prefix suggestions still work) instead of a dishonest lookup in
+        // the English table that can never match.
+        val asset = bigramAssetFor(lang) ?: return emptyMap()
         val table = runCatching {
-            val rawData = appContext.assets.readText(bigramAssetFor(lang))
+            val rawData = appContext.assets.readText(asset)
             val data = json.decodeFromString(bigramDataSerializer, rawData)
             data.mapValues { (_, nexts) ->
                 nexts.entries.sortedByDescending { it.value }.map { it.key to it.value }
@@ -329,7 +342,10 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
 
         val index = dictFor(subtype) ?: return emptyList()
         val isArabic = raw.any { it in ARABIC_SCRIPT_START..ARABIC_SCRIPT_END }
-        val prefix = if (isArabic) normalize(raw) else raw.lowercase()
+        // DRS v1.18.0: normalize the typed prefix through the SAME pipeline
+        // the dictionary was pre-normalized with (Arabic unification + Latin
+        // accent folding), so accent-less input matches accented words.
+        val prefix = normalize(raw)
         if (prefix.isEmpty()) return emptyList()
 
         fun candidates(list: List<DictEntry>) = list.map { entry ->
@@ -526,27 +542,11 @@ class LatinLanguageProvider(context: Context) : SpellingProvider, SuggestionProv
         // the app process is killed (which will most likely always be the case).
     }
 
-    /**
-     * Normalizes a word for matching purposes only:
-     *  - strips Arabic diacritics (harakat) and tatweel
-     *  - unifies hamza carrier forms (أ إ آ ٱ -> ا), ta-marbuta (ة -> ه),
-     *    alif maqsura (ى -> ي), subordinated hamza forms (ئ -> ي, ؤ -> و)
-     *  - lowercases Latin text
-     */
-    private fun normalize(word: String): String = buildString(word.length) {
-        for (c in word) {
-            when {
-                c in '\u064B'..'\u065F' || c == '\u0670' || c == '\u0640' -> {
-                    // diacritic / tatweel: drop
-                }
-                c == '\u0623' || c == '\u0625' || c == '\u0622' || c == '\u0671' -> append('\u0627')
-                c == '\u0629' -> append('\u0647')
-                c == '\u0649' || c == '\u0626' -> append('\u064A')
-                c == '\u0624' -> append('\u0648')
-                else -> append(c.lowercaseChar())
-            }
-        }
-    }
+    // DRS v1.18.0: the normalization pipeline lives in the pure
+    // LatinWordNormalize object (strips Arabic diacritics/tatweel, unifies
+    // hamza carriers, folds Latin accents, lowercases) — one tested path
+    // for both the loaded dictionary and the typed prefix.
+    private fun normalize(word: String): String = LatinWordNormalize.normalize(word)
 
     /**
      * Adapts the dictionary spelling to the user's capitalization for Latin scripts.

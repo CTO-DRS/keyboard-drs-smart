@@ -47,6 +47,7 @@ import com.drs.smartkeyboard.ime.smartbar.CandidatesDisplayMode
 import com.drs.smartkeyboard.ime.smartbar.ExtendedActionsPlacement
 import com.drs.smartkeyboard.ime.smartbar.IncognitoDisplayMode
 import com.drs.smartkeyboard.ime.smartbar.SmartbarLayout
+import com.drs.smartkeyboard.ime.keyboard.SplitMode
 import com.drs.smartkeyboard.ime.text.gestures.SwipeAction
 import com.drs.smartkeyboard.ime.text.key.KeyHintMode
 import com.drs.smartkeyboard.ime.text.key.UtilityKeyAction
@@ -516,6 +517,28 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             entry(
                 key = LandscapeInputUiMode.DYNAMICALLY_SHOW,
                 label = stringRes(R.string.enum__landscape_input_ui_mode__dynamically_show),
+            )
+        }
+    },
+    SplitMode::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = SplitMode.AUTO,
+                label = stringRes(R.string.enum__split_mode__auto),
+                description = stringRes(R.string.enum__split_mode__auto__description),
+                showDescriptionOnlyIfSelected = true,
+            )
+            entry(
+                key = SplitMode.ALWAYS,
+                label = stringRes(R.string.enum__split_mode__always),
+                description = stringRes(R.string.enum__split_mode__always__description),
+                showDescriptionOnlyIfSelected = true,
+            )
+            entry(
+                key = SplitMode.NEVER,
+                label = stringRes(R.string.enum__split_mode__never),
+                description = stringRes(R.string.enum__split_mode__never__description),
+                showDescriptionOnlyIfSelected = true,
             )
         }
     },

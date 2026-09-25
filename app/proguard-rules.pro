@@ -1,6 +1,17 @@
 # Disable obfuscation (we use Proguard exclusively for optimization)
 -dontobfuscate
 
+# DRS v1.18.0: explicit entry-point keeps. The v1.7-era AGP-9 failure
+# ("blank screen": every Compose screen, material3 and the JetPref
+# runtime pruned into a 3.1MB dex) is rooted in the shrinker seeing no
+# manifest-generated keep rules for our component classes, so the whole
+# UI call graph hanging off them was judged unreachable and pruned.
+# Keep the four manifest components explicitly.
+-keep class com.drs.smartkeyboard.DrsApplication { *; }
+-keep class com.drs.smartkeyboard.DrsImeService { *; }
+-keep class com.drs.smartkeyboard.DrsSpellCheckerService { *; }
+-keep class com.drs.smartkeyboard.app.DrsAppActivity { *; }
+
 # DRS JetPref (vendored): generated preference model implementations are loaded
 # reflectively via Class.forName(modelClass.qualifiedName + "Impl") and must be
 # kept together with the models themselves. These rules mirror the consumer

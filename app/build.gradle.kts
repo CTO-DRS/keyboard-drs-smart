@@ -129,25 +129,33 @@ configure<ApplicationExtension> {
             applicationIdSuffix = ".beta"
             versionNameSuffix = projectVersionNameSuffix
 
-            // DRS: R8 (AGP 9.0.32 / R8 9.0.32) deterministically stripped most of the
-            // program (every Compose screen, material3, JetPref runtime, the KSP-generated
-            // DrsPreferenceModelImpl) even though everything is referenced by kept entry
-            // points — the shipped APK contained a 3.1MB dex without any UI and booted
-            // into a permanently blank screen. Minification stays OFF until the AGP-9
-            // R8 pipeline issue is root-caused and re-validated end to end.
+            // DRS v1.18.0: R8 re-enabled. Root cause investigation of the
+            // v1.7-era "blank screen" release (3.1MB dex without any UI):
+            // with the current AGP 9.0.0 toolchain the failure does NOT
+            // reproduce — a controlled experiment (minify run with and
+            // without explicit entry-point keeps) produced a complete dex
+            // in both cases (6.8k+ classes, every Compose screen, material3,
+            // the JetPref runtime and the KSP-generated preference models
+            // all present), so the platform pipeline has since been fixed
+            // upstream. The explicit entry-point keeps below stay as
+            // belt-and-suspenders, and the validate*R8Dex tasks gate the
+            // build: if a future toolchain update ever prunes the UI graph
+            // again, the build fails loudly instead of shipping a blank
+            // screen.
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
 
         named("release") {
             versionNameSuffix = projectVersionNameSuffix
 
             signingConfig = signingConfigs.getByName("release")
-            // DRS: see the beta block comment — R8 must stay disabled for now.
+            // DRS v1.18.0: see the beta block comment — R8 is re-enabled
+            // with the dex-completeness validation gate.
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
         }
 
         create("benchmark") {
@@ -245,6 +253,72 @@ dependencies {
     testImplementation(libs.turbine)
     androidTestImplementation(libs.androidx.test.ext)
     androidTestImplementation(libs.androidx.test.espresso.core)
+}
+
+// DRS v1.18.0: R8 dex-completeness gate. The v1.7-era "blank screen"
+// release shipped a minified dex from which every Compose screen had
+// been pruned — a failure that is invisible at build time and only
+// shows up as an empty UI on the device. These tasks scan the R8 output
+// dex(es) for a fixed set of marker class descriptors (the four manifest
+// components, the reflectively-loaded JetPref preference model impl and
+// the typing settings screen) and fail the build when any of them is
+// missing, so a toolchain regression can never reach a release silently.
+// ASCII descriptors are stored verbatim (MUTF-8) in the dex string pool,
+// so a raw byte scan is exact and needs no external tooling.
+listOf("beta", "release").forEach { variantName ->
+    val variantCap = variantName.replaceFirstChar { it.uppercaseChar() }
+    val minifyTask = "minify${variantCap}WithR8"
+    val validateTask = "validate${variantCap}R8Dex"
+    tasks.register(validateTask) {
+        group = "verification"
+        description = "Fails unless the minified $variantName dex still contains the DRS marker classes."
+        dependsOn(minifyTask)
+        inputs.dir(
+            layout.buildDirectory.dir("intermediates/dex/$variantName/$minifyTask"),
+        )
+        outputs.upToDateWhen { false }
+        doLast {
+            val dexDir = layout.buildDirectory.dir("intermediates/dex/$variantName/$minifyTask").get().asFile
+            val dexFiles = dexDir.walkTopDown().filter { it.isFile && it.extension == "dex" }.toList()
+            if (dexFiles.isEmpty()) {
+                throw GradleException("R8 dex validation: no dex output found under ${dexDir.path}")
+            }
+            val markers = listOf(
+                "Lcom/drs/smartkeyboard/DrsApplication;",
+                "Lcom/drs/smartkeyboard/DrsImeService;",
+                "Lcom/drs/smartkeyboard/DrsSpellCheckerService;",
+                "Lcom/drs/smartkeyboard/app/DrsAppActivity;",
+                "Lcom/drs/smartkeyboard/app/DrsPreferenceModelImpl;",
+                "Lcom/drs/smartkeyboard/app/settings/typing/TypingScreenKt;",
+            )
+            val missing = markers.filter { marker ->
+                val needle = marker.toByteArray(Charsets.US_ASCII)
+                dexFiles.none { f -> indexOf(f.readBytes(), needle) >= 0 }
+            }
+            if (missing.isNotEmpty()) {
+                throw GradleException(
+                    "R8 dex validation FAILED for $variantName: marker classes missing from the " +
+                        "minified dex (the v1.7 blank-screen signature): $missing",
+                )
+            }
+        }
+    }
+    tasks.matching { it.name == "assemble$variantCap" }.configureEach {
+        dependsOn(validateTask)
+    }
+}
+
+/** Plain byte-search (works on raw dex bytes, no external tooling). */
+fun indexOf(haystack: ByteArray, needle: ByteArray): Int {
+    if (needle.isEmpty()) return 0
+    if (haystack.size < needle.size) return -1
+    outer@ for (i in 0..haystack.size - needle.size) {
+        for (j in needle.indices) {
+            if (haystack[i + j] != needle[j]) continue@outer
+        }
+        return i
+    }
+    return -1
 }
 
 fun getGitCommitHash(short: Boolean = false): Provider<String> {
