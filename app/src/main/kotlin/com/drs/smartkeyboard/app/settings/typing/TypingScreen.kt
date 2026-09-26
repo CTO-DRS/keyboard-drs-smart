@@ -110,6 +110,18 @@ fun TypingScreen() = DrsScreen {
             )
         }
 
+        // DRS v1.24.0: the voice dictation gate — «الميكروفون في قبضة
+        // المستخدم». The switch flips the exact pref the mic key consults
+        // on every press (decideVoiceInputRoute), so a chosen-off
+        // microphone answers with an honest toast on the very next press.
+        PreferenceGroup(title = stringRes(R.string.pref__voice__title)) {
+            SwitchPreference(
+                prefs.voice.enabled,
+                title = stringRes(R.string.pref__voice__enabled__label),
+                summary = stringRes(R.string.pref__voice__enabled__summary),
+            )
+        }
+
         PreferenceGroup(title = stringRes(R.string.pref__correction__title)) {
             SwitchPreference(
                 prefs.correction.autoCapitalization,

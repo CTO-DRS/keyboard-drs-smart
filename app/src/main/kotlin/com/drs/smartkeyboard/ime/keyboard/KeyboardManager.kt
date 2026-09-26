@@ -56,6 +56,7 @@ import com.drs.smartkeyboard.ime.input.InputKeyEventReceiver
 import com.drs.smartkeyboard.ime.input.InputShiftState
 import com.drs.smartkeyboard.ime.input.cycleModifierLatch
 import com.drs.smartkeyboard.ime.input.fnFunctionKeyCodeOf
+import com.drs.smartkeyboard.ime.input.fnSurvivesKey
 import com.drs.smartkeyboard.ime.nlp.ClipboardSuggestionCandidate
 import com.drs.smartkeyboard.ime.nlp.PunctuationRule
 import com.drs.smartkeyboard.ime.nlp.SuggestionCandidate
@@ -760,14 +761,21 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         ) == PackageManager.PERMISSION_GRANTED
         val isSensitive = activeState.isIncognitoMode ||
             DrsRuntimeState.contextMode.value == DrsContextMode.PASSWORD
+        // DRS v1.24.0: the settings gate is real — the pref the typing
+        // settings screen drives is consulted on every press, so a
+        // chosen-off microphone answers with an honest toast instead of
+        // silently listening or silently falling back to another IME.
         val route = decideVoiceInputRoute(
             recognitionAvailable = SpeechRecognizer.isRecognitionAvailable(appContext),
             permissionGranted = permissionGranted,
             isSensitive = isSensitive,
+            userEnabled = prefs.voice.enabled.get(),
         )
         when (route) {
             VoiceInputRoute.DISABLED_SENSITIVE ->
                 appContext.showShortToastSync(R.string.voice__disabled_sensitive)
+            VoiceInputRoute.DISABLED_BY_SETTING ->
+                appContext.showShortToastSync(R.string.voice__disabled_by_setting)
             VoiceInputRoute.FALLBACK_EXTERNAL -> DrsImeService.switchToVoiceInputMethod()
             VoiceInputRoute.REQUEST_PERMISSION -> {
                 DrsVoiceInputBus.reset()
@@ -1200,7 +1208,13 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 // else (letters, punctuation) keeps its normal commit and
                 // merely consumes the latch below, mirroring the honest
                 // no-fake-emulation CTRL/ALT behavior.
-                val fnFunctionKey = if (fnArmed && data.type == KeyType.NUMERIC) {
+                // DRS v1.24.0: the row reaches its natural end — '-'(45)
+                // and '='(61) (CHARACTER-typed on the numeric/symbols/
+                // symbols2 pages) become F11/F12, and page hops keep the
+                // latch alive so those keys are actually reachable.
+                val fnFunctionKey = if (fnArmed &&
+                    (data.type == KeyType.NUMERIC || data.code == '-'.code || data.code == '='.code)
+                ) {
                     fnFunctionKeyCodeOf(data.code)
                 } else {
                     null
@@ -1259,7 +1273,15 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 activeState.inputAltState = activeState.inputAltState.consumed()
                 // DRS v1.23.0: the FN latch releases after one consuming
                 // press exactly like CTRL/ALT — LOCKED persists.
-                activeState.inputFnState = activeState.inputFnState.consumed()
+                // DRS v1.24.0: page/mode switches (VIEW_*/IME_UI_MODE_*)
+                // are NOT consuming keys for FN — F11 lives behind '-' on
+                // the numeric/symbols pages and F12 behind '=' on symbols2,
+                // so the armed latch must survive the hop or the extended
+                // Fn row would be unreachable. The pure [fnSurvivesKey]
+                // owns the set.
+                if (!fnSurvivesKey(data.code)) {
+                    activeState.inputFnState = activeState.inputFnState.consumed()
+                }
             }
         }
     }

@@ -56,17 +56,27 @@ class HanShapeBasedLanguageProvider(val context: Context) : SpellingProvider, Su
     private val maxFreqBySubType = mutableMapOf<String, Int>();
     private val extensionManager by context.extensionManager()
     private val subtypeManager by context.subtypeManager()
+    // DRS v1.24.0: the pack index is a StateFlow (ExtensionIndex) — a
+    // plain collector in the provider's scope observes it on any thread,
+    // no main-thread handler needed.
+    private var packObserversWired = false
     private val allLanguagePacks: List<LanguagePackExtension>
         // Assume other types of extensions do not extend LanguagePackExtension
         get() = extensionManager.languagePacks.value
-    private var __connectedActiveLanguagePacks: Set<LanguagePackExtension> = setOf() // FIXME: hack for not able to observe extensionManager.languagePacks and subtypeManager.subtypes
+    private var __connectedActiveLanguagePacks: Set<LanguagePackExtension> = setOf() // DRS v1.24.0 note: the live pack observer below retired the old "can't observe" hack — this snapshot stays as the belt-and-braces guard in suggest()
     private var languagePackItems: Map<String, LanguagePackComponent> = mapOf() // init in refreshLanguagePacks()
     private var keyCode: Map<String, Set<Char>> = mapOf() // init in refreshLanguagePacks()
     private val activeLanguagePacks  // language packs referenced in subtypes
         get() = buildSet {
             val locales = subtypeManager.subtypes.map { it.primaryLocale.localeTag() }.toSet()
             for (languagePack in allLanguagePacks) {
-                // FIXME: skip checking language pack type because it always is for now
+                // DRS v1.24.0 honest audit: the upstream FIXME asked for a
+                // language-pack type check, but no Han-specific extension
+                // subtype exists in the codebase — every pack reaching this
+                // provider ships the Han shape-based tables by asset
+                // contract, so the check would be a tautology. The locale
+                // filter plus the live observer wired in create() keep the
+                // set honest instead.
                 if (languagePack.items.any { it.locale.localeTag() in locales }) {
                     add(languagePack)
                 }
@@ -76,11 +86,6 @@ class HanShapeBasedLanguageProvider(val context: Context) : SpellingProvider, Su
 
     override val providerId = ProviderId
 
-//    init {
-//        // FIXME: observeForever only callable on the main thread.
-//        extensionManager.languagePacks.observeForever { refreshLanguagePacks() }
-//    }
-
     private fun refreshLanguagePacks() {
         scope.launch { create() }
     }
@@ -89,11 +94,29 @@ class HanShapeBasedLanguageProvider(val context: Context) : SpellingProvider, Su
         // Here we initialize our provider, set up all things which are not language dependent.
         // Refresh language pack parsing
 
+        // DRS v1.24.0: the upstream FIXME "observeForever only callable on
+        // the main thread" is finally resolved — the pack index turned out
+        // to be a StateFlow (ExtensionIndex : StateFlow<List<T>>), so a
+        // plain collector in the provider's own scope observes it without
+        // any thread constraint. Installing or removing a Han language
+        // pack now refreshes this provider immediately instead of waiting
+        // for the next suggest() to notice the snapshot mismatch (that
+        // lazy guard stays as belt-and-braces because it is free).
+        if (!packObserversWired) {
+            packObserversWired = true
+            scope.launch {
+                extensionManager.languagePacks.collect {
+                    refreshLanguagePacks()
+                }
+            }
+        }
+
         // build index of available language packs
         languagePackItems = buildMap {
             for (languagePack in allLanguagePacks) {
-                // FIXME: skip checking language pack type because it always is for now
-//                if (languagePack is HanShapeBasedLanguagePackExtensionImpl)
+                // DRS v1.24.0 honest audit: same as the activeLanguagePacks
+                // note — no Han-specific extension subtype exists to check
+                // against; the asset contract is the type system here.
                 for (languagePackItem in languagePack.items) {
                     put(languagePackItem.locale.localeTag(), languagePackItem)
                     // FIXME: how to put this in deserialization?
@@ -166,7 +189,9 @@ class HanShapeBasedLanguageProvider(val context: Context) : SpellingProvider, Su
         isPrivateSession: Boolean,
     ): List<SuggestionCandidate> {
         if (__connectedActiveLanguagePacks != activeLanguagePacks) {
-            // FIXME: hack for not able to observe extensionManager.languagePacks
+            // DRS v1.24.0: belt-and-braces only — the live observer wired
+            // in create() refreshes eagerly; this lazy guard costs nothing
+            // and covers any observer-delivery gap.
             refreshLanguagePacks()
         }
         if (content.composingText.isEmpty()) {

@@ -1010,6 +1010,22 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         )
     }
 
+    /**
+     * DRS v1.24.0: the built-in voice dictation gate — «الميكروفون في
+     * قبضة المستخدم». v1.23.0 woke the microphone up with no explicit
+     * user-facing switch; the settings gate below is the real gate the
+     * pure [com.drs.smartkeyboard.ime.voice.decideVoiceInputRoute]
+     * consults on every mic-key press, so switching it off silences the
+     * built-in recognizer with an honest toast on the very next press.
+     */
+    val voice = Voice()
+    inner class Voice {
+        val enabled = boolean(
+            key = "voice__enabled",
+            default = true,
+        )
+    }
+
     val theme = Theme()
     inner class Theme {
         val mode = enum(

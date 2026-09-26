@@ -101,18 +101,29 @@ enum class VoiceInputRoute {
     FALLBACK_EXTERNAL,
     /** Password fields and incognito mode never see the microphone. */
     DISABLED_SENSITIVE,
+    /**
+     * DRS v1.24.0: the user switched built-in dictation off in the typing
+     * settings — an explicit choice the mic key must honor with an honest
+     * toast, never silently resurrecting the external-IME switch either.
+     */
+    DISABLED_BY_SETTING,
 }
 
 /**
  * The pure mic-key decision — JVM-tested. Order matters: sensitivity
- * first (privacy beats everything), then availability, then permission.
+ * first (privacy beats everything), then the explicit user setting
+ * (DRS v1.24.0 — a chosen-off feature stays off), then availability,
+ * then permission. Every call site must pass the pref-backed
+ * [userEnabled] so the settings gate is the real gate.
  */
 fun decideVoiceInputRoute(
     recognitionAvailable: Boolean,
     permissionGranted: Boolean,
     isSensitive: Boolean,
+    userEnabled: Boolean = true,
 ): VoiceInputRoute = when {
     isSensitive -> VoiceInputRoute.DISABLED_SENSITIVE
+    !userEnabled -> VoiceInputRoute.DISABLED_BY_SETTING
     !recognitionAvailable -> VoiceInputRoute.FALLBACK_EXTERNAL
     permissionGranted -> VoiceInputRoute.START_INTERNAL
     else -> VoiceInputRoute.REQUEST_PERMISSION

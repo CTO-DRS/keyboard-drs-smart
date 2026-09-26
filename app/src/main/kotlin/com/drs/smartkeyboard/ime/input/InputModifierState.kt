@@ -16,6 +16,8 @@
 
 package com.drs.smartkeyboard.ime.input
 
+import com.drs.smartkeyboard.ime.text.key.KeyCode
+
 /**
  * DRS v1.22.0: the latch state of the revived CTRL/ALT modifier keys —
  * «إحياء المفاتيح الميتة». Until this round the CTRL/ALT key codes fell
@@ -81,12 +83,48 @@ fun cycleModifierLatch(current: InputModifierState, lock: Boolean): InputModifie
  * keyboard's Fn row delivers in terminals, remote-desktop clients and
  * console emulators. Returns null for anything that is not a digit key:
  * the caller then keeps the normal digit commit. Pure and JVM-tested.
+ *
+ * DRS v1.24.0: the row extends to its natural end — on a physical
+ * keyboard '-' and '=' sit right after '0' on the top letter row, and
+ * F11/F12 sit right after F10, so the Fn-row contract maps them onto
+ * each other: '-'(45)→KEYCODE_F11(141), '='(61)→KEYCODE_F12(142).
+ * Both keys are reachable on-screen (the numeric and symbols pages
+ * ship '-', the symbols2 page ships '='), pinned by asset contracts.
  */
-fun fnFunctionKeyCodeOf(digitCode: Int): Int? {
-    val digit = digitCode - 48 // '0'
-    return when {
-        digitCode !in 48..57 -> null
-        digit == 0 -> 140      // KEYCODE_F10
-        else -> 130 + digit    // KEYCODE_F1 + (1..9) → F1..F9
-    }
+fun fnFunctionKeyCodeOf(digitCode: Int): Int? = when (digitCode) {
+    in 49..57 -> 130 + (digitCode - 48) // '1'..'9' → F1..F9
+    48 -> 140              // '0' → KEYCODE_F10
+    45 -> 141              // '-' → KEYCODE_F11
+    61 -> 142              // '=' → KEYCODE_F12
+    else -> null
+}
+
+/**
+ * DRS v1.24.0: which keys keep the FN latch alive instead of consuming
+ * it. F11 and F12 live on different pages than the digits do ('-' on
+ * numeric/symbols, '=' on symbols2), so a page hop must never eat the
+ * latch the user just armed — otherwise the extended Fn row would be
+ * unreachable in practice. Page/mode switches (VIEW_* and IME_UI_MODE_*)
+ * and the FN keys themselves preserve it; every real consuming key
+ * (letters, digits, '-'/'=', space, enter…) releases a one-shot latch
+ * exactly as before. Pure and JVM-tested.
+ */
+fun fnSurvivesKey(code: Int): Boolean = when (code) {
+    KeyCode.FN, KeyCode.FN_LOCK -> true
+    KeyCode.VIEW_CHARACTERS,
+    KeyCode.VIEW_SYMBOLS,
+    KeyCode.VIEW_SYMBOLS2,
+    KeyCode.VIEW_NUMERIC,
+    KeyCode.VIEW_NUMERIC_ADVANCED,
+    KeyCode.VIEW_PHONE,
+    KeyCode.VIEW_PHONE2,
+    KeyCode.IME_UI_MODE_TEXT,
+    KeyCode.IME_UI_MODE_MEDIA,
+    KeyCode.IME_UI_MODE_CLIPBOARD,
+    KeyCode.IME_UI_MODE_TEXT_TOOLS,
+    KeyCode.IME_UI_MODE_DIACRITICS,
+    KeyCode.IME_UI_MODE_SMART_SYMBOLS,
+    KeyCode.IME_UI_MODE_ARABIC_LETTERS,
+    -> true
+    else -> false
 }

@@ -2545,4 +2545,9 @@
     <string name="drs__unified__tool_fn" comment="Unified tools screen: name of the Fn tile">مفتاح Fn</string>
     <string name="drs__unified__tool_fn_desc" comment="Unified tools screen: description of the Fn tile">النابض الأخير: أثناء التفعيل تصبح الأرقام مفاتيح F1–F10 حقيقية للطرفية وسطح المكتب البعيد</string>
 
+    <string name="pref__voice__title" comment="Typing settings: title of the voice-input preference group">الإدخال الصوتي</string>
+    <string name="pref__voice__enabled__label" comment="Typing settings: switch that gates the built-in dictation">الإملاء الصوتي المدمج</string>
+    <string name="pref__voice__enabled__summary" comment="Typing settings: privacy summary of the dictation switch">اسمح لمفتاح الميكروفون بالإملاء المباشر عبر محرك التعرّف المدمج في الجهاز — الكلام لا يمر عبر خوادمنا إطلاقًا، وحقول كلمات المرور ووضع التخفي معفيان دائمًا</string>
+    <string name="voice__disabled_by_setting" comment="Toast when the mic key is pressed while the user disabled dictation in settings">الإملاء الصوتي معطل من إعدادات الكتابة</string>
+
 </resources>

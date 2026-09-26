@@ -2628,4 +2628,9 @@
     <string name="drs__unified__tool_fn" comment="Unified tools screen: name of the Fn tile">Fn key</string>
     <string name="drs__unified__tool_fn_desc" comment="Unified tools screen: description of the Fn tile">The last latch: while armed, digits become real F1–F10 keys for terminals and remote desktop</string>
 
+    <string name="pref__voice__title" comment="Typing settings: title of the voice-input preference group">Voice input</string>
+    <string name="pref__voice__enabled__label" comment="Typing settings: switch that gates the built-in dictation">Built-in voice dictation</string>
+    <string name="pref__voice__enabled__summary" comment="Typing settings: privacy summary of the dictation switch">Let the microphone key dictate directly through the on-device recognizer — speech never touches our servers, and password fields and incognito mode are always exempt</string>
+    <string name="voice__disabled_by_setting" comment="Toast when the mic key is pressed while the user disabled dictation in settings">Voice dictation is disabled in typing settings</string>
+
 </resources>
