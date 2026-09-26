@@ -26,7 +26,14 @@ import java.io.File
 import java.lang.ref.WeakReference
 
 /**
- * TODO: document
+ * Owns every dictionary-facing subsystem the NLP layer reads through:
+ * the DRS user-dictionary Room database, the system user-dictionary
+ * content resolver, the background training corpora, and the composite
+ * dictionaries keyed by locale. Constructed via [getInstance] on the
+ * application context (the databases follow the app's own storage, so
+ * no activity context may leak in); a single instance lives for the
+ * whole process, so every add/edit/reset call here is the authority the
+ * settings screens and the suggestion pipeline both observe.
  */
 class DictionaryManager private constructor(context: Context) {
     private val applicationContext: WeakReference<Context> = WeakReference(context.applicationContext ?: context)

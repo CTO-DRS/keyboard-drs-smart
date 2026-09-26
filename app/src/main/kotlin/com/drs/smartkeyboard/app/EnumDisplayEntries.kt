@@ -25,6 +25,7 @@ import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupSize
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorScrim
+import com.drs.smartkeyboard.ime.voice.VoiceRecognizerMode
 import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
 import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
 import com.drs.smartkeyboard.ime.clipboard.ClipHistorySort
@@ -957,6 +958,25 @@ private val ENUM_DISPLAY_ENTRIES = mapOf<Pair<KClass<*>, String>, @Composable ()
             entry(
                 key = ClipEditorScrim.STRONG,
                 label = stringRes(R.string.enum__clip_popup_scrim__strong),
+            )
+        }
+    },
+    // DRS v1.25.0 — the second voice gate: which recognizer may listen
+    // (auto / strictly on-device / classic standard), honest labels so
+    // the privacy promise in each choice is visible before it is made.
+    VoiceRecognizerMode::class to DEFAULT to {
+        listPrefEntries {
+            entry(
+                key = VoiceRecognizerMode.AUTO,
+                label = stringRes(R.string.enum__voice_recognizer_mode__auto),
+            )
+            entry(
+                key = VoiceRecognizerMode.ON_DEVICE_ONLY,
+                label = stringRes(R.string.enum__voice_recognizer_mode__on_device_only),
+            )
+            entry(
+                key = VoiceRecognizerMode.STANDARD,
+                label = stringRes(R.string.enum__voice_recognizer_mode__standard),
             )
         }
     },

@@ -28,6 +28,7 @@ import com.drs.smartkeyboard.ime.clipboard.CLIPBOARD_HISTORY_NUM_GRID_COLUMNS_AU
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorCharLimit
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorPopupSize
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorRoute
+import com.drs.smartkeyboard.ime.voice.VoiceRecognizerMode
 import com.drs.smartkeyboard.ime.clipboard.ClipEditorScrim
 import com.drs.smartkeyboard.ime.clipboard.ClipFontOption
 import com.drs.smartkeyboard.ime.clipboard.ClipFontSizeOption
@@ -1023,6 +1024,20 @@ abstract class DrsPreferenceModel : PreferenceModel() {
         val enabled = boolean(
             key = "voice__enabled",
             default = true,
+        )
+
+        /**
+         * DRS v1.25.0: which recognizer may listen — the second voice
+         * gate. AUTO keeps the v1.23 behavior; ON_DEVICE_ONLY refuses
+         * any network-backed service (and answers with an honest toast
+         * when the ROM cannot honor the demand); STANDARD pins the
+         * classic recognizer. Consulted by
+         * [com.drs.smartkeyboard.ime.voice.decideVoiceInputRoute] on
+         * every mic press and by the controller at every start.
+         */
+        val recognizerMode = enum(
+            key = "voice__recognizer_mode",
+            default = VoiceRecognizerMode.AUTO,
         )
     }
 

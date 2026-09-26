@@ -75,6 +75,16 @@ sealed interface VoiceUiState {
 object DrsVoiceInputBus {
     val uiState = MutableStateFlow<VoiceUiState>(VoiceUiState.Idle)
 
+    /**
+     * DRS v1.25.0: the live microphone amplitude channel — [rmsToAmplitude]
+     * quantizes every [android.speech.RecognitionListener.onRmsChanged]
+     * report into `0f..1f` so the bar can breathe with the user's actual
+     * voice instead of a fixed animation. Many services never deliver RMS
+     * at all, so consumers must keep the v1.24 pulse as the fallback and
+     * only trust this channel while it actually flows.
+     */
+    val rmsAmplitude = MutableStateFlow(0f)
+
     internal val startRequests = MutableSharedFlow<String>(
         extraBufferCapacity = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -88,6 +98,7 @@ object DrsVoiceInputBus {
     /** Clears any error/listening state (keyboard hidden, cancelled…). */
     fun reset() {
         uiState.value = VoiceUiState.Idle
+        rmsAmplitude.value = 0f
     }
 }
 
@@ -107,27 +118,74 @@ enum class VoiceInputRoute {
      * toast, never silently resurrecting the external-IME switch either.
      */
     DISABLED_BY_SETTING,
+    /**
+     * DRS v1.25.0: the user demanded the strictly on-device recognizer
+     * ([VoiceRecognizerMode.ON_DEVICE_ONLY]) but this ROM cannot honor
+     * that demand — the honest answer is a toast, never a silent cloud
+     * fallback the user explicitly refused.
+     */
+    ON_DEVICE_UNAVAILABLE,
+}
+
+/**
+ * DRS v1.25.0: which recognizer may listen — «المستخدم يختار أين يُسمع
+ * كلامه». [AUTO] keeps the v1.23 behavior (on-device when the ROM offers
+ * it, standard otherwise); [ON_DEVICE_ONLY] refuses to speak to any
+ * network-backed service (privacy-first users, offline ROMs); [STANDARD]
+ * pins the classic recognizer for users whose on-device engine quality
+ * disappoints. Stored by name in the settings datastore.
+ */
+enum class VoiceRecognizerMode {
+    AUTO,
+    ON_DEVICE_ONLY,
+    STANDARD,
 }
 
 /**
  * The pure mic-key decision — JVM-tested. Order matters: sensitivity
  * first (privacy beats everything), then the explicit user setting
- * (DRS v1.24.0 — a chosen-off feature stays off), then availability,
- * then permission. Every call site must pass the pref-backed
- * [userEnabled] so the settings gate is the real gate.
+ * (DRS v1.24.0 — a chosen-off feature stays off), then the recognizer
+ * mode demand (DRS v1.25.0 — a chosen-strict on-device gate answers
+ * honestly when the ROM cannot honor it), then availability, then
+ * permission. Every call site must pass the pref-backed [userEnabled]
+ * and [recognizerMode] so the settings gates are the real gates. The
+ * two v1.25.0 parameters default to the v1.23/v1.24 behavior so older
+ * call sites and tests stay honest without edits.
  */
 fun decideVoiceInputRoute(
     recognitionAvailable: Boolean,
     permissionGranted: Boolean,
     isSensitive: Boolean,
     userEnabled: Boolean = true,
+    recognizerMode: VoiceRecognizerMode = VoiceRecognizerMode.AUTO,
+    onDeviceAvailable: Boolean = false,
 ): VoiceInputRoute = when {
     isSensitive -> VoiceInputRoute.DISABLED_SENSITIVE
     !userEnabled -> VoiceInputRoute.DISABLED_BY_SETTING
+    recognizerMode == VoiceRecognizerMode.ON_DEVICE_ONLY && !onDeviceAvailable ->
+        VoiceInputRoute.ON_DEVICE_UNAVAILABLE
     !recognitionAvailable -> VoiceInputRoute.FALLBACK_EXTERNAL
     permissionGranted -> VoiceInputRoute.START_INTERNAL
     else -> VoiceInputRoute.REQUEST_PERMISSION
 }
+
+/**
+ * DRS v1.25.0: normalizes the recognizer's raw RMS dB report onto the
+ * `0f..1f` amplitude the bar's live wave renders. Android services
+ * typically report roughly `-2..12` dB with silence wobbling around
+ * `0`, so the linear window below maps that band to the full range and
+ * clamps everything else. The result is quantized to 2% steps to keep
+ * the StateFlow from recomposing the bar on every jitter of the last
+ * decimal. Pure — JVM-tested.
+ */
+fun rmsToAmplitude(rmsdB: Float): Float {
+    val normalized = (rmsdB - RMS_DB_FLOOR) / (RMS_DB_CEIL - RMS_DB_FLOOR)
+    val amplitude = normalized.coerceIn(0f, 1f)
+    return (amplitude * 50f).toInt() / 50f
+}
+
+private const val RMS_DB_FLOOR = -2f
+private const val RMS_DB_CEIL = 12f
 
 /**
  * Owns the platform [SpeechRecognizer] lifecycle. Every recognizer call
@@ -139,6 +197,11 @@ fun decideVoiceInputRoute(
 class DrsVoiceInputController(
     private val context: Context,
     private val onCommit: (String) -> Unit,
+    /**
+     * DRS v1.25.0: read lazily at every start so a settings change
+     * between sessions is honored without recreating the controller.
+     */
+    private val recognizerMode: () -> VoiceRecognizerMode = { VoiceRecognizerMode.AUTO },
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
@@ -181,6 +244,9 @@ class DrsVoiceInputController(
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
                 putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, context.packageName)
             }
+            // DRS v1.25.0: a fresh session starts from silence, never
+            // from the previous session's last amplitude.
+            DrsVoiceInputBus.rmsAmplitude.value = 0f
             DrsVoiceInputBus.uiState.value = VoiceUiState.Listening(partial = "")
             try {
                 sr.startListening(intent)
@@ -227,13 +293,34 @@ class DrsVoiceInputController(
     }
 
     private fun createRecognizer(): SpeechRecognizer? {
-        return if (AndroidVersion.ATLEAST_API31_S && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
-            SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
-        } else if (SpeechRecognizer.isRecognitionAvailable(context)) {
-            @Suppress("DEPRECATION") // the direct-call deprecation note targets API 31+
-            SpeechRecognizer.createSpeechRecognizer(context)
-        } else {
-            null
+        val onDevicePossible = AndroidVersion.ATLEAST_API31_S &&
+            SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
+        return when (recognizerMode()) {
+            // DRS v1.25.0: the user demanded on-device only — a ROM that
+            // cannot honor the demand gets null, and the honest error
+            // path below speaks instead of a silent cloud fallback.
+            VoiceRecognizerMode.ON_DEVICE_ONLY ->
+                if (onDevicePossible) SpeechRecognizer.createOnDeviceSpeechRecognizer(context) else null
+            // The user pinned the classic recognizer (typically because
+            // the on-device engine quality disappoints on their ROM).
+            VoiceRecognizerMode.STANDARD ->
+                if (SpeechRecognizer.isRecognitionAvailable(context)) {
+                    @Suppress("DEPRECATION") // the direct-call deprecation note targets API 31+
+                    SpeechRecognizer.createSpeechRecognizer(context)
+                } else {
+                    null
+                }
+            // AUTO — the exact v1.23.0 preference order: on-device when
+            // the ROM offers it, standard otherwise, null when neither.
+            VoiceRecognizerMode.AUTO ->
+                if (onDevicePossible) {
+                    SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+                } else if (SpeechRecognizer.isRecognitionAvailable(context)) {
+                    @Suppress("DEPRECATION") // the direct-call deprecation note targets API 31+
+                    SpeechRecognizer.createSpeechRecognizer(context)
+                } else {
+                    null
+                }
         }
     }
 
@@ -244,7 +331,11 @@ class DrsVoiceInputController(
 
         override fun onBeginningOfSpeech() = Unit
 
-        override fun onRmsChanged(rmsdB: Float) = Unit
+        // DRS v1.25.0: the live amplitude channel — quantized to 2%
+        // steps so the bar recomposes with the voice, not with jitter.
+        override fun onRmsChanged(rmsdB: Float) {
+            DrsVoiceInputBus.rmsAmplitude.value = rmsToAmplitude(rmsdB)
+        }
 
         override fun onBufferReceived(buffer: ByteArray?) = Unit
 

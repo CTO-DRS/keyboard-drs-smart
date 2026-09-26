@@ -2633,4 +2633,10 @@
     <string name="pref__voice__enabled__summary" comment="Typing settings: privacy summary of the dictation switch">Let the microphone key dictate directly through the on-device recognizer — speech never touches our servers, and password fields and incognito mode are always exempt</string>
     <string name="voice__disabled_by_setting" comment="Toast when the mic key is pressed while the user disabled dictation in settings">Voice dictation is disabled in typing settings</string>
 
+    <string name="pref__voice__recognizer_mode__label" comment="Typing settings: list preference choosing which recognizer may listen">Speech recognizer mode</string>
+    <string name="enum__voice_recognizer_mode__auto" comment="Recognizer mode: automatic (on-device preferred when the ROM offers it)">Auto (on-device when available)</string>
+    <string name="enum__voice_recognizer_mode__on_device_only" comment="Recognizer mode: strictly on-device, no network-backed service">On-device only (no network)</string>
+    <string name="enum__voice_recognizer_mode__standard" comment="Recognizer mode: the classic standard recognizer">Standard service</string>
+    <string name="voice__on_device_unavailable" comment="Toast when the strict on-device mode is on but the ROM has no on-device recognizer">On-device speech recognition is unavailable on this ROM and strict mode is on</string>
+
 </resources>

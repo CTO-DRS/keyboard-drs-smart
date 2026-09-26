@@ -39,6 +39,7 @@ import com.drs.smartkeyboard.app.LocalNavController
 import com.drs.smartkeyboard.app.Routes
 import com.drs.smartkeyboard.app.enumDisplayEntriesOf
 import com.drs.smartkeyboard.ime.keyboard.IncognitoMode
+import com.drs.smartkeyboard.ime.voice.VoiceRecognizerMode
 import com.drs.smartkeyboard.ime.nlp.SpellingLanguageMode
 import com.drs.smartkeyboard.lib.compose.DrsHyperlinkText
 import com.drs.smartkeyboard.lib.compose.DrsScreen
@@ -119,6 +120,16 @@ fun TypingScreen() = DrsScreen {
                 prefs.voice.enabled,
                 title = stringRes(R.string.pref__voice__enabled__label),
                 summary = stringRes(R.string.pref__voice__enabled__summary),
+            )
+            // DRS v1.25.0 — the second voice gate: the user picks where
+            // their speech is recognized (auto / strictly on-device /
+            // classic standard), and the mic key honors it on the very
+            // next press. (jetpref's ListPreference derives its summary
+            // from the selected entry, so no summary string is wired.)
+            ListPreference(
+                prefs.voice.recognizerMode,
+                title = stringRes(R.string.pref__voice__recognizer_mode__label),
+                entries = enumDisplayEntriesOf(VoiceRecognizerMode::class),
             )
         }
 

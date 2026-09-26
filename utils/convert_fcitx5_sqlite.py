@@ -6,6 +6,13 @@
 #     python3 convert_fcitx5_sqlite.py cangjie-large.txt quick-classic.txt wubi-large.txt zhengma.txt
 # https://github.com/fcitx/fcitx5-table-extra/tree/master/tables
 # The tables are in public domain per their README.
+#
+# DRS v1.25.0 provenance: the shipped Han shape-based pack was produced
+# by exactly this script with
+#     python3 convert_fcitx5_sqlite.py cangjie-large.txt boshiamy.txt zhengma.txt
+# giving the three sqlite tables the HanShapeBasedLanguageProvider
+# consumes today: cangjielarge, boshiamy, zhengma (bundled inside the
+# org.drs.hanshapebasedbasicpack / org.drs.languagepack extensions).
 
 import os
 import sys
@@ -211,8 +218,10 @@ print({schema: table['KeyCode'] for schema, table in tables.items()})
 # Final display
 with sqlite3.connect(database) as con:
     cur = con.cursor()
-    # for schema in ['zh_CN_zhengmapinyin', 'zh_CN_zhengmalarge', 'zh_CN_wubilarge', 'zh_CN_wubi98', 'zh_TW_cangjie5', 'zh_HK_stroke5']:
-    for schema in ['zhengmapinyin', 'zhengmalarge', 'wubilarge', 'wubi98', 'cangjie5', 'stroke5']:
+    # DRS v1.25.0: the display list now names the three tables the
+    # shipped pack actually carries (guarded the same way as before —
+    # a table absent from this run is simply skipped).
+    for schema in ['cangjielarge', 'boshiamy', 'zhengma']:
         if schema not in tables: continue
         cur.execute(f'select * from {schema} order by length(code) desc')
         print(cur.fetchmany(10))

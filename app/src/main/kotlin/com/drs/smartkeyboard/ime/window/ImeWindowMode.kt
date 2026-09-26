@@ -50,12 +50,7 @@ enum class ImeWindowMode {
          * The side of the one-handed mode is determined by which of the two paddings (left vs right) has
          * a larger numerical value. On equal numerical values, padding left should take precedence.
          */
-        COMPACT,
-
-        /**
-         * TODO Placeholder, to be implemented in the future.
-         */
-        THUMBS;
+        COMPACT;
     }
 
     /**

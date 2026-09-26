@@ -73,6 +73,7 @@ import com.drs.smartkeyboard.ime.voice.DrsVoiceInputBus
 import com.drs.smartkeyboard.ime.voice.DrsVoiceInputController
 import com.drs.smartkeyboard.ime.voice.VoiceInputRoute
 import com.drs.smartkeyboard.ime.voice.VoicePermissionActivity
+import com.drs.smartkeyboard.ime.voice.VoiceRecognizerMode
 import com.drs.smartkeyboard.ime.voice.decideVoiceInputRoute
 import com.drs.smartkeyboard.lib.devtools.LogTopic
 import com.drs.smartkeyboard.lib.devtools.flogError
@@ -95,6 +96,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.drs.lib.android.AndroidKeyguardManager
+import org.drs.lib.android.AndroidVersion
 import org.drs.lib.android.showLongToast
 import org.drs.lib.android.showLongToastSync
 import org.drs.lib.android.showShortToastSync
@@ -124,9 +126,14 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     // first mic press (lazy), commits transcripts at the cursor, torn
     // down with the service. See DrsVoiceInput.kt for the full contract.
     private val voiceControllerLazy = lazy {
-        DrsVoiceInputController(appContext) { text ->
-            editorInstance.commitText(text)
-        }
+        DrsVoiceInputController(
+            appContext,
+            onCommit = { text -> editorInstance.commitText(text) },
+            // DRS v1.25.0: read lazily at every start so a settings
+            // change between sessions is honored without recreating
+            // the controller.
+            recognizerMode = { prefs.voice.recognizerMode.get() },
+        )
     }
     val voiceController: DrsVoiceInputController get() = voiceControllerLazy.value
 
@@ -761,21 +768,27 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         ) == PackageManager.PERMISSION_GRANTED
         val isSensitive = activeState.isIncognitoMode ||
             DrsRuntimeState.contextMode.value == DrsContextMode.PASSWORD
-        // DRS v1.24.0: the settings gate is real — the pref the typing
-        // settings screen drives is consulted on every press, so a
-        // chosen-off microphone answers with an honest toast instead of
-        // silently listening or silently falling back to another IME.
+        // DRS v1.25.0: the recognizer mode gate is real — the pref the
+        // typing settings screen drives is consulted on every press, so
+        // a strict on-device demand a ROM cannot honor answers with an
+        // honest toast instead of silently falling back to the cloud.
+        val onDeviceAvailable = AndroidVersion.ATLEAST_API31_S &&
+            SpeechRecognizer.isOnDeviceRecognitionAvailable(appContext)
         val route = decideVoiceInputRoute(
             recognitionAvailable = SpeechRecognizer.isRecognitionAvailable(appContext),
             permissionGranted = permissionGranted,
             isSensitive = isSensitive,
             userEnabled = prefs.voice.enabled.get(),
+            recognizerMode = prefs.voice.recognizerMode.get(),
+            onDeviceAvailable = onDeviceAvailable,
         )
         when (route) {
             VoiceInputRoute.DISABLED_SENSITIVE ->
                 appContext.showShortToastSync(R.string.voice__disabled_sensitive)
             VoiceInputRoute.DISABLED_BY_SETTING ->
                 appContext.showShortToastSync(R.string.voice__disabled_by_setting)
+            VoiceInputRoute.ON_DEVICE_UNAVAILABLE ->
+                appContext.showShortToastSync(R.string.voice__on_device_unavailable)
             VoiceInputRoute.FALLBACK_EXTERNAL -> DrsImeService.switchToVoiceInputMethod()
             VoiceInputRoute.REQUEST_PERMISSION -> {
                 DrsVoiceInputBus.reset()

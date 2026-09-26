@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.24.0
+# DRS Smart Keyboard V 1.25.0
 
-## الجولة الشاملة الرابعة والعشرون — الإذن والامتداد: الميكروفون في قبضة المستخدم وصف Fn الأخير
+## الجولة الشاملة الخامسة والعشرون — التفضيل والنبض الحي: المستخدم يختار أين يُسمع كلامه والشريط يتنفس بصوته
 
-**Twenty-Fourth Comprehensive Round — Permission and Extension: the Microphone in the User's Hands and the Final Fn Row**
+**Twenty-Fifth Comprehensive Round — Preference and Live Pulse: the User Picks Where Speech Is Heard and the Bar Breathes with the Actual Voice**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,69 +20,73 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.24.0 — جولة الإذن والامتداد
+## الجديد في V 1.25.0 — جولة التفضيل والنبض الحي
 
-فحص ثلاثي جديد تحقق من كل مرشح تركته الجولة الماضية سطرًا سطرًا بالكود
-الفعلي: الإملاء الصوتي استيقظ الجولة الماضية لكن **بلا أي مفتاح إعداد
-يصمت به**، وصف Fn على الشاشة توقف عند F10 بينما '-' و'=' يجلسان بعد '0'
-تمامًا كما يجلس F11/F12 بعد F10 على لوحات الأجهزة، وكاشف التنظيف كان
-يستهلك اللمبة عند قفزات الصفحات فيجعل الصف الممتد مستحيل الوصول، وأقدم
-ملاحظات FIXME في مزوّد الهان كانت تنتظر حلاً صادقًا. كل بند أدناه عمل
-حقيقي مُختبر، لا ترقيم أسطر.
+فحص ثلاثي جديد تحقق من كل مرشحات الجولة الماضية سطرًا سطرًا بالكود الفعلي:
+الإملاء الصوتي كانت تختار متعرّفه **ضمنيًا بلا رأي للمستخدم**، ورمز
+الميكروفون كان ينبض نبضة زمنية ثابتة بينما محرّك التعرّف **يرسل قياس سعة
+صوتك في كل إطار ولا أحد يقرؤه** (`onRmsChanged = Unit` منذ v1.23)،
+وآخر عنصر وهمي تراثي في تعداد أوضاع النافذة (THUMBS) كان بلا أي منتج
+أو كاتب حفظ، وآخر سكربتَي سلاسل كانا بلا بوابة التوازي الموحدة. كل بند
+أدناه عمل حقيقي مُختبر، لا ترقيم أسطر.
 
-- ⚙️ **بوابة الإملاء الصوتي — «الميكروفون في قبضة المستخدم»** — v1.23.0
-  أيقظ الميكروفون بلا أي مفتاح إعداد صريح يواجهه المستخدم. الآن
-  `voice__enabled` (افتراضي: مفعّل) هو **البوابة الحقيقية** التي
-  يفحصها مفتاح الميكروفون في كل ضغطة عبر قرار
-  `decideVoiceInputRoute(userEnabled)`: الإيقاف من إعدادات الكتابة
-  يجعل الضغطة التالية تجيب بتوست صادق «الإملاء الصوتي معطل من إعدادات
-  الكتابة» بدل الاستماع بصمت أو التراجع بصمت للوحة الصوت الخارجية.
-  والخصوصية تحتفظ بأسبقيتها: حقول كلمات المرور ووضع التخفي يُرفضان
-  **قبل** وصول القرار إلى الإعداد أصلًا. والمفتاح ظاهر كمجموعة
-  «الإدخال الصوتي» في شاشة إعدادات الكتابة مع ملخص خصوصية كامل.
+- 🎛️ **بوابة المتعرّف الثانية — «أين يُسمع كلامك؟»** — حتى هذا الإصدار
+  كان اختيار المتعرّف ضمنيًا: على الجهاز إن وُجد، وإلا فالقياسي. الآن
+  `voice__recognizer_mode` بثلاثة أوضاع قرارًا حقيقيًا يُفحص في **كل
+  ضغطة ميكروفون** عبر `decideVoiceInputRoute(recognizerMode,
+  onDeviceAvailable)`: **تلقائي** (السلوك الأصلي — على الجهاز إن توفر)،
+  **على الجهاز فقط** (لا خدمة شبكية أبدًا — فإن لم يستطع النظام
+  honoring الطلب صاحَ بالتوست الصادق الجديد بدل سقوط صامت إلى سحابة
+  رفضها المستخدم)، و**الخدمة القياسية** (لمن خابت جودة محرك جهازه).
+  والترتيب الصادق باقٍ: الخصوصية أولًا، ثم مفتاح الإيقاف، ثم بوابة
+  الوضع، ثم التوفر، ثم الإذن. والمتحكم يعيد قراءة التفضيل عند كل بدء
+  جلسة فالتغيير من الإعدادات يُحترم فورًا، والمفتاظ قائمة اختيار في
+  مجموعة «الإدخال الصوتي» بشاشة إعدادات الكتابة.
 
-- ⌨️ **صف Fn يبلغ نهايته الطبيعية: F11 وF12** — الخريطة الرقمية
-  ('1'→F1 … '0'→F10) التي بناها الإحياء تكتمل الآن بمفاتيح '-'(45)→F11
-  و'='(61)→F12 — انعكاس صادق للوحة الأجهزة حيث يجلس '-' و'=' بعد '0'
-  على الصف الأعلى تمامًا كما يجلس F11/F12 بعد F10. وكلاهما **مضمون
-  الوصول بعقود أصول**: '-' على الصفحة الرقمية وصفحة الرموز، و'=' على
-  صفحة الرموز الثانية.
+- 🎙️ **الشريط يتنفس بصوتك الحقيقي** — `onRmsChanged` المُهمَل منذ
+  وُلد الإملاء المدمج يُغذّي أخيرًا قناة سعة حية على `DrsVoiceInputBus`:
+  الدالة النقية `rmsToAmplitude` تطبيع تقرير الديسيبل على نافذة
+  ‎-2..12dB وتقنّنها بخطوات 2% كي لا يعيد الشريط الرسم على كل ارتجاف
+  عشري، فيرسم الشريط **موجة خماسية حية** ترتفع بأصواتك وتخفت بصمتك،
+  ملونة بلون مقدمة عنصر الشريط نفسه فتلتزمها كل الثيمات. وصدقًا مع
+  الواقع: كثير من الخدمات لا ترسل RMS أصلًا، فنبضة v1.24 تبقى
+  الاحتياط الظاهر حتى تتدفق عينات فعلية — وكل جلسة تبدأ من الصمت لا من
+  آخر سعة سابقة.
 
-- 🔁 **لمبة FN تنجو من قفزات الصفحات** — كاشف التنظيف في v1.23 كان
-  يستهلك اللمبة المسلحة عند **كل** مفتاح غير موديفاير، ومنهم مفاتيح
-  تبديل الصفحات (VIEW_*/IME_UI_MODE_*) — ما كان سيجعل F12 خلف '=' في
-  صفحة الرموز الثانية **مستحيل الوصول عمليًا**: سلّح Fn → قفز للصفحة →
-  اللمبة ميتة. الدالة النقية `fnSurvivesKey` تملك مجموعة المفاتيح
-  الحافظة، فيصبح «سلّح ثم قفز ثم اضغط» طريقًا حقيقيًا مُختبرًا، بينما
-  كل مفتاح استهلاك حقيقي (حرف، رقم، '-'/'=' نفسها، مسافة) يُطلق
-  اللمبة الواحدة كما هو.
+- 🧹 **مسح TODO/FIXME الصادق** — `ImeWindowMode.Fixed.THUMBS` آخر
+  placeholder تراثي في تعداد النافذة حُذف من ثلاثة مواضع (التعداد،
+  فرع المصنع، فئة القيود التي كانت خصائصها مطابقة بايتًا لـNORMAL)
+  بلا أي هجرة حفظ — لا كاتب يُنتج قيمة THUMBS أصلًا والفك المقروء
+  ينهار بأمان إلى الافتراضي. و`DictionaryManager` نال أخيرًا KDoc
+  حقيقيًا يوثّق ولايته ومسؤولياته، وملاحظات DrsEmojiCompat التحقيقية
+  الثلاث وسؤال «هل أحتاج قفلًا للقاعدة؟» في LanguagePackExtension
+  صارت تدقيقًا صادقًا ببدائل الـTODO، وDebugSummarizeUtils يوثّق لماذا
+  تبقى قيم الـBundle غير مطبوعة عمدًا (فخ ClassCastException القديم).
 
-- 🧹 **أقدم FIXME في مزوّد الهان يُحسم صدقًا** — الملاحظة «observeForever
-  لا تُستدعى إلا على الخيط الرئيسي» كانت معلّقة ميتًا منذ الإرث: تبيّن
-  أن فهرس الحزم هو **StateFlow** أصلًا (ExtensionIndex : StateFlow)،
-  فجامع بسيط في نطاق المزوّد نفسه يمنح تحديثًا حيًا لتثبيت/إزالة حزمة
-  هان بلا أي قيد خيوط — والمراقب يُربط مرة واحدة بأمان. وملاحظتا
-  «تخطَّ فحص نوع حزمة اللغة» استُبدلتا بملاحظات تدقيق صادقة: لا واجهة
-  فرعية لحزم الهان موجودة أصلًا يُمكن فحصها، وعقد الأصول هو نظام الأنواع
-  هنا — والحارس الكسول في suggest يبقى حزام أمان مجانيًا.
+- 🛠️ **مسح utils/ والسكربتات** — `update_codes.py` مساعد التأليف كان
+  ينهار بـTypeError على أي مفتاح متعدد الأحرف؛ الآن يتخطاه بتحذير.
+  و`convert_fcitx5_sqlite.py` — السكربت الذي أنتج فعلًا حزمة الهان
+  المشحونة في APK — وثّق أصلها الدقيق (الأمر الفعلي والجداول الثلاث
+  الحقيقية: cangjielarge/boshiamy/zhengma) وصُححت قائمته النهائية
+  العتيقة. وآخر سكربتَي سلاسل بلا بوابة (v1120/v1140) ختما ببوابة
+  فرق المجموعات الموحدة نفسها فاكتملت البوابة على **كل** سكربتات
+  السلاسل الأربعة عشر.
 
-- 🎙️ **شريط الاستماع يتنفس** — رمز الميكروفون في شريط الإملاء ينبض
-  نبضة هادئة (دورة مقياس 620 مللي ثانية بمنحنى التوكيد القياسي) أثناء
-  الاستماع الفعلي فقط، ويسكن بحجمه الطبيعي في الخمول والخطأ — إشارة
-  بصرية صادقة أن التعرّف يسمعك الآن، بلا أي لمس لحالة التدفق نفسها.
+- 🧪 **14 اختبار وحدة جديدة (579 ناجحة، كانت 565)** — نافذة rmsToAmplitude
+  بأطرافها ووسطها وتقنينها ورتابتها، الرفض الصادق للطلب الصارم غير
+  القابل للتحقيق وتحديده، مرور الوضع الصارم القابل للتحقيق بالعقد
+  الطبيعي (بدء وإذن)، تجاهل STANDARD لبوابة الجهاز مع بقاء حارس
+  التوفر، بقاء AUTO للعقد القديم بالوسائط الافتراضية، أسبقية الخصوصية
+  والإعداد على بوابة الوضع، شكل تعداد المسارات الستة وتعداد الأوضاع
+  الثلاثة ورفض الأسماء الفاسدة، تصفير قناة السعة مع الجلسة، اختزال
+  Fixed إلى NORMAL/COMPACT بلا شبح THUMBS، وعقد مفاتيح السلاسل في
+  اللغتين.
 
-- 🧪 **9 اختبارات وحدة جديدة (565 ناجحة، كانت 556)** — خريطة F11/F12
-  عبر '-' و'=' مع ثبات خريطة الأرقام ورفض ما خارج الصف، عقد بقاء اللمبة
-  عبر القفزات الأربعة عشر (صفحات وأنماط) مع استهلاك مفاتيح الاستهلاك
-  الحقيقية، بوابة الإعداد بالترتيب الصادق (الخصوصية أولًا ثم الإعداد
-  ثم التوفر ثم الإذن) مع سلوك v1.23 سليمًا عند التفعيل وقيمة افتراضية
-  تحفظ كل مواضع الاستدعاء القديمة، وعقدا أصول يثبتان أن '-' فعلًا على
-  الصفحة الرقمية (مع سلامة صف الأرقام كاملًا) و'=' على الرموز الثانية.
-
-- 🌍 **التوازي الآن 2,410 مفاتيح لكل لغة (AR/EN)** — أربعة مفاتيح جديدة
-  (عنوان مجموعة الإدخال الصوتي، مفتاح التبديل باسمه وملخصه الخصوصي،
-  توست الإيقاف من الإعدادات) عبر `add_v1240_strings.py` بالنمط المرجعي
-  نفسه: idempotent مع بوابة توازٍ تسقط عند أي انفراد.
+- 🌍 **التوازي الآن 2,415 مفاتيح لكل لغة (AR/EN)** — خمسة مفاتيح جديدة
+  (اسم قائمة الوضع، أسماء الأوضاع الثلاثة، توست عدم توفر الجهاز) عبر
+  `add_v1250_strings.py` بالنمط المرجعي نفسه: idempotent مع بوابة
+  توازٍ تسقط عند أي انفراد — والدروس السابقة محفوظة (لا مفاتيح
+  summary يتيمة، فقوائم jetpref تختصر من الخيار المحدد نفسه).
 
 </div>
 
@@ -97,91 +101,101 @@ thoughtful Arabic layouts and Arabic suggestions/correction, with English
 as a complete second option. Everything stays on your device: no accounts,
 no tracking, no ads.
 
-## What's new in V 1.24.0 — The Permission & Extension Round
+## What's new in V 1.25.0 — The Preference & Live-Pulse Round
 
-A fresh tri-front audit verified every filter the last round left,
-line by line, against the actual code: voice dictation woke up last
-round but shipped with **no explicit settings switch to silence it**,
-the on-screen Fn row stopped at F10 while '-'/'=' sit right after '0'
-exactly like F11/F12 sit after F10 on physical keyboards, the latch
-cleanup consumed the armed FN on page hops — making the extended row
-unreachable in practice — and the oldest FIXMEs in the Han provider
-were still waiting for an honest resolution. Every item below is real,
-tested work.
+A fresh tri-front audit verified every filter the last round left, line
+by line, against the actual code: voice dictation picked its recognizer
+**implicitly with no say from the user**, the mic glyph pulsed on a fixed
+timer while the recognition engine **reports your voice amplitude every
+frame and nobody reads it** (`onRmsChanged = Unit` since v1.23), the last
+legacy placeholder in the window-mode enum (THUMBS) had no producer and
+no persistence writer, and the last two string scripts still lacked the
+unified parity gate. Every item below is real, tested work.
 
-- ⚙️ **Voice dictation settings gate — «the microphone in the user's
-  hands»** — v1.23.0 woke the microphone with no explicit user-facing
-  switch. Now `voice__enabled` (default: on) is **the real gate** the
-  mic key consults on every press through
-  `decideVoiceInputRoute(userEnabled)`: switching it off in the typing
-  settings makes the very next press answer with an honest toast
-  instead of silently listening or silently falling back to the
-  external voice IME. Privacy keeps its lead: password fields and
-  incognito are refused **before** the decision even reaches the
-  setting. Surfaced as a «Voice input» group in the typing settings
-  with a full privacy summary.
+- 🎛️ **The second voice gate — «where is your speech heard?»** — until
+  this release the recognizer choice was implicit: on-device when
+  available, standard otherwise. Now `voice__recognizer_mode` with
+  three values is a real decision consulted on **every mic press**
+  through `decideVoiceInputRoute(recognizerMode, onDeviceAvailable)`:
+  **Auto** (the original behavior — on-device when the ROM offers it),
+  **On-device only** (never a network service — and when the ROM cannot
+  honor the demand, the new honest toast answers instead of a silent
+  fall to a cloud the user explicitly refused), and **Standard service**
+  (for ROMs whose on-device engine disappoints). The honest order holds:
+  privacy first, then the on/off switch, then the mode gate, then
+  availability, then permission. The controller re-reads the pref at
+  every session start, so a settings change is honored immediately;
+  surfaced as a list preference in the typing settings «Voice input»
+  group.
 
-- ⌨️ **The Fn row reaches its natural end: F11 and F12** — the
-  digit→F1–F10 map completes with '-'(45) → F11 and '='(61) → F12, an
-  honest mirror of physical keyboards where '-'/'=' sit right after
-  '0' on the top row just like F11/F12 sit right after F10. Both are
-  **pinned reachable by asset contracts**: '-' on the numeric and
-  symbols pages, '=' on the symbols2 page.
+- 🎙️ **The bar breathes with your actual voice** — `onRmsChanged`,
+  ignored since the built-in dictation was born, finally feeds a live
+  amplitude channel on `DrsVoiceInputBus`: the pure `rmsToAmplitude`
+  normalizes the dB report onto the -2..12 dB window and quantizes it
+  in 2% steps so the bar does not redraw on every decimal jitter. The
+  bar renders a **live five-bar wave** that rises with your voice and
+  rests with your silence, painted in the smartbar element's own
+  foreground color so every theme stays consistent. And honest about
+  reality: many services never deliver RMS at all, so the v1.24 mic
+  pulse remains the visible fallback until real samples flow — and
+  every session starts from silence, never the previous session's last
+  amplitude.
 
-- 🔁 **The FN latch survives page hops** — the v1.23 cleanup consumed
-  the armed latch on EVERY non-modifier key, including the VIEW_*/
-  IME_UI_MODE_* page switches, which would have made F12 (behind '='
-  on symbols2) **practically unreachable**: arm Fn → hop → dead latch.
-  The pure `fnSurvivesKey` owns the preserving set, so arm → hop →
-  press is now a real, tested path, while every true consuming key
-  (letter, digit, '-'/'=' themselves, space) still releases the
-  one-shot latch.
+- 🧹 **The honest TODO/FIXME sweep** — `ImeWindowMode.Fixed.THUMBS`,
+  the last legacy placeholder in the window-mode enum, is deleted from
+  three places (the enum, the factory branch, the constraints class
+  whose props were byte-identical to NORMAL) with no migration needed —
+  no writer ever produces a THUMBS value, and a stale decoded one
+  already falls back gracefully. `DictionaryManager` finally gets its
+  real KDoc (lifetime, ownership, authority); the three
+  DrsEmojiCompat investigation notes and LanguagePackExtension's
+  «need a database lock?» question become honest audit comments; and
+  DebugSummarizeUtils documents why bundle values are deliberately
+  unprinted (the old ClassCastException trap).
 
-- 🧹 **The Han provider's oldest FIXMEs, resolved honestly** — the
-  commented-out «observeForever only callable on the main thread» init
-  turned out to be waiting on the wrong API: the pack index is a
-  **StateFlow** (ExtensionIndex), so a plain collector in the
-  provider's own scope delivers live install/remove refresh with no
-  thread constraint, wired exactly once. The two «skip checking
-  language pack type» FIXMEs became honest audit notes: no
-  Han-specific extension subtype exists to check against — the asset
-  contract is the type system here — and the lazy guard in suggest()
-  stays as a free belt-and-braces.
+- 🛠️ **The utils/ and scripts/ sweep** — `update_codes.py`, the layout
+  authoring helper, crashed with a TypeError on any multi-character
+  label; it now skips with a warning. `convert_fcitx5_sqlite.py` —
+  the script that demonstrably produced the Han pack shipped inside
+  the APK — documents its exact provenance (the real invocation and
+  the three real tables: cangjielarge/boshiamy/zhengma) and its stale
+  final display list is corrected. And the last two gateless string
+  scripts (v1120/v1140) end with the same unified AR/EN set-difference
+  gate, completing the gate across **all fourteen** string scripts.
 
-- 🎙️ **The dictation bar breathes** — the mic glyph in the dictation
-  bar pulses calmly (a 620 ms scale loop on the standard emphasis
-  curve) while the recognizer is actually listening, and rests at its
-  natural size when idle or errored — an honest visual signal that the
-  recognizer hears you now, touching nothing outside its own
-  graphicsLayer.
+- 🧪 **14 new unit tests (579 passing, was 565)** — the rmsToAmplitude
+  window (floor/middle/ceiling, clamping, quantization, monotonicity);
+  the honest refusal of an unhonorable strict demand and its
+  determinism; an honorable strict demand flowing through the normal
+  contract (start and permission); STANDARD skipping the on-device gate
+  with the availability guard intact; AUTO keeping the old contract via
+  default arguments; privacy and the setting leading the mode gate; the
+  exact six-value route enum and three-value mode enum with junk names
+  refused; the amplitude channel resetting with the session; Fixed
+  shrunk to NORMAL/COMPACT with no THUMBS ghost; and the string-key
+  contract in both languages.
 
-- 🧪 **9 new unit tests (565 passing, was 556)** — the '-'/'=' → F11/F12
-  map with the digit map pinned and the row refusing everything else;
-  the latch-survival contract across all fourteen page/mode switches
-  with the true consumers still consuming; the settings gate in its
-  honest order (privacy first, then the setting, then availability,
-  then permission) with the v1.23 behavior intact when enabled and a
-  default argument keeping every old call site honest; and two asset
-  contracts proving '-' really ships on the numeric page (digit row
-  intact) and '=' on symbols2.
-
-- 🌍 **Parity is now 2,410 keys per language (AR/EN)** — four new keys
-  (the voice-input group title, the switch label + privacy summary,
-  and the disabled-by-setting toast) via the same reference-pattern
-  `add_v1240_strings.py`: idempotent with a parity gate that fails on
-  any orphan.
+- 🌍 **Parity is now 2,415 keys per language (AR/EN)** — five new keys
+  (the mode preference label, the three mode names, and the
+  on-device-unavailable toast) via the same reference-pattern
+  `add_v1250_strings.py`: idempotent with a parity gate that fails on
+  any orphan — and past lessons preserved (no orphan summary keys;
+  jetpref list preferences derive their summary from the selected
+  entry itself).
 
 ## Install
 
-1. Download `DRS-Smart-Keyboard-v1.24.0.apk` below.
+1. Download `DRS-Smart-Keyboard-v1.25.0.apk` below.
 2. Install it (allow unknown sources when prompted).
 3. Open Settings → System → Languages & input → enable the keyboard.
 4. Pick it as your default keyboard and start typing.
 
 Voice dictation: tap the microphone; on the first press Android will ask
 for the microphone permission — grant it and speak. In password fields
-and incognito mode the mic stays off by design, and you can switch the
-whole feature off in Typing settings → Voice input.
+and incognito mode the mic stays off by design. In Typing settings →
+Voice input you can switch the whole feature off, or pick where your
+speech is recognized: Auto, On-device only (no network), or the Standard
+service.
 
 Verify integrity with the SHA-256 checksums in the attached `SHA256SUMS.txt`.
 
@@ -189,9 +203,10 @@ Verify integrity with the SHA-256 checksums in the attached `SHA256SUMS.txt`.
 
 Everything runs **locally and offline**: no accounts, no tracking, no ads,
 no network except the app's own update check. Voice dictation is the one
-explicit exception you trigger per press and can now switch off entirely:
-it delegates to your platform's recognition service and only when you tap
-the mic — the keyboard itself still sends nothing anywhere. Read the full
-`PRIVACY.md`.
+explicit exception you trigger per press and fully control now: it
+delegates to your platform's recognition service only when you tap the
+mic, honors your strict on-device demand with an honest refusal instead
+of a silent cloud fallback, and the keyboard itself still sends nothing
+anywhere. Read the full `PRIVACY.md`.
 
 </div>

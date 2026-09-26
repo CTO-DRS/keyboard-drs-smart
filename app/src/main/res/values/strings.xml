@@ -2550,4 +2550,10 @@
     <string name="pref__voice__enabled__summary" comment="Typing settings: privacy summary of the dictation switch">اسمح لمفتاح الميكروفون بالإملاء المباشر عبر محرك التعرّف المدمج في الجهاز — الكلام لا يمر عبر خوادمنا إطلاقًا، وحقول كلمات المرور ووضع التخفي معفيان دائمًا</string>
     <string name="voice__disabled_by_setting" comment="Toast when the mic key is pressed while the user disabled dictation in settings">الإملاء الصوتي معطل من إعدادات الكتابة</string>
 
+    <string name="pref__voice__recognizer_mode__label" comment="Typing settings: list preference choosing which recognizer may listen">وضع المتعرّف الصوتي</string>
+    <string name="enum__voice_recognizer_mode__auto" comment="Recognizer mode: automatic (on-device preferred when the ROM offers it)">تلقائي (على الجهاز إن توفر)</string>
+    <string name="enum__voice_recognizer_mode__on_device_only" comment="Recognizer mode: strictly on-device, no network-backed service">على الجهاز فقط (بلا شبكة)</string>
+    <string name="enum__voice_recognizer_mode__standard" comment="Recognizer mode: the classic standard recognizer">الخدمة القياسية</string>
+    <string name="voice__on_device_unavailable" comment="Toast when the strict on-device mode is on but the ROM has no on-device recognizer">التعرف الصوتي على الجهاز غير متوفر على هذا النظام، والوضع الصارم مفعّل</string>
+
 </resources>

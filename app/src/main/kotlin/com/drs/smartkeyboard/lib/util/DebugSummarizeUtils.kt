@@ -60,7 +60,11 @@ private fun Bundle.debugSummarize(): String {
             }
             append(key)
             append("=")
-            // TODO: classcastexception append(bundle.getString(key))
+            // DRS v1.25.0 audit: values stay unprinted on purpose — a
+            // bundle value can be any Parcelable-derived type, and a
+            // naive getString(key) cast is exactly the
+            // ClassCastException the old TODO warned about. Keys-only is
+            // the safe, lossless-enough summary for debug output.
         }
         append("]")
     }

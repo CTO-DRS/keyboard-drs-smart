@@ -133,4 +133,21 @@ if len(set(values)) != 1:
 else:
     print(f"PARITY OK: {values[0]} keys per language")
 
+# ── DRS v1.25.0: unified AR/EN parity gate (بوابة التوازي الموحدة) ──
+# The last two string scripts still on the old count-equality check —
+# this gate is the same honest AR/EN set-difference every other script
+# ends with, so a missing key in either language now fails loudly with
+# the offending names printed.
+_parity_paths = ("app/src/main/res/values/strings.xml", "app/src/main/res/values-en/strings.xml")
+_parity_names = {}
+for _path in _parity_paths:
+    with open(_path, encoding="utf-8") as _fh:
+        _parity_names[_path] = set(re.findall(r'<string name="([^"]+)"', _fh.read()))
+_only_ar = _parity_names[_parity_paths[0]] - _parity_names[_parity_paths[1]]
+_only_en = _parity_names[_parity_paths[1]] - _parity_names[_parity_paths[0]]
+print(f"parity: ar-only={len(_only_ar)} en-only={len(_only_en)}")
+if _only_ar or _only_en:
+    print("AR-ONLY:", sorted(_only_ar)[:10])
+    print("EN-ONLY:", sorted(_only_en)[:10])
+    fail = True
 sys.exit(1 if fail else 0)
