@@ -72,6 +72,11 @@ object DrsTechToolbarKeys {
         // ToggleStates the other toggle tools use.
         DrsTechToolbarKey("ctrl", "Ctrl", KeyCode.CTRL, KeyType.MODIFIER),
         DrsTechToolbarKey("alt", "Alt", KeyCode.ALT, KeyType.MODIFIER),
+        // DRS v1.23.0: the modifier family is complete — FN latches like
+        // CTRL/ALT and turns the digit keys into real F1–F10 hardware
+        // events while armed. The live active dot comes from the same
+        // ToggleStates the other toggle tools use.
+        DrsTechToolbarKey("fn", "Fn", KeyCode.FN, KeyType.MODIFIER),
     )
 
     private val BY_ID = ALL.associateBy { it.id }

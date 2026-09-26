@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.drs.smartkeyboard.ime.input.InputModifierState
 import com.drs.smartkeyboard.ime.input.InputShiftState
 import com.drs.smartkeyboard.ime.text.key.KeyCode
 import org.drs.lib.snygg.SnyggSelector
@@ -97,6 +98,47 @@ val DrsImeThemeBaseStyle = SnyggStylesheet.v2 {
     DrsImeUi.Key.elementName(
         DrsImeUi.Attr.Code to listOf(KeyCode.SHIFT),
         DrsImeUi.Attr.ShiftState to listOf(InputShiftState.CAPS_LOCK.toString()),
+    ) {
+        foreground = rgbaColor(255, 152, 0)
+    }
+    // DRS v1.23.0: the modifier family gets its face. A CTRL/ALT/FN key on
+    // any layout lights up while its latch is armed — light blue for a
+    // one-shot latch (same semantics as a mechanical LED), the shift
+    // caps-lock orange for a lock. The latch state arrives through the
+    // CtrlState/AltState/FnState attributes (TextKeyButton → theme query).
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.CTRL, KeyCode.CTRL_LOCK),
+        DrsImeUi.Attr.CtrlState to listOf(InputModifierState.LATCHED.toString()),
+    ) {
+        foreground = rgbaColor(79, 195, 247)
+    }
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.CTRL, KeyCode.CTRL_LOCK),
+        DrsImeUi.Attr.CtrlState to listOf(InputModifierState.LOCKED.toString()),
+    ) {
+        foreground = rgbaColor(255, 152, 0)
+    }
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.ALT, KeyCode.ALT_LOCK),
+        DrsImeUi.Attr.AltState to listOf(InputModifierState.LATCHED.toString()),
+    ) {
+        foreground = rgbaColor(79, 195, 247)
+    }
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.ALT, KeyCode.ALT_LOCK),
+        DrsImeUi.Attr.AltState to listOf(InputModifierState.LOCKED.toString()),
+    ) {
+        foreground = rgbaColor(255, 152, 0)
+    }
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.FN, KeyCode.FN_LOCK),
+        DrsImeUi.Attr.FnState to listOf(InputModifierState.LATCHED.toString()),
+    ) {
+        foreground = rgbaColor(79, 195, 247)
+    }
+    DrsImeUi.Key.elementName(
+        DrsImeUi.Attr.Code to listOf(KeyCode.FN, KeyCode.FN_LOCK),
+        DrsImeUi.Attr.FnState to listOf(InputModifierState.LOCKED.toString()),
     ) {
         foreground = rgbaColor(255, 152, 0)
     }

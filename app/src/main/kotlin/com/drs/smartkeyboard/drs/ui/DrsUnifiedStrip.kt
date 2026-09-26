@@ -231,6 +231,7 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
         windowSpec,
         keyboardManager.activeState.inputCtrlState,
         keyboardManager.activeState.inputAltState,
+        keyboardManager.activeState.inputFnState,
     ) {
         DrsUnifiedTools.ToggleStates(
             incognito = keyboardManager.activeState.isIncognitoMode,
@@ -243,6 +244,8 @@ fun DrsUnifiedStrip(modifier: Modifier = Modifier) {
             // arms and consumes.
             ctrlArmed = keyboardManager.activeState.inputCtrlState.isArmed,
             altArmed = keyboardManager.activeState.inputAltState.isArmed,
+            // DRS v1.23.0: FN completes the modifier family.
+            fnArmed = keyboardManager.activeState.inputFnState.isArmed,
         )
     }
     // Accent for the active dot, from the active user system's palette

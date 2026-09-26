@@ -58,6 +58,7 @@ import kotlin.properties.Delegates
  *     1    |          |          |          | Layout Direction (0=LTR, 1=RTL)
  *       11 |          |          |          | DRS v1.22.0: InputModifierState (CTRL latch, bits 18-19)
  *     11   |          |          |          | DRS v1.22.0: InputModifierState (ALT latch, bits 28-29)
+ *       11 |          |          |          | DRS v1.23.0: InputModifierState (FN latch, bits 30-31)
  *
  * <Byte 7> | <Byte 6> | <Byte 5> | <Byte 4> | Description
  * ---------|----------|----------|----------|---------------------------------
@@ -86,6 +87,12 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
         const val O_INPUT_CTRL_STATE: Int =                 18
         const val M_INPUT_ALT_STATE: ULong =                0x03u
         const val O_INPUT_ALT_STATE: Int =                  28
+        // DRS v1.23.0: the FN latch takes the last free pair of the lower
+        // byte region (bits 30-31 — bit 32+ holds the window/dialog flags),
+        // completing the modifier family CTRL/ALT/FN with the same 3-state
+        // latch contract and zero bit collisions.
+        const val M_INPUT_FN_STATE: ULong =                 0x03u
+        const val O_INPUT_FN_STATE: Int =                   30
         const val M_IME_UI_MODE: ULong =                    0x07u
         const val O_IME_UI_MODE: Int =                      24
 
@@ -174,6 +181,13 @@ open class KeyboardState protected constructor(open var rawValue: ULong) {
     var inputAltState: InputModifierState
         get() = InputModifierState.fromInt(getRegion(M_INPUT_ALT_STATE, O_INPUT_ALT_STATE))
         set(v) { setRegion(M_INPUT_ALT_STATE, O_INPUT_ALT_STATE, v.toInt()) }
+
+    // DRS v1.23.0: the last dead modifier revives — FN latches exactly like
+    // CTRL/ALT, and while armed the digit keys send real F1–F10 key events
+    // to the host (terminals, remote desktop, emulators).
+    var inputFnState: InputModifierState
+        get() = InputModifierState.fromInt(getRegion(M_INPUT_FN_STATE, O_INPUT_FN_STATE))
+        set(v) { setRegion(M_INPUT_FN_STATE, O_INPUT_FN_STATE, v.toInt()) }
 
     var imeUiMode: ImeUiMode
         get() = ImeUiMode.fromInt(getRegion(M_IME_UI_MODE, O_IME_UI_MODE))

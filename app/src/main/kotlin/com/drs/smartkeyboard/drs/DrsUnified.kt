@@ -1005,6 +1005,8 @@ object DrsUnifiedTools {
         // — the dot shows the truth, LOCKED and LATCHED alike.
         val ctrlArmed: Boolean = false,
         val altArmed: Boolean = false,
+        // DRS v1.23.0: FN completes the modifier family — same honest dot.
+        val fnArmed: Boolean = false,
     )
 
     /**
@@ -1021,6 +1023,8 @@ object DrsUnifiedTools {
         // DRS v1.22.0: the modifier latch toggles of the tech toolbar.
         "ctrl" -> states.ctrlArmed
         "alt" -> states.altArmed
+        // DRS v1.23.0: FN joins the family.
+        "fn" -> states.fnArmed
         else -> null
     }
 }

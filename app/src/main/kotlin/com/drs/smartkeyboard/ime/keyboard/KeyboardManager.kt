@@ -17,19 +17,24 @@
 package com.drs.smartkeyboard.ime.keyboard
 
 import com.drs.smartkeyboard.drs.DrsRuntimeState
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
 import android.icu.lang.UCharacter
+import android.speech.SpeechRecognizer
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import com.drs.smartkeyboard.DrsImeService
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.appContext
 import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.drs.DrsAdaptationEngine
+import com.drs.smartkeyboard.drs.DrsContextMode
 import com.drs.smartkeyboard.drs.DrsEconomy
 import com.drs.smartkeyboard.drs.DrsIntegration
 import com.drs.smartkeyboard.drs.DrsPerformance
@@ -50,6 +55,7 @@ import com.drs.smartkeyboard.ime.input.InputEventDispatcher
 import com.drs.smartkeyboard.ime.input.InputKeyEventReceiver
 import com.drs.smartkeyboard.ime.input.InputShiftState
 import com.drs.smartkeyboard.ime.input.cycleModifierLatch
+import com.drs.smartkeyboard.ime.input.fnFunctionKeyCodeOf
 import com.drs.smartkeyboard.ime.nlp.ClipboardSuggestionCandidate
 import com.drs.smartkeyboard.ime.nlp.PunctuationRule
 import com.drs.smartkeyboard.ime.nlp.SuggestionCandidate
@@ -62,6 +68,11 @@ import com.drs.smartkeyboard.ime.text.key.KeyType
 import com.drs.smartkeyboard.ime.text.key.UtilityKeyAction
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyboardCache
+import com.drs.smartkeyboard.ime.voice.DrsVoiceInputBus
+import com.drs.smartkeyboard.ime.voice.DrsVoiceInputController
+import com.drs.smartkeyboard.ime.voice.VoiceInputRoute
+import com.drs.smartkeyboard.ime.voice.VoicePermissionActivity
+import com.drs.smartkeyboard.ime.voice.decideVoiceInputRoute
 import com.drs.smartkeyboard.lib.devtools.LogTopic
 import com.drs.smartkeyboard.lib.devtools.flogError
 import com.drs.smartkeyboard.lib.ext.ExtensionComponentName
@@ -107,6 +118,26 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     val layoutManager = LayoutManager(context)
     private val keyboardCache = TextKeyboardCache()
+
+    // DRS v1.23.0: the built-in voice dictation controller — created on
+    // first mic press (lazy), commits transcripts at the cursor, torn
+    // down with the service. See DrsVoiceInput.kt for the full contract.
+    private val voiceControllerLazy = lazy {
+        DrsVoiceInputController(appContext) { text ->
+            editorInstance.commitText(text)
+        }
+    }
+    val voiceController: DrsVoiceInputController get() = voiceControllerLazy.value
+
+    /** DRS v1.23.0: the keyboard window hid — a live session must die. */
+    fun stopVoiceInput() {
+        if (voiceControllerLazy.isInitialized()) voiceControllerLazy.value.stop()
+    }
+
+    /** DRS v1.23.0: the service is going away — full teardown. */
+    fun destroyVoiceInput() {
+        if (voiceControllerLazy.isInitialized()) voiceControllerLazy.value.destroy()
+    }
 
     val resources = KeyboardManagerResources()
     val activeState = ObservableKeyboardState.new()
@@ -714,6 +745,45 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
     }
 
     /**
+     * DRS v1.23.0: handles a [KeyCode.VOICE_INPUT] press — «الميكروفون
+     * يستيقظ». The pure [decideVoiceInputRoute] owns the truth: password/
+     * incognito contexts are refused with an honest toast, a ROM without
+     * any recognition service keeps the legacy external voice-IME switch,
+     * a first press launches the translucent permission trampoline, and an
+     * armed session starts the platform recognizer in the active subtype's
+     * language.
+     */
+    private fun handleVoiceInput() {
+        val permissionGranted = ContextCompat.checkSelfPermission(
+            appContext,
+            Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
+        val isSensitive = activeState.isIncognitoMode ||
+            DrsRuntimeState.contextMode.value == DrsContextMode.PASSWORD
+        val route = decideVoiceInputRoute(
+            recognitionAvailable = SpeechRecognizer.isRecognitionAvailable(appContext),
+            permissionGranted = permissionGranted,
+            isSensitive = isSensitive,
+        )
+        when (route) {
+            VoiceInputRoute.DISABLED_SENSITIVE ->
+                appContext.showShortToastSync(R.string.voice__disabled_sensitive)
+            VoiceInputRoute.FALLBACK_EXTERNAL -> DrsImeService.switchToVoiceInputMethod()
+            VoiceInputRoute.REQUEST_PERMISSION -> {
+                DrsVoiceInputBus.reset()
+                appContext.startActivity(
+                    VoicePermissionActivity.createIntent(appContext, activeVoiceLanguageTag()),
+                )
+            }
+            VoiceInputRoute.START_INTERNAL -> voiceController.start(activeVoiceLanguageTag())
+        }
+    }
+
+    /** DRS v1.23.0: the recognizer follows the active subtype's language. */
+    private fun activeVoiceLanguageTag(): String =
+        subtypeManager.activeSubtypeFlow.value.primaryLocale.base.toLanguageTag()
+
+    /**
      * Handles a [KeyCode.TOGGLE_AUTOCORRECT] event.
      *
      * DRS v1.3.0: REAL toggle — flips an engine pref the settings screen
@@ -835,8 +905,12 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         // DRS v1.22.0: snapshot the armed modifier latches BEFORE any
         // branch can consume them — the arrow and delete branches below
         // read these, the CTRL/ALT branches cycle them.
+        // DRS v1.23.0: the FN latch joins the snapshot — armed FN turns
+        // the digit keys into real F1–F10 key events (see the commit path
+        // at the bottom of this function).
         val ctrlArmed = activeState.inputCtrlState.isArmed
         val altArmed = activeState.inputAltState.isArmed
+        val fnArmed = activeState.inputFnState.isArmed
         DrsAdaptationEngine.recordKey(data.code)
         DrsEconomy.recordKeyEarn(data.code)
         // DRS v1.0.5: anonymous count of smart-tool usage (which tool button
@@ -902,6 +976,20 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                 activeState.inputAltState = cycleModifierLatch(
                     activeState.inputAltState,
                     lock = data.code == KeyCode.ALT_LOCK,
+                )
+            }
+            // DRS v1.23.0: the last dead modifier of the family revives —
+            // FN latches exactly like CTRL/ALT (the same v1.22.0 contract:
+            // tap = one-shot, tap again = lock, third tap = release), and
+            // while armed it transforms the digit keys into F1–F10
+            // hardware events for terminals, remote desktop and console
+            // emulators. Until this round FN/FN_LOCK fell into the
+            // unknown-key branch (drawn if a layout declares them, dead
+            // on press, logged as an error).
+            KeyCode.FN, KeyCode.FN_LOCK -> {
+                activeState.inputFnState = cycleModifierLatch(
+                    activeState.inputFnState,
+                    lock = data.code == KeyCode.FN_LOCK,
                 )
             }
             KeyCode.CHAR_WIDTH_SWITCHER -> handleCharWidthSwitch()
@@ -1021,7 +1109,10 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
             in DrsTextTool.CODE_RANGE -> {
                 DrsTextTool.fromCode(data.code)?.let { editorInstance.performTextTool(it) }
             }
-            KeyCode.VOICE_INPUT -> DrsImeService.switchToVoiceInputMethod()
+            // DRS v1.23.0: the mic key finally dictates — the pure route
+            // decision sends it to the built-in recognizer, the permission
+            // trampoline, or the legacy external voice-IME switch.
+            KeyCode.VOICE_INPUT -> handleVoiceInput()
             KeyCode.KANA_SWITCHER -> handleKanaSwitch()
             KeyCode.KANA_HIRA -> handleKanaHira()
             KeyCode.KANA_KATA -> handleKanaKata()
@@ -1102,7 +1193,21 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
                     editorInstance.commitText(data.asString(isForDisplay = false))
                     return@batchEdit
                 }
-                when (activeState.keyboardMode) {
+                // DRS v1.23.0: armed FN turns the digit keys ('0'..'9',
+                // ASCII 48..57) into real F1–F10 hardware events — the
+                // exact contract a physical Fn row delivers in terminals,
+                // remote-desktop clients and console emulators. Anything
+                // else (letters, punctuation) keeps its normal commit and
+                // merely consumes the latch below, mirroring the honest
+                // no-fake-emulation CTRL/ALT behavior.
+                val fnFunctionKey = if (fnArmed && data.type == KeyType.NUMERIC) {
+                    fnFunctionKeyCodeOf(data.code)
+                } else {
+                    null
+                }
+                if (fnFunctionKey != null) {
+                    editorInstance.sendDownUpKeyEvent(fnFunctionKey)
+                } else when (activeState.keyboardMode) {
                     KeyboardMode.NUMERIC,
                     KeyboardMode.NUMERIC_ADVANCED,
                     KeyboardMode.PHONE,
@@ -1146,11 +1251,15 @@ class KeyboardManager(context: Context) : InputKeyEventReceiver {
         when (data.code) {
             KeyCode.CTRL, KeyCode.CTRL_LOCK,
             KeyCode.ALT, KeyCode.ALT_LOCK,
+            KeyCode.FN, KeyCode.FN_LOCK,
             KeyCode.SHIFT, KeyCode.CAPS_LOCK,
             -> Unit
             else -> {
                 activeState.inputCtrlState = activeState.inputCtrlState.consumed()
                 activeState.inputAltState = activeState.inputAltState.consumed()
+                // DRS v1.23.0: the FN latch releases after one consuming
+                // press exactly like CTRL/ALT — LOCKED persists.
+                activeState.inputFnState = activeState.inputFnState.consumed()
             }
         }
     }

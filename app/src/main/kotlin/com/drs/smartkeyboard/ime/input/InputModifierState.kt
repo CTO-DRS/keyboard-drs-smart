@@ -71,3 +71,22 @@ fun cycleModifierLatch(current: InputModifierState, lock: Boolean): InputModifie
     current == InputModifierState.LATCHED -> InputModifierState.LOCKED
     else -> InputModifierState.OFF
 }
+
+/**
+ * DRS v1.23.0: the FN latch's real work — mapping the digit keys onto
+ * the function keys F1–F10 of the host (android.view.KeyEvent codes
+ * KEYCODE_F1=131 … KEYCODE_F12=142; only F1–F10 have digits). The on-screen
+ * digit keys carry the ASCII digit codes ('0'=48 … '9'=57), so the honest
+ * contract is: '1'→F1 … '9'→F9, '0'→F10 — exactly what a physical
+ * keyboard's Fn row delivers in terminals, remote-desktop clients and
+ * console emulators. Returns null for anything that is not a digit key:
+ * the caller then keeps the normal digit commit. Pure and JVM-tested.
+ */
+fun fnFunctionKeyCodeOf(digitCode: Int): Int? {
+    val digit = digitCode - 48 // '0'
+    return when {
+        digitCode !in 48..57 -> null
+        digit == 0 -> 140      // KEYCODE_F10
+        else -> 130 + digit    // KEYCODE_F1 + (1..9) → F1..F9
+    }
+}

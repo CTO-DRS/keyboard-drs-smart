@@ -1,10 +1,10 @@
 <div align="center">
 
-# DRS Smart Keyboard V 1.22.0
+# DRS Smart Keyboard V 1.23.0
 
-## الجولة الشاملة الثانية والعشرون — الحدود الصادقة: سحب المهام المثبتة، سقف للتثبيتات، بريسيتات لوحات DRS، وإحياء CTRL/ALT الميتة
+## الجولة الشاملة الثالثة والعشرون — الصوت والوجه الكامل: إملاء صوتي مدمج، إحياء FN، وجه CTRL/ALT/FN، لوحة الكاوموجي، وتنظيف الميت
 
-**Twenty-Second Comprehensive Round — Honest Bounds: Drag-Reorder the Pinned Tasks, a Cap for the Pins, DRS Layout Presets, and the Dead CTRL/ALT Keys Revived**
+**Twenty-Third Comprehensive Round — Voice and the Complete Face: Built-in Voice Dictation, the FN Revival, a Face for CTRL/ALT/FN, the Kaomoji Palette, and Dead-Code Cleanup**
 
 <img src="https://raw.githubusercontent.com/CTO-DRS/keyboard-drs-smart/main/docs/images/hero.png" width="100%"/>
 
@@ -20,91 +20,92 @@
 إنجليزية كخيار ثانٍ كامل. كل ما تكتبه يبقى على جهازك: لا حسابات، لا تتبع،
 لا إعلانات.
 
-## الجديد في V 1.22.0 — جولة الحدود الصادقة
+## الجديد في V 1.23.0 — جولة الصوت والوجه الكامل
 
-فحص ثلاثي جديد تحقق فيه من كل ادعاء بالكود الفعلي سطرًا سطرًا: خمسة مرشحات
-مؤكدة أُصلحت حتى النهاية، وادعاء واحد انهار أمام الدليل (ملفات western.json
-نظيفة تمامًا من العربية) فتحول إلى عقد حماية دائم بدل «إصلاح» زائف. كل بند
-أدناه عمل حقيقي مُختبر، لا ترقيم أسطر.
+فحص ثلاثي جديد مسح المحرك والأصول والسكربتات سطرًا سطرًا: الميكروفون كان
+نهاية عمياء، وعائلة الموديفايرات كانت ناقصة وعمياء معًا، وأصل كاوموجي كامل
+كان دفينًا في الـAPK مع محمّل ميت. كل بند أدناه عمل حقيقي مُختبر، لا ترقيم
+أسطر.
 
-- ↔️ **إعادة ترتيب المهام المثبتة بالسحب** — شريط المهام العشرة كان يُرتَّب
-  بأسهم «أعلى/أسفل» تنقل المهمة خانة واحدة في كل ضغطة عبر قائمة الكتالوج
-  الكاملة (والسحب الموجود في المستودع كان لمحرر الإجراءات السريعة — ميزة
-  أخرى لا علاقة لها). الآن: **اضغط مطولًا على مهمة مثبتة في الدرج واسحبها**
-  — كل تجاوز لمهمة أخرى تبديل حقيقي عبر `reorderPinnedTool`، المرسوم يتبع
-  إصبعك بشفافية خفيفة، والترتيب يكتب في نفس المخزن المحفوظ الذي تكتبه كل
-  عناصر التحكم فيبقى بعد إعادة التشغيل. أزرار الأسهم باقية لـTalkBack
-  وللضبط الدقيق، ولا شيء في المسار يصنع دبوسًا حادي عشر أو خانة مكررة —
-  النواة النقية `reorderPinnedSlots` تقصّ وتنقّي وترفض خارج النطاق بصمت
-  صادق.
+- 🎙️ **الإملاء الصوتي المدمج — «الميكروفون يستيقظ»** — منذ اليوم الأول كان
+  ضغط مفتاح الميكروفون نهاية عمياء: التبديل إلى لوحة صوت خارجية إن وُجدت
+  في النظام، أو توست «لم يتم العثور على لوحة صوت». الآن **المُتعرِّف
+  (SpeechRecognizer) يعمل مباشرة**: شريط استماع حي يحل محل شريط الاقتراحات
+  (النص الجزئي يظهر أثناء الكلام + زر إيقاف فوري)، والنص النهائي يُكتب عند
+  المؤشر بلغة المخطط النشط (ar-SA وغيرها عبر الوسم الكامل)، مع محرك التعرّف
+  على الجهاز أولًا في أندرويد 12+ عندما يكون متاحًا. العقد الخصوصي صارم:
+  **حقول كلمات المرور ووضع التخفي لا يرون الميكروفون أبدًا** (توست صادق)،
+  إذن الميكروفون يُطلب عبر نشاط شفاف مخصص لأن خدمة الإدخال لا تستضيف
+  حوارات الأذونات، وعند غياب خدمة التعرّف في النظام تبقى آلية التبديل
+  الخارجي كاحتياط صادق، وجلسة الاستماع تُقتل مع إخفاء لوحة المفاتيح أو
+  موت الخدمة — لا ميكروفون ساخن في الخلفية إطلاقًا.
 
-- 📌 **سقف صادق لتثبيتات الحافظة («سقف التثبيتات»)** — حدّ سجل الحافظة
-  يستثني المثبتة صراحةً (وهذا صحيح — دبابيسك لا تمحوه عمليات التنظيف)، لكن
-  النتيجة أن المثبتة كانت **المخزن الوحيد بلا أي سقف** في الحافظة كلها:
-  `pinClip` كان يكتب في Room بلا سؤال واحد. الآن سقف قابل للضبط
-  (5–200، الافتراضي 50) عبر مفتاح `clipboard__pinned_max_size` في شاشة
-  إعدادات الحافظة: عند بلوغ السقف يُرفض التثبيت الجديد **بتوست صادق**
-  («سقف التثبيتات بلغ حده — ألغِ تثبيت عنصر لإضافة غيره») في اللوحة
-  ومسار «تثبيت العنصر النشط» معًا. والقرار النقي `pinCapAllows` يحفظ
-  الحدود الثلاثة: إعادة تثبيت عنصر مثبت تنجح دائمًا، والتثبيتات الموجودة
-  فوق سقف منخفض **لا تُحذف أبدًا** — السقف يبوّب الجديد فقط.
+- ⚡ **إحياء FN/FN_LOCK — آخر موديفايرين ميتين** — بعد أن حييت CTRL/ALT في
+  الجولة الماضية، كشف الفحص أن FN/FN_LOCK كانا في **نفس شكل الموت تمامًا**:
+  معلنان ومُعرَّفان منذ اليوم الأول بلا أي فرع معالجة — أي تخطيط يعلنهما
+  يرسمهما ثم يكتب «مفتاح مجهول» عند الضغط. الإحياء بعقد v1.22.0 حرفيًا:
+  حالة لمبة في بتّي 30-31 الأحرار من سجل الحالة (لا تصادم مع CTRL في 18-19
+  ولا ALT في 28-29 ولا أي راية)، نابض بنفس الدورة (لمسة = لمبة واحدة،
+  لمستان = قفل، ثالثة = إطلاق؛ و`FN_LOCK` يقفل مباشرة). **والعمل الحقيقي**:
+  أثناء التفعيل تصبح مفاتيح الأرقام **مفاتيح F1–F10 حقيقية** تُرسل
+  كأحداث أجهزة للمضيف ('1'→F1 … '9'→F9 و'0'→F10) — نفس ما يقدمه صف Fn على
+  لوحات الأجهزة، وقيمته في الطرفيات (Termux) وسطوح المكتب البعيد ومحاكيات
+  الكونسول. اللمبة الواحدة تُستهلك بعد الاستخدام والقفل يبقى، وأي مفتاح
+  آخر يستهلكها فلا مفاجآت. وبلاطة **Fn** في كتالوج شريط التقني مع نقطة
+  الحالة الحية نفسها.
 
-- 🗂️ **لوحات DRS تدخل كتالوج البريسيتات أخيرًا** — حزمة
-  `org.drs.layouts.drs` (نمط الحاسوب PC 102، والنمط المغاربي، وصفحة الرموز
-  العربية) كانت تُدمج في محرك التخطيطات وتظهر في محرر الأنواع اليدوي فقط،
-  بينما **قائمة البريسيتات المقترحة لم ترها أبدًا**: صفر إشارة له في 73
-  بريسيتًا. الحزمة تنشر الآن `subtypePresets` خاصة بها: **ar-MA** (المغاربي
-  + الدرهم المغربي + صف أرقام غربي — فالمغرب العربي يكتب بأرقام لاتينية)،
-  **ar-DZ** (المغاربي + الدينار الجزائري + أرقام غربية)، و**ar-SA** (نمط
-  الحاسوب + الريال السعودي + صف الأرقام الهندية). كل مرجع (لوحة، مؤلِّف،
-  عملة، خرائط نوافذ) تحقق يدويًا عبر قراءة الأصول نفسها، وعقد اختبار يمنع
-  أي تصادم وسوم مع كتالوج التوطين ويمنع أي مرجع مكسور مستقبلًا.
+- 😶 **وجه CTRL/ALT/FN أخيرًا** — مفاتيح الموديفايرات المعلنة في التخطيطات
+  المخصصة كانت **صناديق فارغة**: لا تسمية مرئية ولا أيقونة ولا أي مؤشر
+  حالة. الآن: تسميات مرئية مترجمة (Ctrl/Alt/Fn عبر مفاتيح `key__ctrl`
+  و`key__alt` و`key__fn`)، و**سمات ثيم جديدة** (`ctrlstate`/`altstate`/
+  `fnstate` بقيم off/latched/locked) تصل إلى كل مفتاح عبر خط إعادة الحساب
+  نفسه الذي يحرك shift، وقواعد الثيم الأساسي تُضيء المفتاح **بالأزرق
+  الفاتح أثناء اللمبة الواحدة** و**بالبرتقالي أثناء القفل** (نفس لون قفل
+  الحروف الكبيرة) — وأي سمة مستخدم يمكنها استهداف الحالات الثلاث بنفس
+  السمات.
 
-- ⌨️ **مفاتيح CTRL/ALT تنبض بعد 22 جولة من الموت** — منذ اليوم الأول كان
-  الضغط على CTRL أو ALT (إن أعلنهما تخطيط ما) يسقط في فرع «مفتاح مجهول»:
-  `flogError("Received unknown key")` ورسم فقط — لا حالة موديفاير في
-  `KeyboardState` إطلاقًا. الإحياء الكامل: حالة لمبة جديدة
-  (`InputModifierState`: OFF/LATCHED/LOCKED) في منطقتي بتتين حرتين من سجل
-  الحالة، ونابض يقلّب الضغطة عاديًا (لمسة = لمبة واحدة تنطفي بعد الاستهلاك،
-  لمستان = قفل يبقى حتى لمسة ثالثة، وأكواد `CTRL_LOCK/ALT_LOCK` تقفل مباشرة)،
-  والاستهلاك الحقيقي: **سهم مع CTRL = قفزة كلمة**، **سهم مع ALT = قفزة
-  سطر/صفحة** (نفس دلالات META_CTRL_ON/META_ALT_ON التي كان المحرك يحملها
-  لمفاتيح قفز الكلمات الصريحة)، و**حذف مع CTRL = حذف كلمة** للأمام والخلف،
-  بينما أي مفتاح آخر يستهلك اللمبة فلا تفاجئك لاحقًا. والمفاتيح أصبحت
-  **قابلة للوصول**: مدخلان جديدان في كتالوج شريط التقني (`Ctrl`/`Alt`)
-  مع نقطة الحالة الحية التي تقرأ اللمبة الفعلية — الحقيقة على البلاطة
-  لا اختصار مجاني.
+- 😊 **لوحة الكاوموجي — أصل دفين يخرج للنور** — ملف `emoticons.json`
+  (21 كاوموجي في ثلاثة صفوف) كان يُشحن داخل الـAPK منذ اليوم الأول بينما
+  دالة تحميله كانت **`return null` مُعمّاة** — صفر مستدعين، صفر ظهور. محمّل
+  حقيقي عبر نفس مسار DrsRef الذي تقرأ به كل التخطيطات، وزر «:-)» في الصف
+  السفلي للوحة الوسائط يبدّل بين الإيموجي والكاوموجي (ويختفي كليًا إن فشل
+  تحميل الأصل — الزر لا يكذب)، والشبكة تُرسم بنفس بلاطات الإيموجي المؤثرة،
+  والضغط يُدخل الكاوموجي عند المؤشر عبر مسار MEDIA الطبيعي، وألوان النص من
+  ثيم لوحة المفاتيح نفسه (لا أبيض مثبّت على خلفية فاتحة).
 
-- 🧪 **الحماية قبل الانهيار: عقد western.json النظيف** — ادعاء الفحص «تسميات
-  عربية RTL في western.json» **انهار أمام المسح**: الملفان نظيفان 100% من
-  أي محرف عربي (المقاطع `rtl` الموجودة هي انعكاس أقواس ترقيم مشروع، والمحرف
-  العربي الوحيد في العائلة «٪» داخل western_samsung.json المقصود تصميمًا
-  للمستخدم العربي المفضل للنمط الغربي). الادعاء المرفوض صار **عقد بنية
-  أصول دائمًا**: إن تسللت تسمية عربية إلى صفحتي الرموز الغربية يومًا فالبناء
-  سيسقط قبل النشر — لا صمت إصدارًا.
+- 🧹 **KeyboardMode تتخلص من الميت الثلاث** — القيم الثلاث المعلنة
+  `@Deprecated("TODO: remove")` منذ الإرث (EDITING=1،
+  SMARTBAR_CLIPBOARD_CURSOR_ROW=8، SMARTBAR_NUMBER_ROW=9) تحقق منها الفحص
+  بندًا بندًا: **لا مُنتِج** يكتبها في سجل الحالة أبدًا، السجل نفسه حي
+  داخل الذاكرة فقط ولا يُستعاد من تفضيلات أو حزم، لا منتقي واجهة يعرضها،
+  ولا اختبار يدافع عنها — مستهلكها الوحيد ثلاثة فروع ميتة في LayoutManager
+  تعيد لوحة فارغة أو صفًا ذا آلية استُبدلت بـQuickActions منذ زمن. حُذفت
+  من التعداد مع فروعها الثلاثة، والأعداد القديمة اليتيمة تسقط بأمان إلى
+  CHARACTERS عبر `fromInt` الموجود أصلًا. ومعها الثابت الميت `KANA_SMALL`
+  (صفر مراجع في الكود والأصول — تبديل الكانا الصغيرة راية حالة لا كود مفتاح).
 
-- 🏗️ **التشغيل اليدوي للنشر لا يرمي أثره** — `workflow_dispatch` في مسار
-  الإصدار كان يبني APK وAAB موقّعين ثم يرميهما مع الـrunner: لا نشر (النشر
-  حكر على وسم) ولا رفع أرتيفاكت أصلًا. التشغيل اليدوي يحتفظ الآن بالثنائيات
-  الموقعة كأرتيفاكت مسار (`drs-signed-release`، صلاحية 14 يومًا).
+- 🌐 **بوابات التوازي تصل للسكربتات القديمة السبع** — سبعة من سكربتات
+  السلاسل العشرة (v170 وv190 وv1100 وv1150 وv1160 وv1190 وv1200) انتهت بلا
+  بوابة التوازي المرجعية، واثنان منها (v1150/v1160) **لم تكن idempotent**
+  أصلًا: إعادة تشغيلها كانت تكرر كل كتلتها في الملفين. الآن كلها تنتهي
+  بنفس البوابة الصادقة (فرق مجموعات المفاتيح AR/EN، انفراد واحد = فشل
+  بصوت عالٍ)، وv1150/v1160 صارت تتجاوز المفاتيح الموجودة بدل تكرارها.
+  كل السكربتات العشرة تعمل الآن نظيفة على 2,406 مفاتيح لكل لغة.
 
-- 🧹 **TODO رامٍ يُحذف** — `getLanguagePackIdPref(): Nothing = TODO(...)` في
-  شاشة مدير حزم اللغات كان قنبلة تتهدد أي استدعاء مستقبلي — دالة ميتة
-  بموت مؤكد إن دُعيت. حُذفت.
+- 🧪 **12 اختبار وحدة جديدًا (556 ناجحة، كانت 544)** — خرائط الأرقام إلى
+  F1–F10 بالكامل (والرفض لغير الأرقام)، دورة لمبة FN بعقدها الثلاثة
+  والقفل المباشر، **عقد عدم تصادم بتّي ثلاثي** (FN مع CTRL مع ALT مع
+  KeyboardMode مع التخفي في سجل واحد)، قرار الإملاء الصوتي النقي بحالاته
+  (التخفي أولًا ثم توفر الخدمة ثم الإذن)، زوال القيم المهجورة وسقوط
+  الأعداد اليتيمة بأمان، كتالوج التقني بعائلة الموديفايرات الكاملة ونقطة
+  fn الحية، وعقدا أصول الكاوموجي (بنية 21 مدخلًا وفرادة الأيقونات وقيود
+  مسار الإدخال).
 
-- 🧪 **23 اختبار وحدة جديدًا (544 ناجحة، كانت 521)** — عقود `reorderPinnedSlots`
-  الكاملة (الأمام والخلف وخارج النطاق واللامعمل وعدم تلفيق دبابيس أو تكرارات
-  فوق سقف العشرة)، عقود `pinCapAllows` الأربعة (تحت السقف، عند السقف، إعادة
-  التثبيت، السقف المنخفض لا يدمّر)، دورة النابض الكاملة باتجاهها الثلاثة
-  والقفل المباشر والاستهلاك الصادق، `fromInt` ذهابًا وإيابًا مع الرداءة
-  للقيم الفاسدة، **عقد عدم تصادم بتّي** في سجل الحالة (CTRL/ALT/SHIFT
-  تعيش معًا)، كتالوج شريط التقني بأكواده الحقيقية وفرادة معرّفاته، خريطة
-  `toggleStateOf` للنقطة الحية، و**عقود الأصول الثلاثة**: بريسيتات DRS
-  (بنيتها ومراجعها المدمجة وفرادة وسومها) وwestern.json النظيف من العربية.
-
-- 🌐 **التوازي الآن 2,393 مفتاحًا لكل لغة (AR/EN)** — أربعة مفاتيح جديدة
-  (توست السقف، عنوان الإعداد، تلميح السحب) عبر سكربت `add_v1220_strings.py`
-  بالنمط المرجعي v1210: idempotent مع بوابة توازٍ تسقط عند أي انفراد.
+- 🌍 **التوازي الآن 2,406 مفاتيح لكل لغة (AR/EN)** — ثلاثة عشر مفتاحًا
+  جديدًا (الاستماع والإيقاف والتوستات الخمسة للصوت، تسميات الموديفايرات
+  الثلاث، بلاطة Fn باسمها ووصفها، وزر الكاوموجي) عبر
+  `add_v1230_strings.py` بالنمط المرجعي نفسه: idempotent مع بوابة توازٍ
+  تسقط عند أي انفراد.
 
 </div>
 
@@ -119,119 +120,127 @@ thoughtful Arabic layouts and Arabic suggestions/correction, with English
 as a complete second option. Everything stays on your device: no accounts,
 no tracking, no ads.
 
-## What's new in V 1.22.0 — The Honest Bounds Round
+## What's new in V 1.23.0 — The Voice & Complete Face Round
 
-A fresh tri-front audit verified every claim against the actual code,
-line by line: five candidates confirmed and fixed to the end, and one
-claim that collapsed under evidence (the western.json files are 100%
-free of Arabic labels) — turned into a permanent asset contract instead
-of a fake "fix". Every item below is real, tested work.
+A fresh tri-front audit swept the engine, the assets and the scripts,
+line by line: the mic key was a dead end, the modifier family was both
+incomplete and invisible, and a full kaomoji asset sat dead inside the
+APK with a stubbed loader. Every item below is real, tested work.
 
-- ↔️ **Drag to reorder the pinned tasks** — the ten-slot tasks bar was
-  reorderable only by one-slot up/down nudges routed through the whole
-  catalogue order (and the drag that existed in the repo belonged to the
-  quick-actions editor — a different feature). Now: **long-press a pinned
-  task in the drawer and drag** — every crossing is a real swap through
-  `reorderPinnedTool`, the dragged row follows your finger with a subtle
-  translucency, and the order is written to the same persisted store every
-  other control uses, surviving restarts. The up/down buttons stay for
-  TalkBack and precise nudging, and nothing in the path can fabricate an
-  11th pin or a duplicate slot — the pure core `reorderPinnedSlots`
-  dedupes, caps and refuses out-of-range moves.
+- 🎙️ **Built-in voice dictation — «the microphone wakes up»** — since
+  day one the mic key was a dead end: switch to an external voice IME if
+  the ROM ships one, or an honest "voice IME not found" toast. The
+  platform **SpeechRecognizer now runs directly**: a live dictation bar
+  replaces the Smartbar (partial transcript while you speak + an
+  immediate cancel button), the final transcript is committed at the
+  cursor in the active subtype's language (full BCP-47 tag, ar-SA and
+  friends), preferring the on-device recognizer on Android 12+ when
+  available. The privacy contract is strict: **password fields and
+  incognito mode never see the microphone** (an honest toast instead),
+  the RECORD_AUDIO permission is requested through a dedicated
+  translucent trampoline activity (an IME service cannot host permission
+  dialogs), the external voice-IME switch remains as the honest fallback
+  when no recognition service exists, and a live session dies with the
+  keyboard window or the service — no hot microphone in the background,
+  ever.
 
-- 📌 **An honest cap for clipboard pins («سقف التثبيتات»)** — the history
-  size limit explicitly exempts pinned items (by design — your pins must
-  survive cleanup), but the consequence was that pinned items were **the
-  only unbounded store in the entire clipboard**: `pinClip` wrote to Room
-  without asking a single question. The cap is now configurable
-  (5–200, default 50) via `clipboard__pinned_max_size` in the clipboard
-  settings screen: at the cap a new pin is refused **with an honest
-  toast** ("Pin cap reached — unpin an item to pin another") from both
-  the panel popup and the pin-active path. The pure decision
-  `pinCapAllows` keeps all three bounds: re-pinning an already-pinned
-  item always succeeds, existing pins above a lowered cap are **never
-  auto-destroyed**, and only new pins are gated.
+- ⚡ **FN/FN_LOCK revive — the last two dead modifiers** — after CTRL/ALT
+  woke up last round, the audit found FN/FN_LOCK in **the exact death
+  shape**: declared and defined since day one with no handling branch —
+  any layout declaring them rendered the keys and then logged "unknown
+  key" on press. The revival follows the v1.22.0 contract literally: a
+  latch state in the last free 2-bit region of the state register
+  (bits 30-31 — no collision with CTRL at 18-19, ALT at 28-29, or any
+  flag), the same cycle (tap = one-shot, tap again = lock, third tap =
+  release; `FN_LOCK` jumps straight to lock). **And the real work**:
+  while armed, the digit keys send **real F1–F10 hardware events** to
+  the host ('1'→F1 … '9'→F9, '0'→F10) — exactly what a physical Fn row
+  delivers, and genuinely useful in terminals (Termux), remote-desktop
+  clients and console emulators. A one-shot latch releases after use,
+  locks persist, and any other key consumes it — no surprises. Plus an
+  **Fn tile** in the tech-toolbar catalogue with the same live status
+  dot.
 
-- 🗂️ **DRS layouts finally join the preset catalog** — the
-  `org.drs.layouts.drs` package (PC 102, Maghreb, and the Arabic symbols
-  page) was merged into the layout engine and reachable through the manual
-  subtype editor, but the **suggested presets list never saw it**: zero
-  references across all 73 presets. The package now publishes its own
-  `subtypePresets`: **ar-MA** (Maghreb layout + Moroccan dirham + a
-  western digit row — the Maghreb writes in Latin digits), **ar-DZ**
-  (Maghreb + Algerian dinar + western digits), and **ar-SA** (PC 102 +
-  Saudi riyal + the Eastern Arabic numeral row). Every reference (layout,
-  composer, currency set, popup mapping) was verified by reading the
-  assets themselves, and a test contract prevents tag collisions with the
-  localization catalog or broken references forever.
+- 😶 **CTRL/ALT/FN finally get a face** — modifier keys declared in
+  custom layouts rendered as **blank boxes**: no visible label, no icon,
+  no state feedback. Now: localized visible labels (Ctrl/Alt/Fn via the
+  `key__ctrl`/`key__alt`/`key__fn` keys), and **new theme attributes**
+  (`ctrlstate`/`altstate`/`fnstate`, values off/latched/locked) reaching
+  every key through the same recompute pipeline that drives shift. The
+  base stylesheet lights an armed latch **light blue** and a locked
+  latch **orange** (the same color as caps lock), and any user theme can
+  target all three states with the same attributes.
 
-- ⌨️ **CTRL/ALT keys pulse again after 22 dead rounds** — since day one,
-  pressing CTRL or ALT (should any layout declare them) fell into the
-  "unknown key" branch: `flogError("Received unknown key")` and nothing
-  else — no modifier state existed anywhere in `KeyboardState`. The full
-  revival: a new latch state (`InputModifierState`: OFF/LATCHED/LOCKED)
-  in two free 2-bit regions of the state register, a cycle like shift
-  (tap = one-shot latch consumed by the next key, tap again = lock until
-  a third tap, `CTRL_LOCK/ALT_LOCK` codes jump straight to lock), and the
-  real consumption: **CTRL + arrow = word jump**, **ALT + arrow =
-  line/page jump** (the same META_CTRL_ON/META_ALT_ON semantics the
-  engine already carried for the explicit word-jump keys), and
-  **CTRL + delete = word deletion** in both directions — while any other
-  key consumes a one-shot latch so it can never surprise you later. The
-  keys are now **reachable**: two new entries in the tech-toolbar
-  catalogue (`Ctrl`/`Alt`) with a live active dot reading the actual
-  latch — the truth on the tile, not a free pass.
+- 😊 **The kaomoji palette — a buried asset surfaces** —
+  `emoticons.json` (21 kaomoji in three rows) shipped inside the APK
+  from day one while its loader function was a **hardcoded
+  `return null`** — zero callers, zero visibility. A real loader through
+  the same DrsRef pipeline every layout uses, plus a «:-)» toggle in the
+  media palette's bottom row that swaps emoji for kaomoji (and hides
+  itself entirely if the asset ever fails to parse — the button never
+  lies). The grid renders through the same interactive emoji tiles, a
+  tap commits the kaomoji at the cursor through the normal MEDIA path,
+  and the text color comes from the keyboard theme itself (no hardcoded
+  white-on-white).
 
-- 🧪 **Protection before the crash: the western.json contract** — the
-  audit claim "Arabic RTL labels in western.json" **collapsed under the
-  scan**: both files are 100% free of Arabic characters (the `rtl`
-  segments present are proper bracket-mirroring selectors, and the only
-  Arabic char in the family is the «٪» popup inside western_samsung.json —
-  deliberate design for the Arabic user preferring the western layout).
-  The refuted claim is now a **permanent asset-structure contract**: if
-  an Arabic label ever sneaks into the western symbol pages, the build
-  drops before release — no silent regressions.
+- 🧹 **KeyboardMode sheds its three corpses** — the three values marked
+  `@Deprecated("TODO: remove")` since the legacy era (EDITING=1,
+  SMARTBAR_CLIPBOARD_CURSOR_ROW=8, SMARTBAR_NUMBER_ROW=9) were verified
+  item by item: **no producer** ever wrote them into the mode register,
+  the register is runtime-only and never restored from prefs or bundles,
+  no UI selector lists them, no test defends them — and their only
+  consumers were three dead LayoutManager branches returning an empty
+  keyboard or a smartbar row whose mechanism was replaced by
+  QuickActions long ago. Deleted from the enum along with their branches;
+  stale orphan ints fall back to CHARACTERS through the existing
+  `fromInt`. Along with them, the zero-reference `KANA_SMALL` constant
+  (the kana-small toggle is a state flag, not a key code).
 
-- 🏗️ **Manual release runs keep their artifacts** — `workflow_dispatch`
-  in the release path built a signed APK and AAB and then threw both away
-  with the runner: no publish (that is tag-only) and no artifact upload
-  at all. Manual runs now keep the signed binaries as workflow artifacts
-  (`drs-signed-release`, 14-day retention).
+- 🌐 **Parity gates reach the seven old string scripts** — seven of the
+  ten string scripts (v170, v190, v1100, v1150, v1160, v1190, v1200)
+  ended without the reference parity gate, and two of them (v1150/v1160)
+  were **not even idempotent**: re-running them duplicated their whole
+  block into both files. All seven now end with the same honest gate
+  (AR/EN key-set difference; a single orphan fails loudly), and
+  v1150/v1160 skip existing keys instead of duplicating them. All ten
+  scripts now run clean on 2,406 keys per language.
 
-- 🧹 **A live TODO removed** — `getLanguagePackIdPref(): Nothing =
-  TODO(...)` in the language-pack manager screen was a bomb aimed at any
-  future caller — a dead function with a guaranteed death if invoked.
-  Removed.
+- 🧪 **12 new unit tests (556 passing, was 544)** — the full digit→F-key
+  map (plus refusing non-digits), the FN latch cycle with its three
+  directions and direct lock, a **triple no-bit-collision contract**
+  (FN + CTRL + ALT + KeyboardMode + incognito coexisting in one
+  register), the pure voice route decision (sensitivity first, then
+  service availability, then permission), the deprecated values' absence
+  and the safe fallback of stale ints, the tech-toolbar catalogue with
+  the complete modifier family and the live fn dot, and two kaomoji
+  asset contracts (the 21-entry structure, unique icons, and the
+  commit-path constraints).
 
-- 🧪 **23 new unit tests (544 passing, was 521)** — the full
-  `reorderPinnedSlots` contracts (forward/backward, out-of-range, no-op,
-  no fabricated pins or duplicates above the cap of ten), the four
-  `pinCapAllows` contracts (under cap, at cap, re-pin, lowered cap never
-  destroys), the full latch cycle in all three directions plus direct
-  lock and honest consumption, `fromInt` round-trips with garbage
-  fallback, a **no-bit-collision contract** in the state register
-  (CTRL/ALT/SHIFT coexist), the tech-toolbar catalogue with real codes
-  and unique ids, the `toggleStateOf` live-dot map, and **three asset
-  contracts**: the DRS presets (structure, merged references, unique
-  tags) and the Arabic-free western symbol pages.
-
-- 🌐 **Parity is now 2,393 keys per language (AR/EN)** — four new keys
-  (cap toast, setting title, drag hint) via the v1210-reference-pattern
-  `add_v1220_strings.py`: idempotent with a parity gate that fails on any
-  orphan.
+- 🌍 **Parity is now 2,406 keys per language (AR/EN)** — thirteen new
+  keys (listening hint, cancel label, the five voice toasts/errors, the
+  three modifier labels, the Fn tile name + description, and the kaomoji
+  toggle) via the same reference-pattern `add_v1230_strings.py`:
+  idempotent with a parity gate that fails on any orphan.
 
 ## Install
 
-1. Download `DRS-Smart-Keyboard-v1.22.0.apk` below.
+1. Download `DRS-Smart-Keyboard-v1.23.0.apk` below.
 2. Install it (allow unknown sources when prompted).
 3. Open Settings → System → Languages & input → enable the keyboard.
 4. Pick it as your default keyboard and start typing.
+
+Voice dictation: tap the microphone; on the first press Android will ask
+for the microphone permission — grant it and speak. In password fields
+and incognito mode the mic stays off by design.
 
 Verify integrity with the SHA-256 checksums in the attached `SHA256SUMS.txt`.
 
 ## Privacy
 
 Everything runs **locally and offline**: no accounts, no tracking, no ads,
-no network except the app's own update check. Read the full `PRIVACY.md`.
+no network except the app's own update check. Voice dictation is the one
+explicit exception you trigger per press: it delegates to your platform's
+recognition service and only when you tap the mic — the keyboard itself
+still sends nothing anywhere. Read the full `PRIVACY.md`.
 
 </div>

@@ -237,7 +237,10 @@ object KeyCode {
     const val CHAR_WIDTH_FULL =            -9702
     const val CHAR_WIDTH_HALF =            -9703
 
-    const val KANA_SMALL =                 12307
+    // DRS v1.23.0: the dead KANA_SMALL constant (12307) is gone — it had
+    // zero references in code or assets (the kana-small toggle uses the
+    // KeyboardState flag, not a key code).
+
     const val KANA_SWITCHER =              -9710
     const val KANA_HIRA =                  -9711
     const val KANA_KATA =                  -9712

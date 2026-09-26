@@ -184,6 +184,20 @@ fun ComputingEvaluator.computeLabel(data: KeyData): String? {
             KeyCode.KESHIDA -> {
                 evaluator.context()?.getString(R.string.key__view_keshida)
             }
+            // DRS v1.23.0: the modifier family finally gets a face. Until
+            // this round a CTRL/ALT/FN key declared in a custom layout
+            // rendered as a blank box (label null, icon null) — the same
+            // round that revived the FN latch gives the whole family its
+            // visible, localized labels.
+            KeyCode.CTRL, KeyCode.CTRL_LOCK -> {
+                evaluator.context()?.getString(R.string.key__ctrl)
+            }
+            KeyCode.ALT, KeyCode.ALT_LOCK -> {
+                evaluator.context()?.getString(R.string.key__alt)
+            }
+            KeyCode.FN, KeyCode.FN_LOCK -> {
+                evaluator.context()?.getString(R.string.key__fn)
+            }
             else -> null
         }
     }

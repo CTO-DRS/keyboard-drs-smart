@@ -2531,4 +2531,18 @@
     <string name="drs__tools_drawer__drag_hint" comment="Hint under the pinned tasks section of the tools drawer">اضغط مطولًا على مهمة واسحبها لإعادة ترتيبها</string>
 
 
+    <string name="voice__listening" comment="Hint shown in the dictation bar before any partial text arrives">تحدث الآن…</string>
+    <string name="voice__cancel" comment="Accessibility label of the dictation-bar cancel button">إيقاف الاستماع</string>
+    <string name="voice__disabled_sensitive" comment="Toast when the mic key is pressed in a password/incognito context">الإملاء الصوتي معطل في حقول كلمات المرور ووضع التخفي</string>
+    <string name="voice__permission_denied" comment="Toast in the permission trampoline when RECORD_AUDIO is denied">رُفض إذن الميكروفون — فعّله من إعدادات النظام لاستخدام الإملاء الصوتي</string>
+    <string name="voice__error" comment="Generic recognizer failure shown in the dictation bar">تعذر الإملاء الصوتي — حاول مجددًا</string>
+    <string name="voice__error_no_match" comment="Recognizer finished but produced no transcript">لم يُتعرف على كلام — حاول مجددًا</string>
+    <string name="voice__error_no_speech" comment="Recognizer timed out without hearing speech">لم نسمع شيئًا — تقرّب من الميكروفون</string>
+    <string name="key__ctrl" comment="Visible label of CTRL keys declared in custom layouts">Ctrl</string>
+    <string name="key__alt" comment="Visible label of ALT keys declared in custom layouts">Alt</string>
+    <string name="key__fn" comment="Visible label of FN keys declared in custom layouts">Fn</string>
+    <string name="media__emoticons_toggle" comment="Accessibility label of the kaomoji/emoji palette toggle">لوحة الكاوموجي</string>
+    <string name="drs__unified__tool_fn" comment="Unified tools screen: name of the Fn tile">مفتاح Fn</string>
+    <string name="drs__unified__tool_fn_desc" comment="Unified tools screen: description of the Fn tile">النابض الأخير: أثناء التفعيل تصبح الأرقام مفاتيح F1–F10 حقيقية للطرفية وسطح المكتب البعيد</string>
+
 </resources>

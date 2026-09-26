@@ -73,4 +73,21 @@ for path, table in FILES.items():
             f.write(content)
         print(f"OK {path}: +{added} keys")
 
+# ── DRS v1.23.0: unified AR/EN parity gate (بوابة التوازي الموحدة) ──
+# Every string script ends with the same honest gate: the AR and EN key
+# sets must be identical or the run fails loudly. The older scripts
+# shipped without it — appended here by the v1.23.0 round, replacing the
+# old exit so the gate is the LAST word on the exit code.
+_parity_paths = ("app/src/main/res/values/strings.xml", "app/src/main/res/values-en/strings.xml")
+_parity_names = {}
+for _path in _parity_paths:
+    with open(_path, encoding="utf-8") as _fh:
+        _parity_names[_path] = set(re.findall(r'<string name="([^"]+)"', _fh.read()))
+_only_ar = _parity_names[_parity_paths[0]] - _parity_names[_parity_paths[1]]
+_only_en = _parity_names[_parity_paths[1]] - _parity_names[_parity_paths[0]]
+print(f"parity: ar-only={len(_only_ar)} en-only={len(_only_en)}")
+if _only_ar or _only_en:
+    print("AR-ONLY:", sorted(_only_ar)[:10])
+    print("EN-ONLY:", sorted(_only_en)[:10])
+    fail = True
 sys.exit(1 if fail else 0)

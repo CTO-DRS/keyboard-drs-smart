@@ -56,6 +56,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.app.DrsPreferenceStore
 import com.drs.smartkeyboard.ime.input.InputEventDispatcher
@@ -65,6 +66,8 @@ import com.drs.smartkeyboard.ime.keyboard.KeyData
 import com.drs.smartkeyboard.ime.media.emoji.EmojiData
 import com.drs.smartkeyboard.ime.media.emoji.EmojiPaletteView
 import com.drs.smartkeyboard.ime.media.emoji.EmojiSkinTone
+import com.drs.smartkeyboard.ime.media.emoticon.EmoticonLayoutData
+import com.drs.smartkeyboard.ime.media.emoticon.EmoticonsPalette
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyData
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
 import com.drs.smartkeyboard.keyboardManager
@@ -96,16 +99,46 @@ fun MediaInputLayout(
         emojiLayoutDataMap = EmojiData.get(context, activeSubtype.primaryLocale)
     }
 
+    // DRS v1.23.0: the kaomoji palette — the 21-entry emoticons.json
+    // shipped in the APK while its loader stayed a stubbed null, so the
+    // whole asset was invisible for 23 rounds. The bottom-row toggle
+    // swaps the emoji palette for the kaomoji grid (and back); the asset
+    // loads once, off the main thread, and a parse failure keeps the
+    // toggle honest by hiding it entirely.
+    var showEmoticons by remember { mutableStateOf(false) }
+    var emoticonLayoutData by remember { mutableStateOf<EmoticonLayoutData?>(null) }
+    var emoticonLoadFailed by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        try {
+            emoticonLayoutData = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                EmoticonLayoutData.fromJsonFile(
+                    context,
+                    "ime/media/emoticon/emoticons.json",
+                )
+            }
+        } catch (_: Throwable) {
+        }
+        emoticonLoadFailed = emoticonLayoutData == null
+    }
+
     SnyggColumn(
         elementName = DrsImeUi.Media.elementName,
         modifier = modifier
             .fillMaxWidth()
             .height(DrsImeSizing.imeUiHeight()),
     ) {
-        EmojiPaletteView(
-            modifier = Modifier.weight(1f),
-            fullEmojiMappings = emojiLayoutDataMap,
-        )
+        if (showEmoticons && emoticonLayoutData != null) {
+            EmoticonsPalette(
+                layoutData = emoticonLayoutData!!,
+                inputEventDispatcher = keyboardManager.inputEventDispatcher,
+                modifier = Modifier.weight(1f),
+            )
+        } else {
+            EmojiPaletteView(
+                modifier = Modifier.weight(1f),
+                fullEmojiMappings = emojiLayoutDataMap,
+            )
+        }
         SnyggRow(
             elementName = DrsImeUi.MediaBottomRow.elementName,
             modifier = Modifier
@@ -122,6 +155,27 @@ fun MediaInputLayout(
                     text = "ABC",
                     fontWeight = FontWeight.Bold,
                 )
+            }
+            // DRS v1.23.0: the kaomoji toggle — «:-)» swaps the emoji
+            // palette for the kaomoji grid (and back). Hidden entirely
+            // when the asset failed to parse so the button never lies.
+            if (!emoticonLoadFailed) {
+                val emoticonCd = androidx.compose.ui.res.stringResource(R.string.media__emoticons_toggle)
+                SnyggBox(
+                    elementName = DrsImeUi.MediaBottomRowButton.elementName,
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                        .clickable { showEmoticons = !showEmoticons }
+                        .semantics { contentDescription = emoticonCd },
+                ) {
+                    Text(
+                        text = ":-)",
+                        modifier = Modifier.align(Alignment.Center),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                    )
+                }
             }
             // DRS v1.21.0: the in-palette skin-tone selector — a tap cycles
             // the preferred tone right here (Gboard parity); it used to

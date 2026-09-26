@@ -364,6 +364,13 @@ private fun TextKeyButton(
         DrsImeUi.Attr.Code to key.computedData.code,
         DrsImeUi.Attr.Mode to evaluator.keyboard.mode.toString(),
         DrsImeUi.Attr.ShiftState to evaluator.state.inputShiftState.toString(),
+        // DRS v1.23.0: the CTRL/ALT/FN latch states reach the theme — the
+        // same recompute pipeline that re-renders on shift changes
+        // re-renders on latch changes, so the base stylesheet (and any
+        // user rule) can highlight the armed keys live.
+        DrsImeUi.Attr.CtrlState to evaluator.state.inputCtrlState.toString(),
+        DrsImeUi.Attr.AltState to evaluator.state.inputAltState.toString(),
+        DrsImeUi.Attr.FnState to evaluator.state.inputFnState.toString(),
     )
     val selector = when {
         !key.isEnabled -> SnyggSelector.DISABLED

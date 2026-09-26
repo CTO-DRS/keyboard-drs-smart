@@ -2614,4 +2614,18 @@
     <string name="drs__tools_drawer__drag_hint" comment="Hint under the pinned tasks section of the tools drawer">Long-press a task and drag to reorder</string>
 
 
+    <string name="voice__listening" comment="Hint shown in the dictation bar before any partial text arrives">Speak now…</string>
+    <string name="voice__cancel" comment="Accessibility label of the dictation-bar cancel button">Stop listening</string>
+    <string name="voice__disabled_sensitive" comment="Toast when the mic key is pressed in a password/incognito context">Voice dictation is disabled in password fields and incognito mode</string>
+    <string name="voice__permission_denied" comment="Toast in the permission trampoline when RECORD_AUDIO is denied">Microphone permission denied — enable it in system settings to use voice dictation</string>
+    <string name="voice__error" comment="Generic recognizer failure shown in the dictation bar">Voice dictation failed — try again</string>
+    <string name="voice__error_no_match" comment="Recognizer finished but produced no transcript">No speech recognized — try again</string>
+    <string name="voice__error_no_speech" comment="Recognizer timed out without hearing speech">Heard nothing — move closer to the microphone</string>
+    <string name="key__ctrl" comment="Visible label of CTRL keys declared in custom layouts">Ctrl</string>
+    <string name="key__alt" comment="Visible label of ALT keys declared in custom layouts">Alt</string>
+    <string name="key__fn" comment="Visible label of FN keys declared in custom layouts">Fn</string>
+    <string name="media__emoticons_toggle" comment="Accessibility label of the kaomoji/emoji palette toggle">Kaomoji palette</string>
+    <string name="drs__unified__tool_fn" comment="Unified tools screen: name of the Fn tile">Fn key</string>
+    <string name="drs__unified__tool_fn_desc" comment="Unified tools screen: description of the Fn tile">The last latch: while armed, digits become real F1–F10 keys for terminals and remote desktop</string>
+
 </resources>

@@ -39,6 +39,9 @@ import com.drs.smartkeyboard.ime.smartbar.Smartbar
 import com.drs.smartkeyboard.ime.smartbar.quickaction.QuickActionsOverflowPanel
 import com.drs.smartkeyboard.ime.text.keyboard.TextKeyboardLayout
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
+import com.drs.smartkeyboard.ime.voice.DrsVoiceInputBus
+import com.drs.smartkeyboard.ime.voice.VoiceInputBar
+import com.drs.smartkeyboard.ime.voice.VoiceUiState
 import com.drs.smartkeyboard.keyboardManager
 import org.drs.jetpref.datastore.model.collectAsState
 import org.drs.lib.snygg.ui.SnyggIcon
@@ -69,7 +72,15 @@ fun TextInputLayout(
         // strip for every user system, and its side-pull handle opens the
         // pinned-tools drawer over the keyboard area.
         DrsUnifiedStrip()
-        Smartbar()
+        // DRS v1.23.0: while the built-in voice recognizer owns a session
+        // the live dictation bar replaces the Smartbar (same slot, same
+        // theme elements) — partial transcript + cancel, keyboard alive.
+        val voiceUiState by DrsVoiceInputBus.uiState.collectAsState()
+        if (voiceUiState is VoiceUiState.Idle) {
+            Smartbar()
+        } else {
+            VoiceInputBar()
+        }
         // DRS v1.16.0: the strip slot editor (تغيير مهمة من العشر) swaps
         // the keyboard area the same way the drawer and the overflow do.
         val slotEditorOpen by DrsRuntimeState.stripSlotEditor.collectAsState()

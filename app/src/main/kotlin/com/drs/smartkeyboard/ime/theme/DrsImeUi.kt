@@ -415,6 +415,13 @@ enum class DrsImeUi(val elementName: String, val resId: Int?) {
         const val Code = "code"
         const val Mode = "mode"
         const val ShiftState = "shiftstate"
+        // DRS v1.23.0: the modifier latch states join the theme surface —
+        // keys carrying CTRL/ALT/FN can now be painted per latch state
+        // ("off"/"latched"/"locked") exactly like the shift family has
+        // always been through ShiftState.
+        const val CtrlState = "ctrlstate"
+        const val AltState = "altstate"
+        const val FnState = "fnstate"
         const val WindowMode = "windowmode"
     }
 }

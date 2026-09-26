@@ -354,6 +354,8 @@ class DrsImeService : LifecycleInputMethodService() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // DRS v1.23.0: a live voice session must never outlive the service.
+        keyboardManager.destroyVoiceInput()
         unregisterReceiver(wallpaperChangeReceiver)
         DrsImeServiceReference = WeakReference(null)
     }
@@ -434,6 +436,10 @@ class DrsImeService : LifecycleInputMethodService() {
         super.onWindowHidden()
         if (windowController.onWindowHidden()) {
             flogInfo(LogTopic.IMS_EVENTS)
+            // DRS v1.23.0: the keyboard went away — a live dictation
+            // session must die with it (never keep the mic hot in the
+            // background).
+            keyboardManager.stopVoiceInput()
             activeState.batchEdit {
                 activeState.imeUiMode = ImeUiMode.TEXT
                 activeState.isActionsOverflowVisible = false
