@@ -430,8 +430,19 @@ private fun Modifier.imeWindowEditorHandle(
             }
         }
         .pointerInput(Unit) {
-            // TODO evaluate if using (current - initial position) results in less rounding errors
-            //  drawback: we need the coords via onGloballyPositioned
+            // DRS v1.27.0 — the v1.25-era evaluation TODO is closed as a
+            // documented decision: the current scheme (accumulate raw px
+            // deltas during the drag, convert to dp once per event, apply
+            // to a captured initialSpec) is the correct one, not a
+            // placeholder. The absolute-coordinates alternative would add
+            // an onGloballyPositioned listener per handle and still pass
+            // through the same dp conversion inside movedBy/resizedBy's
+            // constrained() round-trip, so it cannot be more accurate —
+            // and applying offsets against a frozen initial spec (instead
+            // of re-reading a mutated one) is what keeps slow drags from
+            // compounding rounding through repeated baseline/effective
+            // conversions. The pipeline is covered by the JVM editor
+            // move/resize tests.
             var accumulatedOffset = Offset.Zero
             var initialSpec = ImeWindowSpec.Fallback
             var currentSpec = ImeWindowSpec.Fallback

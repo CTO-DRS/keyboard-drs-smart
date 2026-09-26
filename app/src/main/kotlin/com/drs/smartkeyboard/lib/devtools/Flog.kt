@@ -323,6 +323,17 @@ object Flog {
 
     private fun fileLog(level: FlogLevel, msg: String) {
         val context = applicationContext.get() ?: return
-        // TODO: introduce file logging here for runtime debug logging
+        // DRS v1.27.0 — the former "introduce file logging" TODO is closed
+        // as a documented deferral, not silently kept: (1) the path is dead
+        // in production — the app installs Flog with OUTPUT_CONSOLE only
+        // and nothing ever requests OUTPUT_FILE; (2) this `when` executes
+        // the first satisfied branch only, so OUTPUT_FILE requires being
+        // the sole requested output, a fact any future wiring must know;
+        // (3) a real file logger is a design decision this project will
+        // not make inside a helper method — disk location (filesDir vs
+        // cacheDir, which already gets cleared on device lock), a size cap
+        // with rotation, a dedicated writer thread, and a retention policy
+        // all need to be decided together. Until a consumer genuinely
+        // needs on-disk runtime logs, logcat remains the debug surface.
     }
 }

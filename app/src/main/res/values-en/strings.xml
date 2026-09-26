@@ -2642,4 +2642,11 @@
     <string name="voice__on_device_badge" comment="Listening bar chip shown while the live session runs on the on-device recognizer">On device</string>
     <string name="voice__permission_permanent" comment="Toast when the mic permission is permanently denied; the app settings page opens right after">Microphone permission permanently denied — enable it in app settings and try again</string>
 
+    <string name="settings__theme_editor__rule_window_mode" comment="Theme editor: section title for the target ime window mode attribute">Target ime window mode</string>
+    <string name="settings__theme_editor__rule_voice" comment="Theme editor: section title for the smartbar listening-state attribute">Listening state</string>
+    <string name="settings__theme_editor__rule_voice_value" comment="Theme editor: chip label adding voice=true to a smartbar rule">Listening bar</string>
+    <string name="clip__dictation_start" comment="Accessibility label of the popup editor's dictate button while idle">Start dictation</string>
+    <string name="clip__dictation_stop" comment="Accessibility label of the popup editor's dictate button while listening">Stop dictation</string>
+    <string name="clip__dictation_hint" comment="Popup editor dictation strip shown before any partial transcript arrives">Speak now…</string>
+
 </resources>

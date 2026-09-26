@@ -18,9 +18,14 @@ package com.drs.smartkeyboard.ime.clipboard
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -50,14 +55,18 @@ import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.SaveAlt
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -87,6 +96,9 @@ import com.drs.smartkeyboard.app.apptheme.DrsAppTheme
 import com.drs.smartkeyboard.clipboardManager
 import com.drs.smartkeyboard.ime.clipboard.provider.ClipboardItem
 import com.drs.smartkeyboard.ime.clipboard.provider.ItemType
+import com.drs.smartkeyboard.ime.voice.PermissionNextAction
+import com.drs.smartkeyboard.ime.voice.nextPermissionAction
+import com.drs.smartkeyboard.lib.devtools.flogWarning
 import java.time.ZoneId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -383,6 +395,19 @@ class ClipEditorPopupActivity : ComponentActivity() {
         )
     }
 
+    /**
+     * DRS v1.27.0: the permanently-denied microphone's way out — the
+     * same honest escape hatch the v1.26 IME dictation route opens.
+     */
+    private fun launchAppSettings() {
+        startActivity(
+            Intent(
+                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                Uri.fromParts("package", packageName, null),
+            ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        )
+    }
+
     @Composable
     private fun PopupSurface(pending: PendingClipEdit) {
         val scope = rememberCoroutineScope()
@@ -407,6 +432,50 @@ class ClipEditorPopupActivity : ComponentActivity() {
         val codeAutoMonospace = prefs.clipboard.codeAutoMonospace.get()
         var text by remember { mutableStateOf(pending.text) }
         val history = remember { ClipEditorHistory() }
+
+        // DRS v1.27.0: the editor listens — a dictation session owned by
+        // this window. The final transcript is appended into the editor's
+        // text state through the pure ClipDictationPlan (no
+        // InputConnection exists here), and the controller dies with the
+        // composition so no microphone session outlives its window.
+        val dictation = remember {
+            ClipDictationController(
+                context = this@ClipEditorPopupActivity,
+                onTranscript = { spoken ->
+                    ClipDictationPlan.join(text, spoken, editorLimit)?.let { text = it }
+                },
+            )
+        }
+        DisposableEffect(Unit) {
+            onDispose { dictation.destroy() }
+        }
+        val dictationState by dictation.state.collectAsState()
+        val dictating = dictationState is ClipDictationState.Listening
+        val micPermission = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted ->
+            if (granted) {
+                dictation.start()
+            } else {
+                // DRS v1.27.0: the honest denied path mirrors the v1.26
+                // IME route — a plain denial gets the explanation toast,
+                // a permanent one walks the user to the app settings
+                // page because re-prompting is impossible.
+                when (nextPermissionAction(
+                    shouldShowRequestPermissionRationale(
+                        android.Manifest.permission.RECORD_AUDIO,
+                    ),
+                )) {
+                    PermissionNextAction.RE_EXPLAIN ->
+                        showShortToastSync(R.string.voice__permission_denied)
+                    PermissionNextAction.OPEN_SETTINGS -> {
+                        showShortToastSync(R.string.voice__permission_permanent)
+                        runCatching { launchAppSettings() }
+                            .onFailure { flogWarning { "app settings launch failed: $it" } }
+                    }
+                }
+            }
+        }
         var font by remember {
             mutableStateOf(prefs.clipboard.editorFont.get())
         }
@@ -975,6 +1044,32 @@ class ClipEditorPopupActivity : ComponentActivity() {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    // DRS v1.27.0: the dictation strip — a live transcript
+                    // line while the microphone session lives, and an
+                    // honest error line when it fails. It occupies no
+                    // space while idle, so the editor layout is untouched
+                    // unless the microphone is actually in play.
+                    when (val ds = dictationState) {
+                        is ClipDictationState.Listening -> Text(
+                            text = if (ds.partial.isBlank()) {
+                                stringRes(R.string.clip__dictation_hint)
+                            } else {
+                                ds.partial
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 2,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        is ClipDictationState.Error -> Text(
+                            text = stringRes(ds.resId),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error,
+                            maxLines = 2,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        ClipDictationState.Idle -> Unit
+                    }
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         PopupIconButton(
                             icon = Icons.AutoMirrored.Filled.Undo,
@@ -989,6 +1084,24 @@ class ClipEditorPopupActivity : ComponentActivity() {
                             enabled = history.canRedo,
                         ) {
                             history.redo(text)?.let { text = it }
+                        }
+                        // DRS v1.27.0: the dictate button — starts the
+                        // session (asking for the microphone when needed)
+                        // or stops the live one. A recognizer that heard
+                        // silence never fabricates an edit.
+                        PopupIconButton(
+                            icon = if (dictating) Icons.Default.Stop else Icons.Default.Mic,
+                            description = if (dictating) {
+                                stringRes(R.string.clip__dictation_stop)
+                            } else {
+                                stringRes(R.string.clip__dictation_start)
+                            },
+                        ) {
+                            if (dictating) {
+                                dictation.stop()
+                            } else {
+                                micPermission.launch(android.Manifest.permission.RECORD_AUDIO)
+                            }
                         }
                         Spacer(modifier = Modifier.weight(1f))
                         PopupButton(label = stringRes(R.string.action__cancel)) {

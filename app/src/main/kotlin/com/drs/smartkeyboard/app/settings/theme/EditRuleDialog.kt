@@ -353,14 +353,61 @@ internal fun EditRuleDialog(
                 )
 
                 EnumLikeAttributeBox(
-                    text = "Target ime window mode",
+                    text = stringRes(R.string.settings__theme_editor__rule_window_mode),
                     enumClass = ImeWindowMode::class,
                     attribute = DrsImeUi.Attr.WindowMode,
                     attributes = attributes,
                     setAttributes = { currentRule = copy(attributes = it) },
                     level = level,
                 )
+
+                // DRS v1.27.0: the listening-state attribute — a single
+                // boolean chip, because the plain "smartbar" rule already
+                // covers every non-listening moment and a "false" value
+                // would be indistinguishable from no attribute at all.
+                BooleanAttributeBox(
+                    text = stringRes(R.string.settings__theme_editor__rule_voice),
+                    attribute = DrsImeUi.Attr.Voice,
+                    value = true,
+                    label = stringRes(R.string.settings__theme_editor__rule_voice_value),
+                    attributes = attributes,
+                    setAttributes = { currentRule = copy(attributes = it) },
+                )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun BooleanAttributeBox(
+    text: String,
+    attribute: String,
+    value: Any,
+    label: String,
+    attributes: SnyggAttributes,
+    setAttributes: (SnyggAttributes) -> Unit,
+) {
+    val included = remember(attributes, attribute, value) {
+        attributes[attribute]?.contains(value.toString()) == true
+    }
+    DialogProperty(
+        text = text,
+    ) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            DrsChip(
+                onClick = {
+                    setAttributes(
+                        if (included) {
+                            attributes.excluding(attribute to value)
+                        } else {
+                            attributes.including(attribute to value)
+                        },
+                    )
+                },
+                text = label,
+                selected = included,
+            )
         }
     }
 }

@@ -423,5 +423,12 @@ enum class DrsImeUi(val elementName: String, val resId: Int?) {
         const val AltState = "altstate"
         const val FnState = "fnstate"
         const val WindowMode = "windowmode"
+        // DRS v1.27.0: the listening state joins the theme surface — the
+        // dictation bar keeps painting itself through the exact "smartbar"
+        // rules every theme already owns (a rule without attributes matches
+        // any attribute query), while a theme that wants to tell the
+        // listening bar apart adds "smartbar[voice=`true`]". True
+        // inheritance by construction, zero visual change by default.
+        const val Voice = "voice"
     }
 }

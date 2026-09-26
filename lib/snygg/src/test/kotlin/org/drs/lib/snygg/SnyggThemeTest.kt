@@ -165,6 +165,41 @@ class SnyggThemeTest {
     }
 
     @Test
+    fun `theme with boolean voice attribute`() {
+        // DRS v1.27.0: the listening-state contract — a plain rule keeps
+        // matching a query that carries an attribute (rule attributes are
+        // iterated, not the query's), while an explicit attribute rule
+        // matches only queries carrying that exact value. This is what
+        // lets the dictation bar inherit every "smartbar" rule a theme
+        // already owns and still be painted apart via "smartbar[voice]".
+        val stylesheet = SnyggStylesheet.v2 {
+            "smartbar" {
+                background = rgbaColor(0, 0, 0)
+                foreground = rgbaColor(255, 255, 255)
+            }
+            "smartbar"("voice" to listOf(true)) {
+                background = rgbaColor(16, 32, 48)
+            }
+        }
+        val theme = SnyggTheme.compileFrom(stylesheet)
+
+        // The plain smartbar query: base rules only.
+        val plain = theme.helperQuery("smartbar")
+        val plainBackground = assertIs<SnyggStaticColorValue>(plain.background)
+        assertEquals(Color.Black, plainBackground.color)
+
+        // The voice query: base rules apply, the voice rule refines on top.
+        val voice = theme.helperQuery("smartbar", attributes = mapOf("voice" to true))
+        val voiceBackground = assertIs<SnyggStaticColorValue>(voice.background)
+        assertEquals(Color(16, 32, 48), voiceBackground.color)
+        val voiceForeground = assertIs<SnyggStaticColorValue>(voice.foreground)
+        assertEquals(Color.White, voiceForeground.color)
+
+        // The voice rule never leaks into a query without the attribute.
+        assertEquals(plain.background, (theme.helperQuery("smartbar")).background)
+    }
+
+    @Test
     fun `theme with broken vars`() {
         val stylesheet = SnyggStylesheet.v2 {
             "key" {

@@ -77,6 +77,13 @@ import org.drs.lib.snygg.ui.SnyggText
  * recognizer, a small «بدون شبكة» chip appears next to the transcript —
  * the session's privacy truth, not a promise. AUTO sessions that got
  * the local engine show it exactly like strict ON_DEVICE_ONLY ones.
+ *
+ * DRS v1.27.0: the bar declares its listening state to the theme
+ * engine — the root element stays "smartbar" (so every existing rule
+ * keeps painting it, plain rules match any attribute query) but now
+ * carries the voice attribute, letting any theme add
+ * "smartbar[voice=`true`]" rules to tell the listening state apart
+ * without duplicating its base styling.
  */
 @Composable
 fun VoiceInputBar() {
@@ -127,6 +134,11 @@ fun VoiceInputBar() {
 
     SnyggBox(
         elementName = DrsImeUi.Smartbar.elementName,
+        // DRS v1.27.0: the listening-state declaration — plain "smartbar"
+        // rules still match (rule attributes are matched against the
+        // query, an attribute-less rule matches anything), while explicit
+        // "smartbar[voice=`true`]" rules paint ONLY this bar.
+        attributes = mapOf(DrsImeUi.Attr.Voice to true),
         modifier = Modifier
             .fillMaxWidth()
             .height(DrsImeSizing.smartbarHeight),

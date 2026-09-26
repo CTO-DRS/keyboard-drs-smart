@@ -57,6 +57,7 @@ import com.drs.smartkeyboard.lib.compose.DrsScreen
 import com.drs.smartkeyboard.lib.ext.Extension
 import com.drs.smartkeyboard.lib.ext.ExtensionMaintainer
 import com.drs.smartkeyboard.lib.ext.ExtensionMeta
+import com.drs.smartkeyboard.lib.ext.extensionLicenseDisplayName
 import com.drs.smartkeyboard.lib.io.DrsRef
 import org.drs.lib.android.showLongToastSync
 import org.drs.lib.compose.DrsOutlinedButton
@@ -136,9 +137,12 @@ private fun ViewScreen(ext: Extension) = DrsScreen {
                 }
             }
             ExtensionMetaRowSimpleText(label = stringRes(R.string.ext__meta__license)) {
-                // TODO: display human-readable License name instead of
-                //  SPDX identifier
-                Text(text = ext.meta.license)
+                // DRS v1.27.0: the human-readable license title — the
+                // raw SPDX identifier/expression stays the machine truth
+                // inside the manifest and the edit screen; the view row
+                // speaks the world's language for every known id and
+                // falls back to the raw id honestly when unknown.
+                Text(text = extensionLicenseDisplayName(ext.meta.license))
             }
             Row(modifier = Modifier.fillMaxWidth()) {
                 if (extensionManager.canDelete(ext)) {
