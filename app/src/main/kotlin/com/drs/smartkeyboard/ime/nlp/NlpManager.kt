@@ -433,13 +433,13 @@ class NlpManager(context: Context) {
                             if (match.value != text && isUniqueMatch) {
                                 add(ClipboardSuggestionCandidate(
                                     clipboardItem = currentItem.copy(
-                                        // TODO: adjust regex of phone number so we don't need to manually strip the
-                                        //  parentheses from the match results
-                                        text = if (match.value.startsWith("(") && match.value.endsWith(")")) {
-                                            match.value.substring(1, match.value.length - 1)
-                                        } else {
-                                            match.value
-                                        }
+                                        // DRS v1.26.0: the old inline
+                                        // strip (and its TODO) moved into
+                                        // NetworkUtils.normalizePhoneNumberMatch
+                                        // — a pure, JVM-tested step that
+                                        // also unwraps the truncated
+                                        // leading-paren case.
+                                        text = NetworkUtils.normalizePhoneNumberMatch(match.value),
                                     ),
                                     sourceProvider = this@ClipboardSuggestionProvider,
                                     context = context,

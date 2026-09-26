@@ -77,6 +77,12 @@ object DrsTechToolbarKeys {
         // events while armed. The live active dot comes from the same
         // ToggleStates the other toggle tools use.
         DrsTechToolbarKey("fn", "Fn", KeyCode.FN, KeyType.MODIFIER),
+        // DRS v1.26.0: the microphone rides the technical strip — one tap
+        // reaches the same built-in dictation route the mic key on the
+        // letters board drives (privacy gates included). The label follows
+        // the Tab/Esc/Fn Latin convention; the key is momentary, so it has
+        // no toggle dot.
+        DrsTechToolbarKey("mic", "Mic", KeyCode.VOICE_INPUT, KeyType.FUNCTION),
     )
 
     private val BY_ID = ALL.associateBy { it.id }

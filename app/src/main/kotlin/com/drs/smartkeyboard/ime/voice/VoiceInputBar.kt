@@ -23,6 +23,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,10 +31,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardVoice
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -50,6 +53,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.drs.smartkeyboard.R
 import com.drs.smartkeyboard.ime.keyboard.DrsImeSizing
 import com.drs.smartkeyboard.ime.theme.DrsImeUi
@@ -68,6 +72,11 @@ import org.drs.lib.snygg.ui.SnyggText
  * stays visible below, so the user never loses their typing context.
  * Themed through the exact smartbar snygg elements, so every user theme
  * paints it consistently.
+ *
+ * DRS v1.26.0: when the live session runs on the ROM's on-device
+ * recognizer, a small «بدون شبكة» chip appears next to the transcript —
+ * the session's privacy truth, not a promise. AUTO sessions that got
+ * the local engine show it exactly like strict ON_DEVICE_ONLY ones.
  */
 @Composable
 fun VoiceInputBar() {
@@ -82,6 +91,10 @@ fun VoiceInputBar() {
         VoiceUiState.Idle -> hintText
     }
     val stopLabel = stringResource(R.string.voice__cancel)
+    // DRS v1.26.0: the badge flag rides on the state itself, so the chip
+    // appears and disappears with the session that owns the truth.
+    val onDeviceActive = (uiState as? VoiceUiState.Listening)?.onDevice == true
+    val onDeviceLabel = stringResource(R.string.voice__on_device_badge)
 
     // DRS v1.24.0: «الشريط يتنفس» — the mic glyph breathes while the
     // recognizer is actually listening (a calm 620ms scale pulse, the
@@ -156,6 +169,29 @@ fun VoiceInputBar() {
                 modifier = Modifier.weight(1f),
                 text = message,
             )
+            // DRS v1.26.0: the «بدون شبكة» chip — a hairline outline in
+            // the bar's own foreground so every theme paints it honestly.
+            // Plain Text here: the chip's reduced size is a deliberate
+            // visual exception, exactly like the tech keys' 14.sp labels.
+            if (onDeviceActive) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 6.dp, end = 4.dp)
+                        .border(
+                            width = 1.dp,
+                            color = LocalContentColor.current.copy(alpha = 0.45f),
+                            shape = RoundedCornerShape(10.dp),
+                        )
+                        .padding(horizontal = 8.dp, vertical = 3.dp),
+                ) {
+                    Text(
+                        text = onDeviceLabel,
+                        color = LocalContentColor.current,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                    )
+                }
+            }
             SnyggIconButton(
                 elementName = DrsImeUi.SmartbarSharedActionsToggle.elementName,
                 onClick = { keyboardManager.voiceController.stop() },

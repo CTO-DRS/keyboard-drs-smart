@@ -54,4 +54,44 @@ object NetworkUtils {
     fun getPhoneNumbers(str: CharSequence): List<MatchGroup> {
         return PhoneNumberRegex.findAll(str).mapNotNull { it.groups["Phone"] }.toList()
     }
+
+    /**
+     * DRS v1.26.0: the tested normalization of a phone-number match — the
+     * regex deliberately tolerates a fully parenthesized number like
+     * `(0541234567)` (java.util.regex has no `\K`, so the capture cannot
+     * exclude its own surrounding parens), and this pure step strips the
+     * wrapper the user never typed as the suggestion's text:
+     * - a complete outer pair `(...)` is removed;
+     * - a leading `(` with no closing `)` anywhere is removed (a truncated
+     *   wrapper the regex had to consume to reach the digits);
+     * - anything balanced (like the area-code pair in `(054) 123 4567`)
+     *   stays exactly as the user wrote it.
+     */
+    fun normalizePhoneNumberMatch(value: String): String {
+        val trimmed = value.trim()
+        if (trimmed.length < 2) return trimmed
+        if (trimmed.first() == '(' && trimmed.last() == ')') {
+            return trimmed.substring(1, trimmed.length - 1).trim()
+        }
+        if (trimmed.startsWith("(") && !isParenBalanced(trimmed)) {
+            return trimmed.removePrefix("(").trim()
+        }
+        return trimmed
+    }
+
+    /**
+     * Pure: a simple depth scan — `(` descends, `)` ascends, and the walk
+     * must never go below zero nor end above zero. JVM-tested.
+     */
+    internal fun isParenBalanced(value: String): Boolean {
+        var depth = 0
+        for (ch in value) {
+            when (ch) {
+                '(' -> depth++
+                ')' -> depth--
+            }
+            if (depth < 0) return false
+        }
+        return depth == 0
+    }
 }

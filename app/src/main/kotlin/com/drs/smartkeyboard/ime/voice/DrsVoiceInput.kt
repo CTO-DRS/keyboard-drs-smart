@@ -61,9 +61,34 @@ import org.drs.lib.android.AndroidVersion
 /** The listening UI state observed by the voice bar above the keyboard. */
 sealed interface VoiceUiState {
     data object Idle : VoiceUiState
-    data class Listening(val partial: String) : VoiceUiState
+
+    /**
+     * DRS v1.26.0: [onDevice] tells the bar whether this session actually
+     * runs on the ROM's on-device recognizer — «الشارة الصادقة». AUTO
+     * sessions that got the local engine show it exactly like strict
+     * ON_DEVICE_ONLY sessions, because the user deserves to see when
+     * their speech stays inside the device; STANDARD sessions and any
+     * session the controller could not classify keep it false.
+     */
+    data class Listening(
+        val partial: String,
+        val onDevice: Boolean = false,
+    ) : VoiceUiState
+
     data class Error(@StringRes val resId: Int) : VoiceUiState
 }
+
+/**
+ * DRS v1.26.0: the pure badge truth — does the recognizer this session
+ * created run on the device? `ON_DEVICE_ONLY` with an incapable ROM never
+ * reaches a listening state at all (createRecognizer yields null → the
+ * honest error path), so the only combination that must NOT use the
+ * on-device engine is the pinned STANDARD mode. Pure — JVM-tested.
+ */
+fun usesOnDeviceRecognizer(
+    mode: VoiceRecognizerMode,
+    onDevicePossible: Boolean,
+): Boolean = mode != VoiceRecognizerMode.STANDARD && onDevicePossible
 
 /**
  * Process-wide bus between the permission trampoline activity and the
@@ -207,6 +232,15 @@ class DrsVoiceInputController(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var recognizer: SpeechRecognizer? = null
 
+    /**
+     * DRS v1.26.0: whether the recognizer of the live session is the
+     * on-device one — decided once per session in [start] alongside the
+     * recognizer creation, and carried on every [VoiceUiState.Listening]
+     * the session publishes so the bar's badge stays honest.
+     */
+    @Volatile
+    private var sessionOnDevice = false
+
     init {
         // The permission trampoline grants the mic and emits a start
         // request — this collector turns it into a real listening session
@@ -221,8 +255,15 @@ class DrsVoiceInputController(
         mainHandler.post {
             // One session at a time — a re-start tears the old one down.
             destroyRecognizer()
+            // DRS v1.26.0: classify the session once, before creating the
+            // recognizer, so the badge flag and the created instance can
+            // never disagree.
+            val mode = recognizerMode()
+            val onDevicePossible = AndroidVersion.ATLEAST_API31_S &&
+                SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
+            sessionOnDevice = usesOnDeviceRecognizer(mode, onDevicePossible)
             val sr = try {
-                createRecognizer()
+                createRecognizer(mode, onDevicePossible)
             } catch (e: Throwable) {
                 flogError { "recognizer creation failed: $e" }
                 DrsVoiceInputBus.uiState.value = VoiceUiState.Error(R.string.voice__error)
@@ -247,7 +288,8 @@ class DrsVoiceInputController(
             // DRS v1.25.0: a fresh session starts from silence, never
             // from the previous session's last amplitude.
             DrsVoiceInputBus.rmsAmplitude.value = 0f
-            DrsVoiceInputBus.uiState.value = VoiceUiState.Listening(partial = "")
+            DrsVoiceInputBus.uiState.value =
+                VoiceUiState.Listening(partial = "", onDevice = sessionOnDevice)
             try {
                 sr.startListening(intent)
                 flogInfo { "listening started lang=$languageTag" }
@@ -290,12 +332,14 @@ class DrsVoiceInputController(
         } catch (_: Throwable) {
         }
         recognizer = null
+        sessionOnDevice = false
     }
 
-    private fun createRecognizer(): SpeechRecognizer? {
-        val onDevicePossible = AndroidVersion.ATLEAST_API31_S &&
-            SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
-        return when (recognizerMode()) {
+    private fun createRecognizer(
+        mode: VoiceRecognizerMode,
+        onDevicePossible: Boolean,
+    ): SpeechRecognizer? {
+        return when (mode) {
             // DRS v1.25.0: the user demanded on-device only — a ROM that
             // cannot honor the demand gets null, and the honest error
             // path below speaks instead of a silent cloud fallback.
@@ -326,7 +370,8 @@ class DrsVoiceInputController(
 
     private inner class Listener : RecognitionListener {
         override fun onReadyForSpeech(params: Bundle?) {
-            DrsVoiceInputBus.uiState.value = VoiceUiState.Listening(partial = "")
+            DrsVoiceInputBus.uiState.value =
+                VoiceUiState.Listening(partial = "", onDevice = sessionOnDevice)
         }
 
         override fun onBeginningOfSpeech() = Unit
@@ -367,7 +412,8 @@ class DrsVoiceInputController(
                 ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                 ?.firstOrNull()
                 .orEmpty()
-            DrsVoiceInputBus.uiState.value = VoiceUiState.Listening(partial = partial)
+            DrsVoiceInputBus.uiState.value =
+                VoiceUiState.Listening(partial = partial, onDevice = sessionOnDevice)
         }
 
         override fun onEvent(eventType: Int, params: Bundle?) = Unit

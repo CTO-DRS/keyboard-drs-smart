@@ -8,7 +8,7 @@
 
 A free and open-source keyboard for Android — Arabic-first, fully private, deeply customizable.
 
-[![Version](https://img.shields.io/badge/version-1.25.0-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
+[![Version](https://img.shields.io/badge/version-1.26.0-0E9488?style=flat-square)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)
 [![Android](https://img.shields.io/badge/Android-8.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://android.com)
 [![License](https://img.shields.io/badge/License-Apache--2.0-1B2A6B?style=flat-square)](LICENSE)
 [![Release](https://img.shields.io/github/v/release/CTO-DRS/keyboard-drs-smart?style=flat-square&display_name=release)](https://github.com/CTO-DRS/keyboard-drs-smart/releases/latest)

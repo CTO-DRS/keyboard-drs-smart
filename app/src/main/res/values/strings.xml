@@ -2556,4 +2556,7 @@
     <string name="enum__voice_recognizer_mode__standard" comment="Recognizer mode: the classic standard recognizer">الخدمة القياسية</string>
     <string name="voice__on_device_unavailable" comment="Toast when the strict on-device mode is on but the ROM has no on-device recognizer">التعرف الصوتي على الجهاز غير متوفر على هذا النظام، والوضع الصارم مفعّل</string>
 
+    <string name="voice__on_device_badge" comment="Listening bar chip shown while the live session runs on the on-device recognizer">بدون شبكة</string>
+    <string name="voice__permission_permanent" comment="Toast when the mic permission is permanently denied; the app settings page opens right after">رُفض إذن الميكروفون نهائيًا — فعّله من إعدادات التطبيق ثم أعد المحاولة</string>
+
 </resources>
